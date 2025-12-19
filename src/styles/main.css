@@ -1,0 +1,640 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================================= */
+/* 🔥 STYLES PORTED FROM MONOLITH: com_12-15_17-05-13.html 🔥 */
+/* ================================================================= */
+
+/* --- Базові Змінні --- */
+:root {
+    /* 🔥 UPDATE 1: Глибший чорний фон */
+    --bg-color: #0f1115;
+    --primary-text-color: #e0e0e0;
+    --secondary-text-color: #a0a0a0;
+    --accent-color: #cda45e;
+    /* Золотий акцент */
+    --accent-secondary: #9d4edd;
+    /* 🔥 NEW: Mystic Violet for Upsell */
+    --card-bg-color: #161b22;
+    /* Трохи змінений під новий фон */
+    --border-color: #333333;
+    --error-color: #ef4444;
+    /* red-500 */
+}
+
+/* 🔥 FIX: ПОВЕРНЕННЯ НАТИВНОГО СКРОЛУ */
+html {
+    overflow-x: hidden;
+    width: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    
+    /* 🔥 COSMIC BACKGROUND UPDATE: ULTRA-MUTED VERSION 🔥 */
+    background-color: var(--bg-color);
+    
+    /* Складний градієнт з мінімальним контрастом: 
+       1. Верхнє світіння (Майже непомітне)
+       2. Основна глибина (Дуже плавний перехід) 
+    */
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(157, 78, 221, 0.05) 0%, transparent 60%), /* Ultra-subtle Violet */
+        radial-gradient(circle at 0% 0%, rgba(205, 164, 94, 0.02) 0%, transparent 40%),  /* Ghostly Gold Haze */
+        linear-gradient(to bottom, #0a0b0e 0%, #050505 100%); /* Flat Deep Base (Darker start) */
+    
+    background-attachment: fixed;
+    background-size: cover;
+    
+    color: var(--primary-text-color);
+    /* Налаштування для iOS */
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* 🔥 STARRY SKY EFFECT (CSS ONLY) 🔥 */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1; 
+    
+    /* Генерація зірок за допомогою градієнтів */
+    background-image: 
+        radial-gradient(1.5px 1.5px at 15% 15%, white 100%, transparent),
+        radial-gradient(1px 1px at 25% 75%, white 100%, transparent),
+        radial-gradient(2px 2px at 45% 25%, rgba(255, 255, 255, 0.8) 100%, transparent),
+        radial-gradient(1.5px 1.5px at 65% 65%, white 100%, transparent),
+        radial-gradient(1px 1px at 85% 35%, white 100%, transparent),
+        radial-gradient(1.5px 1.5px at 5% 90%, white 100%, transparent),
+        radial-gradient(1px 1px at 95% 5%, white 100%, transparent),
+        radial-gradient(2px 2px at 35% 55%, rgba(255, 255, 255, 0.6) 100%, transparent);
+    
+    background-size: 350px 350px; 
+    opacity: 0.25; 
+    
+    /* Легке мерехтіння */
+    animation: stars-twinkle 8s infinite ease-in-out;
+}
+
+@keyframes stars-twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.35; }
+}
+
+/* --- Контейнер Воронки --- */
+.funnel-container {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    justify-content: flex-start;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    position: relative;
+    z-index: 10; 
+}
+
+.funnel-step {
+    display: none;
+    animation: fadeIn 0.5s ease-out;
+    padding-bottom: 20px;
+}
+
+.funnel-step.active {
+    display: block;
+}
+
+/* 🔥 UPDATE v2.3: Centering Helper Class for Animation Steps */
+.step-centered {
+    display: none;
+    /* Default hidden */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    /* Take available space */
+    height: 100%;
+    min-height: 60vh;
+    /* Ensure vertical centering area */
+}
+
+.step-centered.active {
+    display: flex;
+    /* Flex when active */
+}
+
+/* Спеціальний відступ для Paywall, щоб контент не ховався за Sticky Button */
+#final-paywall-step {
+    padding-bottom: calc(180px + env(safe-area-inset-bottom));
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Стилі Елементів --- */
+.input-field {
+    position: relative;
+    color: var(--primary-text-color);
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg-color);
+    border-radius: 0.75rem;
+    width: 100%;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.input-field:focus-within {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.input-field.input-error {
+    border-color: var(--error-color) !important;
+    box-shadow: 0 0 0 2px var(--error-color) !important;
+}
+
+.error-text {
+    color: var(--error-color);
+    font-size: 0.875rem;
+    text-align: left;
+    display: none;
+    margin-top: 0.5rem;
+}
+
+.info-text {
+    color: var(--accent-color);
+    font-size: 0.875rem;
+    text-align: center;
+    display: none;
+    margin-top: 0.5rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(80%) sepia(30%) saturate(5000%) hue-rotate(350deg) brightness(1.1);
+    cursor: pointer;
+    opacity: 0.9;
+    font-size: 1.25rem;
+    transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* --- Стилі Кнопок --- */
+.btn {
+    width: 100%;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+/* Спінер */
+.btn-spinner {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.btn.loading .btn-text {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.btn.loading .btn-spinner {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -12px;
+    margin-left: -12px;
+    transform: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #cda45e 0%, #a87e38 100%);
+    color: #0f1115;
+    box-shadow: 0 4px 20px -5px rgba(205, 164, 94, 0.4);
+    border: none;
+}
+
+.btn-primary:not(:disabled):hover {
+    opacity: 0.95;
+    box-shadow: 0 6px 25px -5px rgba(205, 164, 94, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-violet {
+    background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 20px -5px rgba(157, 78, 221, 0.4);
+    border: none;
+}
+
+.btn-violet:not(:disabled):hover {
+    opacity: 0.95;
+    box-shadow: 0 6px 25px -5px rgba(157, 78, 221, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-skip {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.btn-skip:hover {
+    color: var(--primary-text-color);
+}
+
+.btn-secondary {
+    background-color: var(--card-bg-color);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    opacity: 0.8;
+}
+
+.btn-secondary:not(:disabled):hover {
+    opacity: 1;
+    background-color: rgba(205, 164, 94, 0.05);
+}
+
+/* --- Стилі Завантаження --- */
+#loading-typing-container {
+    font-size: 1.25rem;
+    color: var(--secondary-text-color);
+    margin-top: 1rem;
+    min-height: 2.5rem;
+    text-align: center;
+}
+
+.typing-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.25rem;
+    background-color: var(--accent-color);
+    animation: blink 0.7s infinite;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.spinner {
+    width: 4rem;
+    height: 4rem;
+    border-width: 4px;
+    border-style: dashed;
+    border-radius: 9999px;
+    animation: spin 1.5s linear infinite;
+    margin: 2rem auto;
+    border-color: var(--accent-color) transparent var(--accent-color) transparent;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#report-typing-container {
+    font-size: 1.25rem;
+    color: var(--secondary-text-color);
+    margin-top: 1.5rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Стилі Paywall --- */
+.paywall-item {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.paywall-item:hover {
+    background-color: rgba(205, 164, 94, 0.05);
+    border-color: rgba(205, 164, 94, 0.2);
+    transform: scale(1.02);
+}
+
+.paywall-icon {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    min-width: 2rem;
+    text-align: center;
+}
+
+.timer-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(205, 164, 94, 0.1);
+    color: var(--accent-color);
+    padding: 0.3rem 0.8rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(205, 164, 94, 0.3);
+}
+
+/* --- Модальне вікно --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    animation: fadeIn 0.3s ease-out;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-top: 4px solid var(--accent-color);
+    border-radius: 0.75rem; 
+    padding: 2rem;
+    max-width: 90%;
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.modal-close-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+.modal-btn-close {
+    margin-top: 1.5rem;
+    background-color: #4b5563;
+    color: white;
+    border: 1px solid #4b5563;
+}
+
+.modal-btn-close:hover {
+    background-color: #6b7280;
+    border-color: #6b7280;
+}
+
+.modal-text-content {
+    text-align: left;
+    font-size: 0.85rem;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.modal-text-content h3 {
+    color: var(--accent-color);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+/* --- CLEAN FOOTER LINK --- */
+.clean-footer-link {
+    margin-top: auto;
+    padding: 1.5rem;
+    text-align: center;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+.clean-footer-link:hover { opacity: 1; }
+.clean-footer-btn {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-decoration: none;
+    border-bottom: 1px dashed #4b5563;
+    cursor: pointer;
+}
+
+/* --- Legal Links --- */
+.legal-footer p { margin-bottom: 0.5rem; }
+.legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.legal-link { color: #6b7280; text-decoration: none; border-bottom: 1px dashed #4b5563; transition: color 0.2s; cursor: pointer; }
+.legal-link:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+/* --- LTV Апсел --- */
+.ltv-upsell-box {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--accent-secondary);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 0 25px rgba(157, 78, 221, 0.1), 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Динамічний Звіт --- */
+.report-advice {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-color);
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 0.25rem 0.5rem 0.5rem 0.25rem;
+}
+
+#report-actions-container {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* === СТИЛІ ДЛЯ БЛОКУ ПЕРЕВІРКИ ДАНИХ === */
+.astro-data-box {
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background-color: rgba(205, 164, 94, 0.05);
+    border: 1px dashed rgba(205, 164, 94, 0.3);
+    border-radius: 8px;
+    text-align: left;
+}
+
+.astro-data-title {
+    color: var(--accent-color);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px solid rgba(205, 164, 94, 0.2);
+    padding-bottom: 0.25rem;
+}
+
+.astro-data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.25rem;
+}
+
+.astro-data-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-left: 5px;
+}
+
+.astro-label-row {
+    font-size: 0.8rem;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 1px;
+}
+
+.astro-planet-name {
+    color: #ffffff;
+    font-weight: 700;
+    margin-right: 3px;
+}
+
+.astro-sign-name {
+    color: #9ca3af;
+    font-weight: 400;
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+.astro-coords-row {
+    color: #6b7280;
+    font-family: monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0px;
+}
+
+.astro-chart-preview {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 8px auto;
+    position: relative;
+}
+
+.astro-chart-preview svg {
+    width: 100%;
+    height: 100%;
+}
+
+.pulse-text {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* === Sticky Paywall Button === */
+.sticky-paywall-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem 1rem calc(2rem + env(safe-area-inset-bottom)) 1rem;
+    background: linear-gradient(to top, #0f1115 75%, rgba(15, 17, 21, 0.95) 90%, rgba(15, 17, 21, 0) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateZ(0);
+    will-change: transform;
+    pointer-events: none;
+}
+
+.sticky-paywall-footer>* {
+    pointer-events: auto;
+}
+
+.btn-pulse-glow {
+    animation: btn-glow 2s infinite;
+}
+
+@keyframes btn-glow {
+    0% { box-shadow: 0 0 0 0 rgba(205, 164, 94, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(205, 164, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
+}

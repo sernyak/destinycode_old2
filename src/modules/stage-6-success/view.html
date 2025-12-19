@@ -1,0 +1,124 @@
+<section id="success-step" class="funnel-step active space-y-6">
+    <div id="email-capture-box" class="text-center">
+        <!-- Icon -->
+        <svg class="w-16 h-16 mx-auto mb-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        
+        <!-- Headers -->
+        <h2 class="text-2xl font-bold text-center text-white">
+            <span style="color: var(--accent-color);">Оплата успішна!</span>
+        </h2>
+        <p style="color: var(--secondary-text-color);" class="mb-6">
+            Твій персональний звіт готовий до відправки. Вкажи email на який надіслати:
+        </p>
+
+        <!-- Main Form -->
+        <form id="email-form" class="space-y-4 mb-8">
+            <label for="user-email" class="sr-only">Ваш Email</label>
+            
+            <!-- Hardcore styles for dark theme input -->
+            <input 
+                type="email" 
+                id="user-email" 
+                name="user-email" 
+                placeholder="your.email@gmail.com" 
+                class="input-field text-center" 
+                style="background-color: var(--card-bg-color) !important; color: #e0e0e0 !important; -webkit-text-fill-color: #e0e0e0 !important;"
+                required
+            >
+            
+            <!-- 🔥 UPDATE: Повернено стандартний золотий клас 'btn-primary'.
+                 Клас-градієнт .btn-gold-purple буде додано через JS після оплати апселу. -->
+            <button type="submit" id="main-report-btn" class="btn btn-primary !text-lg !py-4">
+                <span class="btn-text">Надіслати мені звіт</span>
+                <span class="btn-spinner"></span>
+            </button>
+        </form>
+
+        <!-- LTV Upsell Box -->
+        <div id="ltv-upsell-box" class="ltv-upsell-box text-left relative overflow-hidden">
+            <!-- Badge -->
+            <div class="absolute top-0 right-0 bg-[#9d4edd] text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg" style="margin-top: 0; margin-right: 0;">SPECIAL OFFER</div>
+            
+            <!-- Content -->
+            <h3 class="font-bold text-lg text-white mb-1" style="color: var(--accent-secondary); margin-right: 60px;">
+                Додай до свого замовлення
+            </h3>
+            
+            <p class="text-sm mt-2 mb-4 leading-relaxed" style="color: var(--secondary-text-color);">
+                Хочеш повний <strong>Астрологічний прогноз</strong> на найближчий рік? Дізнатися про свої фінансові піки, періоди удачі та успіхи у стосунках?<br>
+                <span style="color: var(--primary-text-color);">Лише зараз: <strong>247 грн.</strong> замість <span style="text-decoration: line-through; opacity: 0.7;">1399 грн</span> (знижка 83%)</span>
+            </p>
+            
+            <button id="ltv-upsell-btn" class="btn btn-violet w-full opacity-90 hover:opacity-100">
+                <span class="btn-text">Так, додати прогноз за 247 грн. <span style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">1399 грн.</span></span>
+                <span class="btn-spinner"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: Upsell Email -->
+    <div id="upsell-email-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold text-white mb-4">Оплата успішна! ✨</h3>
+            <p style="color: var(--secondary-text-color);" class="mb-6 text-sm">
+                Твій "Персональний прогноз на найближчий рік" успішно оплачено.<br><br>
+                Він вже генерується і буде надісланий окремим листом. Вкажи свою пошту для відправки:
+            </p>
+            <form id="upsell-email-form" class="space-y-4">
+                <label for="upsell-email-input" class="sr-only">Ваш Email</label>
+                
+                <input 
+                    type="email" 
+                    id="upsell-email-input" 
+                    placeholder="your.email@gmail.com" 
+                    class="input-field text-center" 
+                    style="background-color: var(--card-bg-color) !important; color: #e0e0e0 !important; -webkit-text-fill-color: #e0e0e0 !important;"
+                    required
+                >
+                
+                <button type="submit" class="btn btn-violet">
+                    <span class="btn-text">Підтвердити email</span>
+                    <span class="btn-spinner"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        /* Global Autofill Override Styles */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
+            -webkit-text-fill-color: #e0e0e0 !important;
+            transition: background-color 5000s ease-in-out 0s;
+            caret-color: var(--accent-color);
+        }
+
+        #user-email, #upsell-email-input {
+            color: #e0e0e0 !important;
+            caret-color: var(--accent-color);
+        }
+        
+        #user-email::placeholder, #upsell-email-input::placeholder {
+            color: var(--secondary-text-color);
+            opacity: 0.7;
+            -webkit-text-fill-color: var(--secondary-text-color) !important;
+        }
+
+        /* 🔥 NEW CLASS: Золото-Фіолетовий градієнт */
+        .btn-gold-purple {
+            background: linear-gradient(135deg, #cda45e 0%, #9d4edd 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 20px rgba(157, 78, 221, 0.4) !important;
+        }
+        .btn-gold-purple:hover {
+            opacity: 0.95;
+            box-shadow: 0 6px 25px rgba(157, 78, 221, 0.6) !important;
+        }
+    </style>
+</section>

@@ -1,10 +1,14 @@
-<section id="loading-step" class="min-h-screen flex flex-col justify-center items-center px-4 fade-in text-center relative z-10">
-    <!-- Спінер (стилі вже в main.css) -->
-    <div class="spinner mb-6" style="display: block; width: 4rem; height: 4rem; border-width: 4px; border-color: var(--accent-color) transparent var(--accent-color) transparent;"></div>
+<!-- 🔥 UPDATE: Використовуємо step-centered та margin: auto для ідеального центрування у funnel-container -->
+<section id="loading-step" class="funnel-step active step-centered space-y-6 text-center" style="margin-top: auto; margin-bottom: auto;">
+    
+    <!-- Спінер (стилі беруться з main.css, прибрано зайві inline стилі) -->
+    <div class="spinner" style="margin-left: auto; margin-right: auto;"></div>
     
     <!-- Контейнер для тексту -->
-    <div id="loading-typing-container" class="text-xl text-[#a0a0a0] min-h-[3rem]">
+    <div id="loading-typing-container" class="typing-container">
         <span id="loading-text"></span>
-        <span id="loading-cursor" class="inline-block w-[10px] h-[1.25rem] bg-[#cda45e] ml-1 align-middle animate-pulse"></span>
+        <!-- Курсор (стилі з main.css) -->
+        <span id="loading-cursor" class="typing-cursor" style="display: none;"></span>
     </div>
+
 </section>

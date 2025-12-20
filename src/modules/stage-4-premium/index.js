@@ -151,15 +151,15 @@ export function init(router) {
              cityInfoMessage.style.display = 'none';
         }
 
-        setButtonLoading(continueToPaywallButton, false);
-
-        // КРОК 3: Фінальний блокер
+        // Якщо є помилки, вимикаємо лоадер на кнопці
         if (hasBlockingErrors) {
+            setButtonLoading(continueToPaywallButton, false);
             if (navigator.vibrate) navigator.vibrate(50);
             return;
         }
 
         // КРОК 4: Успіх
+        // Лоадер не вимикаємо, переходимо далі
         state.set('time', time);
         
         setTimeout(() => {
@@ -167,7 +167,7 @@ export function init(router) {
         }, infoText ? 1200 : 0);
     });
 
-    // --- 4. Skip Button Logic (Modified: City Required) ---
+    // --- 4. Skip Button Logic (Modified: Trigger Main Button Spinner) ---
     skipButton.addEventListener('click', async () => {
         let city = birthCityInput.value.trim();
         const originalUserCityInput = city;
@@ -181,16 +181,16 @@ export function init(router) {
         // 🔥 VALIDATION: City is REQUIRED even for skip logic
         if (!city) {
             birthCityInput.classList.add('input-error');
-            // Уточнений текст помилки для цього сценарію
             cityErrorMessage.innerText = "Будь ласка, введи місто, навіть якщо не знаєш часу.";
             cityErrorMessage.style.display = 'block';
             if (navigator.vibrate) navigator.vibrate(50);
             return;
         }
 
-        // Запускаємо валідацію міста через API
-        // Нам важливо знати координати міста навіть без часу
-        setButtonLoading(skipButton, true); // Додаємо лоадер на кнопку пропуску
+        // 🔥 TARGET CHANGE: Запускаємо лоадер на ГОЛОВНІЙ кнопці
+        setButtonLoading(continueToPaywallButton, true); 
+        // Додатково блокуємо кнопку пропуску, щоб не клікали двічі
+        skipButton.disabled = true;
 
         const coords = await getCoordinates(city);
         let infoText = null;
@@ -231,13 +231,15 @@ export function init(router) {
             cityInfoMessage.style.display = 'block';
         }
 
-        setButtonLoading(skipButton, false);
-
+        // Якщо помилка — знімаємо лоадер з головної кнопки і розблоковуємо скіп
         if (hasError) {
+            setButtonLoading(continueToPaywallButton, false);
+            skipButton.disabled = false;
             if (navigator.vibrate) navigator.vibrate(50);
             return;
         }
 
+        // Якщо успіх — лоадер на головній кнопці залишається крутитися до переходу
         console.log("User skipped time, but city is valid.");
         
         // Navigate

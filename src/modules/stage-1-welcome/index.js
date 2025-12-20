@@ -88,14 +88,13 @@ export function init(router) {
     });
 
     // ==========================================
-    // FORM LOGIC (Original Preserved)
+    // FORM LOGIC (Modified for smooth UX)
     // ==========================================
 
-    // --- 1. Logic: Date Placeholder (Exact from Monolith) ---
+    // --- 1. Logic: Date Placeholder ---
     function updateDatePlaceholder() {
         const val = birthDateInput.value;
         if (!val) {
-            // 🔥 FIX: Текст має бути саме "Обрати дату народження" як в JS моноліту
             datePlaceholder.innerText = 'Обрати дату народження';
             datePlaceholder.style.color = 'var(--secondary-text-color)';
         } else {
@@ -108,33 +107,44 @@ export function init(router) {
         }
     }
 
-    // --- 2. Logic: Default Date Focus (Exact from Monolith) ---
+    // --- 2. Logic: Default Date Focus (Silent Set) ---
     function setDefaultDateOnFirstFocus() {
         if (birthDateInput.value === '') {
-            console.log("Setting default date to 1995-01-01 for convenience.");
+            // 🔥 Ми ставимо значення ТІЛЬКИ для того, щоб нативний календар
+            // відкрився на 1995 році. Але ми НЕ оновлюємо текст на екрані.
+            // Користувач все ще бачить "Обрати дату".
             birthDateInput.value = '1995-01-01';
-            // Also need to trigger placeholder update immediately after setting value
-            updateDatePlaceholder();
+            
+            // ❌ ВИДАЛЕНО: updateDatePlaceholder() тут не викликаємо!
         }
     }
 
     // --- Listeners ---
+    
+    // Оновлюємо текст тільки коли користувач реально щось змінив
     birthDateInput.addEventListener('input', updateDatePlaceholder);
     birthDateInput.addEventListener('change', updateDatePlaceholder);
+    
+    // Blur важливий: якщо юзер відкрив календар (там стало 1995), нічого не крутив
+    // і натиснув "Готово", подія change може не спрацювати, але blur спрацює.
+    // Тоді ми покажемо дату.
     birthDateInput.addEventListener('blur', updateDatePlaceholder);
-    // iOS Fix
-    birthDateInput.addEventListener('touchend', () => setTimeout(updateDatePlaceholder, 500));
 
+    // 🔥 FIX: Прибираємо агресивний iOS фікс з setTimeout, 
+    // який викликав "стрибок" тексту через 0.5с після кліку.
+    // birthDateInput.addEventListener('touchend', ...); <--- REMOVED
+
+    // Тригери для встановлення дефолтного року в календарі
     birthDateInput.addEventListener('focus', setDefaultDateOnFirstFocus);
     birthDateInput.addEventListener('click', setDefaultDateOnFirstFocus);
     birthDateInput.addEventListener('touchstart', setDefaultDateOnFirstFocus);
 
-    // Initial call
+    // Initial call (щоб скинути, якщо браузер запам'ятав щось)
     updateDatePlaceholder();
 
-    // --- 3. Logic: Form Submit (Exact from Monolith Logic) ---
+    // --- 3. Logic: Form Submit ---
     birthForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Завдяки novalidate в HTML ця подія спрацює навіть при порожньому полі
+        e.preventDefault(); 
         const selectedDate = birthDateInput.value;
 
         if (selectedDate === '') {
@@ -143,10 +153,8 @@ export function init(router) {
         } else {
             errorMessage.style.display = 'none';
             
-            // Save state
             state.set('date', selectedDate);
 
-            // Button Loading State
             function setButtonLoading(button, isLoading) {
                 if (isLoading) {
                     button.classList.add('loading');
@@ -160,11 +168,8 @@ export function init(router) {
             setButtonLoading(landingSubmitButton, true);
 
             // Init Astro Lib (Modular adaptation)
-            // Non-blocking call to ensure it starts loading if not already
             initAstroLib(); 
 
-            // 🔥 CRITICAL FIX: Removed setTimeout(500ms) delay. 
-            // Monolith does `showStep('loading')` immediately.
             router.navigateTo('loading');
         }
     });

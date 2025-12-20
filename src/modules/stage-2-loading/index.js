@@ -53,7 +53,10 @@ export async function init(router) {
                 currentPause = 600; 
             }
 
-            await typeWriter(loadingTextEl, loadingCursorEl, step.text, 50, currentPause, step.final);
+            // Перевірка існування елементів перед запуском анімації
+            if (loadingTextEl && loadingCursorEl) {
+                await typeWriter(loadingTextEl, loadingCursorEl, step.text, 50, currentPause, step.final);
+            }
             
             // Додаткове очікування на останньому кроці, якщо API ще думає
             if (step.final && !isApiReady) {

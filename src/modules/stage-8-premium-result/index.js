@@ -20,20 +20,31 @@ export function init(router) {
 
     // --- Data ---
     const reportData = state.get('fullReport');
+    
+    // 🔥 FIX: Збираємо повний об'єкт userData, ВКЛЮЧАЮЧИ ПЛАНЕТИ
+    // Якщо планети не збережені (напр. після рефрешу), PDF буде без таблички, але не зламається.
     const userData = {
         date: state.get('date'),
         time: state.get('time'),
         city: state.get('city'),
-        geo: state.get('geo')
+        geo: state.get('geo'),
+        planets: state.get('planets') || [] // 🔥 CRITICAL ADDITION FOR PDF COVER
     };
-    // 🔥 Отримуємо статус оплати апселу з попередніх кроків
+    
     const isUpsellPaid = state.get('hasPaidUpsell');
     const userEmail = state.get('email');
 
     // --- 1. RENDER REPORT LOGIC ---
     async function renderReport() {
         if (!reportData || !reportData.sections) {
-            fullReportContentEl.innerHTML = `<p class="text-red-400 text-center">Помилка: Дані звіту відсутні. Спробуйте оновити сторінку.</p>`;
+            // 🔥 Better Error UI
+            fullReportContentEl.innerHTML = `
+                <div class="text-center p-6">
+                    <p class="text-red-400 mb-4">Дані звіту не знайдено.</p>
+                    <button id="refresh-report-btn" class="btn btn-secondary">Оновити сторінку</button>
+                </div>
+            `;
+            document.getElementById('refresh-report-btn').onclick = () => window.location.reload();
             return;
         }
 
@@ -82,48 +93,39 @@ export function init(router) {
         renderButtons();
     }
 
-    // --- 2. BUTTONS LOGIC (🔥 ЛОГІКА АПСЕЛУ ТУТ 🔥) ---
+    // --- 2. BUTTONS LOGIC ---
     function renderButtons() {
         reportActionsContainer.innerHTML = '';
 
-        // 1. Download PDF Button (Завжди є)
+        // 1. Download PDF Button
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'btn btn-secondary';
         downloadBtn.id = 'download-pdf-btn';
         downloadBtn.innerHTML = '<span class="btn-text">Завантажити PDF</span><span class="btn-spinner"></span>';
+        // Передаємо оновлений userData з планетами
         downloadBtn.onclick = () => handleDownloadPDF(downloadBtn, fullReportContentEl.innerHTML);
         reportActionsContainer.appendChild(downloadBtn);
 
-        // 2. Logic: Перевіряємо, чи купив юзер прогноз
+        // 2. Logic: Upsell Status
         if (state.get('hasPaidUpsell')) {
-            // ВАРІАНТ А: Вже купив -> Показуємо кнопку перезапуску (або нічого)
             const tryAgainBtn = document.createElement('button');
             tryAgainBtn.className = 'btn btn-secondary';
             tryAgainBtn.style.marginTop = '10px';
             tryAgainBtn.innerHTML = '<span class="btn-text">Спробувати ще (Почати знову)</span>';
             tryAgainBtn.onclick = () => {
                 if (confirm("Ви впевнені? Це очистить поточний звіт.")) {
-                    // 🔥 FIX RESTART LOGIC:
-                    // 1. Clear State (sessionStorage)
                     state.clear();
-                    
-                    // 2. Clear URL params (remove ?payment=success if exists)
-                    // This prevents src/main.js from auto-redirecting to success
                     const cleanUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
-
-                    // 3. Force reload to clean URL, which will land on Welcome
                     window.location.href = cleanUrl;
                 }
             };
             reportActionsContainer.appendChild(tryAgainBtn);
         } else {
-            // ВАРІАНТ Б: ЩЕ НЕ купив -> Показуємо кнопку Апселу (Фіолетову)
             const getForecastBtn = document.createElement('button');
             getForecastBtn.className = 'btn btn-violet';
             getForecastBtn.style.marginTop = '10px';
             getForecastBtn.innerHTML = '<span class="btn-text">Отримати прогноз на рік</span>';
-            // При кліку відкриваємо модалку Late Upsell
             getForecastBtn.onclick = () => {
                 lateUpsellModal.style.display = 'flex';
             };
@@ -131,7 +133,7 @@ export function init(router) {
         }
     }
 
-    // --- 3. PDF HANDLER ---
+    // --- 3. PDF HANDLER (UPDATED) ---
     async function handleDownloadPDF(btnElement, htmlContent) {
         setButtonLoading(btnElement, true);
         const PDF_BACKEND_URL = 'https://createpdf-kpkshoor7q-ew.a.run.app';
@@ -150,13 +152,15 @@ export function init(router) {
                     } catch (e) { return ''; }
                 }).join('\n');
 
+            console.log("Sending PDF Request with Planets:", userData.planets); // Debug log
+
             const response = await fetch(PDF_BACKEND_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     reportHtml: cleanedHtml,
                     reportStyles: styles,
-                    userData: userData,
+                    userData: userData, // 🔥 Тепер тут є .planets
                     reportType: 'main'
                 })
             });
@@ -180,13 +184,13 @@ export function init(router) {
             }
         } catch (error) {
             console.error(error);
-            showModal("Помилка", `Не вдалося завантажити PDF. Спробуйте пізніше.`);
+            showModal("Помилка", `Не вдалося завантажити PDF. Спробуйте ще раз.`);
         } finally {
             setButtonLoading(btnElement, false);
         }
     }
 
-    // --- 4. UPSELL MODAL HANDLERS (Обробка покупки на цьому кроці) ---
+    // --- 4. UPSELL MODAL HANDLERS ---
     closeLateUpsellBtn.addEventListener('click', () => {
         lateUpsellModal.style.display = 'none';
     });
@@ -200,14 +204,11 @@ export function init(router) {
         btn.querySelector('.btn-text').innerText = "Обробка...";
 
         try {
-            // Емуляція оплати
             await new Promise(r => setTimeout(r, 2000));
-            
-            // 🔥 Оновлюємо стан: тепер апсел оплачено
             state.set('hasPaidUpsell', true);
             
-            // Запускаємо генерацію прогнозу на пошту
             if (userEmail) {
+                // Передаємо і тут оновлені дані
                 generateForecast(userData, userEmail);
             }
             
@@ -216,7 +217,6 @@ export function init(router) {
             
             setTimeout(() => {
                 lateUpsellModal.style.display = 'none';
-                // 🔥 Перемальовуємо кнопки: фіолетова зникне, з'явиться "Спробувати ще"
                 renderButtons(); 
                 showModal("Успіх!", "Прогноз оплачено і відправлено на пошту!");
             }, 1000);

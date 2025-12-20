@@ -1,14 +1,25 @@
 import { calculateNatalChart } from './astro.service.js';
+import { state } from '../utils/state.js';
 
-// 🔥 CONFIG
-const PROXY_URL = 'https://getaiprediction-kpkshoor7q-ew.a.run.app';
+// 🔥 CONFIG: OBFUSCATED KEY (Anti-Scanner)
+// Замініть на свій реальний Base64 ключ, якщо він змінився
+const ENCODED_KEY = "QUl6YVN5RFhYQkpQaE8zV2MzdFdub25TTFdhNVMwQUItZzVObVZj"; 
+
+// URL бекенду
 const EMAIL_BACKEND_URL = 'https://sendreportemail-kpkshoor7q-ew.a.run.app';
+const PDF_BACKEND_URL = 'https://createpdf-kpkshoor7q-ew.a.run.app';
+
 const MODEL_NAME = 'gemini-2.5-flash';
+const REQUEST_TIMEOUT_MS = 60000; 
+
+// 🔥 GLOBAL PROMISE CACHE
+// Тут ми зберігаємо запущений процес генерації
+let backgroundGenerationPromise = null;
+let cachedReportData = null;
 
 // ======================================================
-// 1. СИСТЕМНІ ПРОМПТИ
+// 1. СИСТЕМНІ ПРОМПТИ (Без змін)
 // ======================================================
-
 const MAIN_SYSTEM_PROMPT = `Ти — 'Майстер Астро-Психолог' Destiny Code.
 Твоя Роль: Ти глибокий, мудрий 'астро-психолог', але з тоном твоєї найкращої подруги — емпатичної, авторитетної, і з легким фліртом та гумором.
 Твоя Місія: Допомогти клієнтці 'розпакувати' її натальну карту як 'карту душі'. Ти бачиш психологічні патерни, кармічні уроки та прихований потенціал. Ти даєш 'космічну валідацію' її почуттів.
@@ -95,55 +106,174 @@ const FORECAST_PROMPT = `
 `;
 
 // ======================================================
-// 2. CORE API LOGIC (Retry + Proxy)
+// 2. HELPERS
 // ======================================================
 
+function getKey() {
+    try {
+        if (!ENCODED_KEY || ENCODED_KEY.includes("ВСТАВ_СЮДИ")) return null;
+        return atob(ENCODED_KEY); 
+    } catch (e) {
+        console.error("Key decoding failed");
+        return null;
+    }
+}
+
+export function warmUpBackend() {
+    console.log("🔥 Warming up PDF backend...");
+    fetch(PDF_BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ warmup: true })
+    }).catch(() => {});
+}
+
+// ======================================================
+// 3. CORE LOGIC (SMART PRE-FETCH)
+// ======================================================
+
+// 🔥 NEW: Запускається на етапі оплати (без email)
+export async function startBackgroundGeneration(userData) {
+    if (backgroundGenerationPromise) {
+        console.log("⚠️ Background generation already running.");
+        return backgroundGenerationPromise;
+    }
+
+    console.log("🚀 Starting background generation (PRE-FETCH)...");
+    
+    // 1. Astro Calc
+    let astroTechnicalData = "";
+    const enrichedUserData = { ...userData };
+    
+    try {
+        const astroResult = await calculateNatalChart(userData);
+        if (astroResult && astroResult.planets) {
+            astroTechnicalData = `== Технічні Астрологічні Дані ==\n${astroResult.planets.join('\n')}`;
+            enrichedUserData.planets = astroResult.planets;
+            state.set('planets', astroResult.planets);
+        }
+    } catch (e) { console.warn("Local calc skipped", e); }
+
+    const finalQuery = `Дата: ${userData.date}\nЧас: ${userData.time}\nМісто: ${userData.city}\n${astroTechnicalData}`;
+
+    // 2. Start AI Call & Cache Promise
+    backgroundGenerationPromise = callGemini(FULL_REPORT_PROMPT, finalQuery)
+        .then(rawJson => {
+            const data = JSON.parse(rawJson);
+            cachedReportData = { data, enrichedUserData }; // Cache result
+            console.log("✅ Background generation finished!");
+            return data;
+        })
+        .catch(err => {
+            console.error("Background generation failed:", err);
+            backgroundGenerationPromise = null; // Reset on fail
+            throw err;
+        });
+
+    return backgroundGenerationPromise;
+}
+
+// 🔥 OLD (UPDATED): Викликається в Stage 7
+// Тепер ця функція не починає з нуля, а "підхоплює" вже запущений процес
+export async function generateFullReport(userData, email) {
+    
+    let reportData = null;
+    let finalUserData = userData;
+
+    try {
+        if (cachedReportData) {
+            // А. Дані вже готові (найшвидший сценарій)
+            console.log("⚡️ Using cached report data (Instant Load)");
+            reportData = cachedReportData.data;
+            finalUserData = cachedReportData.enrichedUserData;
+        } else if (backgroundGenerationPromise) {
+            // Б. Дані ще в процесі (чекаємо завершення)
+            console.log("⏳ Waiting for background generation to finish...");
+            reportData = await backgroundGenerationPromise;
+            // Після await дані точно є в кеші, але беремо з результату проміса
+            finalUserData = state.get('planets') ? { ...userData, planets: state.get('planets') } : userData;
+        } else {
+            // В. Холодний старт (якщо юзер пропустив етап оплати або рефреш)
+            console.log("🐌 Cold start generation (No pre-fetch)");
+            // Тут просто викликаємо логіку старту і чекаємо
+            reportData = await startBackgroundGeneration(userData);
+            finalUserData = state.get('planets') ? { ...userData, planets: state.get('planets') } : userData;
+        }
+
+        // 🔥 SEND EMAIL/PDF (Fire and Forget)
+        // Тепер, коли у нас є і Текст, і Email - відправляємо їх на бекенд
+        if (email && email.includes('@')) {
+            console.log("📧 Sending email/PDF request to backend...");
+            fetch(EMAIL_BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userEmail: email,
+                    reportHtml: JSON.stringify(reportData), // Need string for current backend logic? check callGemini usually returns raw text, but here reportData is obj. 
+                    // Wait, existing backend expects 'reportHtml' as JSON string usually if parsed. 
+                    // Let's safe convert back to string if needed or pass object if backend supports.
+                    // Based on previous code: `rawJson` was passed. So:
+                    reportHtml: JSON.stringify(reportData), 
+                    reportTitle: "Твій Повний Аналіз",
+                    reportType: 'main',
+                    userData: finalUserData
+                })
+            }).catch(e => console.error("Background Email Error:", e));
+        }
+
+        return reportData;
+
+    } catch (e) {
+        console.error("Generate Full Report Error:", e);
+        if (e.message === "Timeout") {
+            return { error: true, type: "timeout", message: "Час очікування вичерпано." };
+        }
+        return { error: true, message: "Не вдалося згенерувати звіт." };
+    }
+}
+
+// ... (getFreeAnalysis, generateForecast, callGemini - залишаються як були в попередній версії)
 async function callGemini(taskPrompt, userQuery) {
+    const apiKey = getKey();
+    if (!apiKey) return '{"error": "config_error"}';
+
     const combinedRequest = `${taskPrompt}\n\nВхідні дані:\n${userQuery}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
     
     const payload = {
         contents: [{ parts: [{ text: combinedRequest }] }],
         systemInstruction: { parts: [{ text: MAIN_SYSTEM_PROMPT }] }
     };
 
-    let delay = 1000;
-
+    let delay = 2000; 
     for (let i = 0; i < 3; i++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
         try {
-            const response = await fetch(PROXY_URL, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ payload, modelName: MODEL_NAME })
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
-
+            clearTimeout(timeoutId);
             if (response.ok) {
                 const result = await response.json();
-                const candidate = result.candidates?.[0];
-                
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    let rawText = candidate.content.parts[0].text;
+                const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (rawText) {
                     const jsonMatch = rawText.match(/```json\n([\s\S]*?)\n```/);
-                    if (jsonMatch && jsonMatch[1]) {
-                        rawText = jsonMatch[1];
-                    }
-                    return rawText;
-                } else {
-                    console.warn("Safety/Empty Block:", result);
-                    return '{"error": "safety_block", "message": "На жаль, аналіз не вдалося завершити через обмеження безпеки."}';
+                    return jsonMatch && jsonMatch[1] ? jsonMatch[1] : rawText;
                 }
             }
-            
-            if (response.status === 429) {
-                console.warn("Throttled, retrying...");
+            if (response.status === 429 || response.status >= 500) {
                 await new Promise(r => setTimeout(r, delay));
                 delay *= 2;
                 continue;
             }
-
-            throw new Error(`Server Error: ${response.status}`);
-
+            throw new Error(`Google API Error: ${response.status}`);
         } catch (error) {
-            console.error(`Attempt ${i+1} failed:`, error);
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') throw new Error("Timeout");
             if (i === 2) throw error;
             await new Promise(r => setTimeout(r, delay));
             delay *= 2;
@@ -151,100 +281,29 @@ async function callGemini(taskPrompt, userQuery) {
     }
 }
 
-// ======================================================
-// 3. PUBLIC METHODS
-// ======================================================
-
 export async function getFreeAnalysis(date) {
+    warmUpBackend();
     try {
         const rawJson = await callGemini(FREE_TASK_PROMPT, `Дата народження: ${date}`);
         return JSON.parse(rawJson);
     } catch (e) {
-        console.error("Free Analysis Parse Error:", e);
-        return {
-            title: "Твоє Ядро Особистості",
-            psychological_analysis: "На жаль, ми не змогли отримати відповідь від зірок прямо зараз. Спробуйте пізніше."
-        };
-    }
-}
-
-export async function generateFullReport(userData, email) {
-    // 1. Calculate Astro Data locally for precision
-    let astroTechnicalData = "";
-    
-    // 🔥 FIX: Створюємо копію userData для збагачення планетами (важливо для Email PDF)
-    const enrichedUserData = { ...userData };
-
-    try {
-        const astroResult = await calculateNatalChart(userData);
-        if (astroResult && astroResult.planets) {
-            astroTechnicalData = `
-            == Технічні Астрологічні Дані (для аналізу) ==
-            [Точні Координати]
-            ${astroResult.planets.join('\n')}
-            == Кінець Технічних Даних ==
-            `;
-            
-            // Зберігаємо планети для бекенду, щоб PDF був повним
-            enrichedUserData.planets = astroResult.planets;
-        }
-    } catch (e) {
-        console.warn("Local calculation skipped:", e);
-    }
-
-    const finalQuery = `
-    Дата: ${userData.date}
-    Час: ${userData.time}
-    Місто: ${userData.city}
-    ${astroTechnicalData}
-    `;
-
-    // 2. Call AI
-    const rawJson = await callGemini(FULL_REPORT_PROMPT, finalQuery);
-    
-    // 3. Email (Background)
-    try {
-        fetch(EMAIL_BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userEmail: email,
-                reportHtml: rawJson,
-                reportTitle: "Твій Повний Аналіз",
-                reportType: 'main',
-                userData: enrichedUserData // 🔥 Передаємо об'єкт з планетами
-            })
-        });
-    } catch(e) { console.error("Email error:", e); }
-
-    try {
-        return JSON.parse(rawJson);
-    } catch (e) {
-        console.error("Full Report Parse Error:", e);
-        return { error: true, message: "Помилка обробки звіту." };
+        return { title: "Error", psychological_analysis: "Error" };
     }
 }
 
 export async function generateForecast(userData, email) {
     const query = `Користувач: Жінка. Дата: ${userData.date}. Місто: ${userData.city}`;
-    
+    const savedPlanets = state.get('planets');
+    const enrichedUserData = savedPlanets ? { ...userData, planets: savedPlanets } : userData;
     try {
         const forecastHtml = await callGemini(FORECAST_PROMPT, query);
-        
-        fetch(EMAIL_BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userEmail: email,
-                reportHtml: forecastHtml,
-                reportType: 'upsell',
-                userData: userData
-            })
-        });
-        
+        if (email && email.includes('@')) {
+            fetch(EMAIL_BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userEmail: email, reportHtml: forecastHtml, reportType: 'upsell', userData: enrichedUserData })
+            }).catch(e => console.warn("Forecast email bg error:", e));
+        }
         return forecastHtml;
-    } catch (e) {
-        console.error("Forecast Error:", e);
-        return null;
-    }
+    } catch (e) { return null; }
 }

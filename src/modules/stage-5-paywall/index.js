@@ -1,6 +1,7 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { renderAstroBox } from '../../utils/astro-renderer.js';
+import { warmUpBackend, startBackgroundGeneration } from '../../services/api.service.js'; // 🔥 Імпорт функцій прискорення
 
 export function init(router) {
     const app = document.getElementById('app');
@@ -19,7 +20,11 @@ export function init(router) {
     const popupCheckoutBtn = document.getElementById('popup-checkout-btn');
     const popupCloseBtn = document.getElementById('popup-close-btn');
 
-    // --- 1. POPUP LOGIC (Global Helper Hack) ---
+    // 🔥 1. WARM UP BACKEND (Стратегія попереднього прогріву)
+    // Поки юзер читає цей екран, ми вже будимо PDF-сервер
+    warmUpBackend();
+
+    // --- 2. POPUP LOGIC (Global Helper Hack) ---
     // Оскільки в HTML прописано onclick="showPaywallPopup(...)", 
     // ми мусимо зробити цю функцію доступною глобально.
     window.showPaywallPopup = function(title, text) {
@@ -43,11 +48,13 @@ export function init(router) {
         });
     }
     // Close on overlay click
-    paywallPopup.addEventListener('click', (e) => {
-        if (e.target === paywallPopup) paywallPopup.style.display = 'none';
-    });
+    if (paywallPopup) {
+        paywallPopup.addEventListener('click', (e) => {
+            if (e.target === paywallPopup) paywallPopup.style.display = 'none';
+        });
+    }
 
-    // --- 2. ASTRO TRUST BOX RENDER ---
+    // --- 3. ASTRO TRUST BOX RENDER ---
     const userData = {
         date: state.get('date'),
         time: state.get('time'),
@@ -55,21 +62,25 @@ export function init(router) {
         geo: state.get('geo')
     };
 
-    renderAstroBox(userData).then(htmlContent => {
-        if (htmlContent) {
-            astroContainer.innerHTML = htmlContent;
-            astroContainer.style.display = 'block';
-        } else {
-            astroContainer.style.display = 'none';
-        }
-    });
+    if (astroContainer) {
+        renderAstroBox(userData).then(htmlContent => {
+            if (htmlContent) {
+                astroContainer.innerHTML = htmlContent;
+                astroContainer.style.display = 'block';
+            } else {
+                astroContainer.style.display = 'none';
+            }
+        });
+    }
 
-    // --- 3. TIMER LOGIC (Exact Monolith Logic) ---
+    // --- 4. TIMER LOGIC (Exact Monolith Logic) ---
     if (window.paywallInterval) clearInterval(window.paywallInterval);
     
     let duration = 7 * 60; // 7 minutes
 
     function updateTimer() {
+        if (!timerDisplay) return;
+        
         const minutes = Math.floor(duration / 60);
         const seconds = duration % 60;
         timerDisplay.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
@@ -83,7 +94,7 @@ export function init(router) {
     updateTimer();
     window.paywallInterval = setInterval(updateTimer, 1000);
 
-    // --- 4. CHECKOUT LOGIC (Simulated) ---
+    // --- 5. CHECKOUT LOGIC (Simulated + Turbo Start) ---
     async function handleCheckout(btn) {
         // Loading State
         btn.classList.add('loading');
@@ -98,7 +109,7 @@ export function init(router) {
 
         console.log("Simulating payment processing...");
         
-        // Simulate delay
+        // Simulate delay (Payment Gateway Interaction)
         await new Promise(resolve => setTimeout(resolve, 2500));
         
         console.log("Payment simulation successful.");
@@ -106,15 +117,23 @@ export function init(router) {
         // Clear timer
         clearInterval(window.paywallInterval);
 
+        // Success Logic
+        state.set('isPaid', true);
+
+        // 🔥🔥🔥 TRIGGER GENERATION HERE (OPTIMISTIC PRE-FETCH) 🔥🔥🔥
+        // Ми запускаємо генерацію звіту ще ДО переходу на Success/Email.
+        // Це дасть нам фору в 15-20 секунд, поки юзер вводить пошту.
+        startBackgroundGeneration(userData); 
+
         // Navigate to Success
-        // В реальності тут був би редірект на Stripe/Fondy.
-        // Ми емулюємо повернення з payment=success
         const successUrl = new URL(window.location);
         successUrl.searchParams.set('payment', 'success');
-        window.history.pushState({}, '', successUrl); // update URL for realism
+        window.history.pushState({}, '', successUrl); 
         
         router.navigateTo('success');
     }
 
-    finalCheckoutButton.addEventListener('click', () => handleCheckout(finalCheckoutButton));
+    if (finalCheckoutButton) {
+        finalCheckoutButton.addEventListener('click', () => handleCheckout(finalCheckoutButton));
+    }
 }

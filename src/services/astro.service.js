@@ -25,14 +25,11 @@ export async function calculateNatalChart(userData) {
         minute = parseInt(timeParts[1]);
     }
 
-    // 🔥 FIX: Правильне зчитування полів (latitude/longitude замість lat/lon)
-    // + перевірка на валідність, інакше Fallback на Київ
     let lat = 50.45;
     let lon = 30.52;
     let tz = "Europe/Kyiv";
 
     if (userData.geo) {
-        // Перевіряємо обидва варіанти назв полів
         const pLat = parseFloat(userData.geo.latitude || userData.geo.lat);
         const pLon = parseFloat(userData.geo.longitude || userData.geo.lon);
         
@@ -47,6 +44,15 @@ export async function calculateNatalChart(userData) {
     let chartSvg = null;
     let horoscope = null;
 
+    // --- Helper: Convert Decimal Degrees to DMS (Deg Min Sec) ---
+    function toDMS(decimalDegrees) {
+        const d = Math.floor(decimalDegrees);
+        const minFloat = (decimalDegrees - d) * 60;
+        const m = Math.floor(minFloat);
+        const s = Math.floor((minFloat - m) * 60);
+        return `${d}° ${m}' ${s}"`;
+    }
+
     try {
         // 2. Створення гороскопу
         const origin = new Origin({
@@ -60,9 +66,15 @@ export async function calculateNatalChart(userData) {
             zodiac: "tropical"
         });
 
-        // 3. Формування списку планет для AI
+        // 3. Формування списку планет (РОЗШИРЕНИЙ СПИСОК)
         const bodies = horoscope.CelestialBodies;
-        const keys = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'ascendant', 'midheaven', 'northnode'];
+        
+        // 🔥 Додано Uranus, Neptune, Pluto до списку
+        const keys = [
+            'sun', 'moon', 'mercury', 'venus', 'mars', 
+            'jupiter', 'saturn', 'uranus', 'neptune', 'pluto',
+            'ascendant', 'midheaven'
+        ];
 
         keys.forEach(key => {
             let body = bodies[key];
@@ -70,15 +82,23 @@ export async function calculateNatalChart(userData) {
             if (!body && key === 'midheaven') body = horoscope.Midheaven;
 
             if (body) {
-                const sign = body.Sign.label;
-                const degree = Math.floor(body.ChartPosition.Ecliptic.DecimalDegrees % 30);
-                const label = key.charAt(0).toUpperCase() + key.slice(1);
-                planetsList.push(`${label}: ${sign} ${degree}°`);
+                const sign = body.Sign.label.toUpperCase(); // CAPRICORN
+                // Отримуємо точну позицію в знаку (0-30 градусів)
+                const decimalPos = body.ChartPosition.Ecliptic.DecimalDegrees % 30;
+                const dms = toDMS(decimalPos);
+                
+                const label = key.toUpperCase(); // SUN
+                
+                // Формат: SUN: CAPRICORN 12° 41' 43"
+                planetsList.push(`${label}: ${sign} ${dms}`);
             }
         });
+        
+        // Debug
+        console.log("Calculated Planets (DMS):", planetsList);
+
     } catch (e) {
         console.error("Horoscope Calculation Failed:", e);
-        // Не кидаємо помилку далі, щоб хоча б текстовий звіт згенерувався (AI додумає)
         return { planets: [], chartSvg: null, houseSystem: "Error" };
     }
 

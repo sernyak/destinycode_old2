@@ -102,8 +102,13 @@ body::before {
     min-height: 100vh;
     min-height: 100dvh;
     justify-content: flex-start;
+    
+    /* 🔥 FIX: Відступи як у моноліті (p-4 = 1rem) */
+    padding-left: 1rem;
+    padding-right: 1rem;
     padding-top: 40px;
     padding-bottom: 40px;
+    
     position: relative;
     z-index: 10; 
 }

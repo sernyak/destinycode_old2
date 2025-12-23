@@ -9,7 +9,7 @@
     <meta name="description" content="Дізнайся своє істинне призначення, сумісність у коханні та фінансовий потенціал за допомогою персонального AI-аналізу натальної карти.">
     <meta name="theme-color" content="#0f1115">
     
-    <!-- Favicon (Можна замінити на свою пізніше) -->
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     
     <!-- Fonts -->
@@ -17,8 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS (CDN для сумісності з класами моноліту, якщо не використовується білд) -->
-    <!-- Примітка: Якщо ти налаштував PostCSS/Tailwind через npm, цей рядок можна прибрати. Але для гарантії лишаємо. -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -40,8 +39,13 @@
         }
       }
     </script>
-    <script type="module" crossorigin src="/assets/main-CZX_lKfU.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-BqCnEF13.css">
+
+    <!-- 🔥 WAYFORPAY WIDGET (Main Script) -->
+    <!-- Завантажуємо асинхронно, щоб не блокувати рендер. JS почекає його завантаження. -->
+    <script id="widget-wfp-script" src="https://secure.wayforpay.com/server/pay/fin.widget.view" async></script>
+
+    <script type="module" crossorigin src="/assets/main-IgQQD0Iz.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-BedHGuyr.css">
   </head>
   <body class="bg-[#0f1115] text-[#e0e0e0] antialiased overflow-x-hidden">
     <div id="app"></div>

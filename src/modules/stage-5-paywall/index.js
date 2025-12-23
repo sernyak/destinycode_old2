@@ -1,7 +1,10 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { renderAstroBox } from '../../utils/astro-renderer.js';
-import { warmUpBackend, startBackgroundGeneration } from '../../services/api.service.js'; // 🔥 Імпорт функцій прискорення
+import { warmUpBackend, startBackgroundGeneration } from '../../services/api.service.js';
+import { processPayment } from '../../services/payment.service.js';
+// 🔥 IMPORT BOTH PRICE TYPES
+import { DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
 
 export function init(router) {
     const app = document.getElementById('app');
@@ -20,13 +23,29 @@ export function init(router) {
     const popupCheckoutBtn = document.getElementById('popup-checkout-btn');
     const popupCloseBtn = document.getElementById('popup-close-btn');
 
-    // 🔥 1. WARM UP BACKEND (Стратегія попереднього прогріву)
-    // Поки юзер читає цей екран, ми вже будимо PDF-сервер
+    // WARM UP BACKEND
     warmUpBackend();
 
-    // --- 2. POPUP LOGIC (Global Helper Hack) ---
-    // Оскільки в HTML прописано onclick="showPaywallPopup(...)", 
-    // ми мусимо зробити цю функцію доступною глобально.
+    // 🔥 DYNAMIC PRICE VISUALIZATION (EYE CANDY)
+    function updatePricesVisuals() {
+        // Оновлюємо головну кнопку (знаходимо span з ціною)
+        const mainBtnText = finalCheckoutButton.querySelector('.btn-text span span.font-bold');
+        if (mainBtnText) {
+            // Завжди показуємо повну ціну (149 грн)
+            mainBtnText.innerText = `Розблокувати зараз за ${DISPLAY_PRICES.FULL_REPORT} грн`;
+        }
+
+        // Оновлюємо кнопку в попапі
+        const popupBtnText = popupCheckoutBtn.querySelector('.whitespace-nowrap');
+        if (popupBtnText) {
+            popupBtnText.innerText = `Розблокувати зараз за ${DISPLAY_PRICES.FULL_REPORT} грн`;
+        }
+    }
+    
+    // Запускаємо оновлення візуалу
+    updatePricesVisuals();
+
+    // POPUP LOGIC
     window.showPaywallPopup = function(title, text) {
         if (paywallPopup && popupTitle && popupText) {
             popupTitle.innerText = title;
@@ -35,7 +54,6 @@ export function init(router) {
         }
     };
 
-    // Listeners for Popup Internal Buttons
     if (popupCloseBtn) {
         popupCloseBtn.addEventListener('click', () => {
             paywallPopup.style.display = 'none';
@@ -44,17 +62,16 @@ export function init(router) {
     if (popupCheckoutBtn) {
         popupCheckoutBtn.addEventListener('click', () => {
             paywallPopup.style.display = 'none';
-            handleCheckout(finalCheckoutButton); // Reuse main checkout logic
+            handleCheckout(finalCheckoutButton);
         });
     }
-    // Close on overlay click
     if (paywallPopup) {
         paywallPopup.addEventListener('click', (e) => {
             if (e.target === paywallPopup) paywallPopup.style.display = 'none';
         });
     }
 
-    // --- 3. ASTRO TRUST BOX RENDER ---
+    // ASTRO TRUST BOX RENDER
     const userData = {
         date: state.get('date'),
         time: state.get('time'),
@@ -73,7 +90,7 @@ export function init(router) {
         });
     }
 
-    // --- 4. TIMER LOGIC (Exact Monolith Logic) ---
+    // TIMER LOGIC
     if (window.paywallInterval) clearInterval(window.paywallInterval);
     
     let duration = 7 * 60; // 7 minutes
@@ -94,43 +111,39 @@ export function init(router) {
     updateTimer();
     window.paywallInterval = setInterval(updateTimer, 1000);
 
-    // --- 5. CHECKOUT LOGIC (Simulated + Turbo Start) ---
+    // --- CHECKOUT LOGIC (ACTUAL CHARGE) ---
     async function handleCheckout(btn) {
-        // Loading State
+        // UI Loading
         btn.classList.add('loading');
         btn.disabled = true;
 
-        // Save data to session storage (simulating monolith logic)
         try {
-            sessionStorage.setItem('destinyCodeData', JSON.stringify(userData));
-        } catch (e) {
-            console.error("Storage error:", e);
+            // 🔥 ВИКОРИСТОВУЄМО PAYMENT_PRICES (1 ГРН)
+            await processPayment(
+                { name: "Повний Астро-Портрет (Premium)", price: PAYMENT_PRICES.FULL_REPORT },
+                { email: state.get('email') || "" } 
+            );
+
+            // Успіх
+            console.log("Payment initiated.");
+            state.set('isPaid', true);
+
+            startBackgroundGeneration(userData); 
+
+            clearInterval(window.paywallInterval);
+
+            // Navigate
+            const successUrl = new URL(window.location);
+            successUrl.searchParams.set('payment', 'success');
+            window.history.pushState({}, '', successUrl); 
+            
+            router.navigateTo('success');
+
+        } catch (error) {
+            console.error("Payment error:", error);
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
-
-        console.log("Simulating payment processing...");
-        
-        // Simulate delay (Payment Gateway Interaction)
-        await new Promise(resolve => setTimeout(resolve, 2500));
-        
-        console.log("Payment simulation successful.");
-
-        // Clear timer
-        clearInterval(window.paywallInterval);
-
-        // Success Logic
-        state.set('isPaid', true);
-
-        // 🔥🔥🔥 TRIGGER GENERATION HERE (OPTIMISTIC PRE-FETCH) 🔥🔥🔥
-        // Ми запускаємо генерацію звіту ще ДО переходу на Success/Email.
-        // Це дасть нам фору в 15-20 секунд, поки юзер вводить пошту.
-        startBackgroundGeneration(userData); 
-
-        // Navigate to Success
-        const successUrl = new URL(window.location);
-        successUrl.searchParams.set('payment', 'success');
-        window.history.pushState({}, '', successUrl); 
-        
-        router.navigateTo('success');
     }
 
     if (finalCheckoutButton) {

@@ -19,83 +19,96 @@ export async function init(router) {
     };
     const email = state.get('email');
 
-    // 1. Upsell Background Check
+    // 1. Upsell Background Check (Прогноз вже генерується, якщо був куплений)
     if (state.get('hasPaidUpsell')) {
         generateForecast(userData, email).catch(e => console.warn("Forecast bg error:", e));
     }
 
-    let isReportReady = false;
-
-    // 2. Виклик API (який тепер просто "підхопить" результат з кешу)
-    const apiPromise = generateFullReport(userData, email)
-        .then(data => {
-            if (data && !data.error) {
-                state.set('fullReport', data);
-                isReportReady = true; 
-                return { success: true };
-            } else {
-                return { success: false, message: data.message, type: data.type };
-            }
-        })
-        .catch(err => {
-            console.error("API Network Error:", err);
-            return { success: false, message: "Проблема з мережею" };
-        });
-
-    // 3. Анімація
-    const typeSpeedMs = 50; 
-    const mainSteps = [
-        { text: "✨ Аналізую Ядро твоєї Особистості", pause: 1000 },
-        { text: "❤️‍🔥 Розшифровую твої сценарії Кохання", pause: 1000 },
-        { text: "👑 Шукаю, де приховані твої Гроші", pause: 1000 },
-        { text: "🔮 Вивчаю твої Кармічні Уроки", pause: 1000 },
-        { text: "⚡️ Формую структуру твого звіту", pause: 500 }
+    // --- Фрази для анімації (Астро-стиль) ---
+    const loadingStepsConfig = [
+        // Основні етапи (швидкі)
+        { text: "✨ Аналізую Ядро твоєї Особистості...", pause: 1200 },
+        { text: "❤️‍🔥 Розшифровую твої сценарії Кохання...", pause: 1200 },
+        { text: "👑 Шукаю, де приховані твої Гроші...", pause: 1200 },
+        { text: "🔮 Вивчаю твої Кармічні Уроки...", pause: 1200 },
+        
+        // Додаткові фрази (якщо затягується)
+        { text: "🌙 З'єднуюсь з енергією твого Місяця...", pause: 1500 },
+        { text: "🪐 Перевіряю транзити Сатурна (він любить точність)...", pause: 1500 },
+        { text: "💫 Рахую аспекти Венери до твого Асценденту...", pause: 1500 },
+        { text: "📜 Формую стародавній сувій твоєї долі...", pause: 1500 },
+        { text: "🧘‍♀️ Майже готово, Всесвіт підбирає слова...", pause: 1500 },
+        { text: "🦋 Твоя унікальність потребує детального аналізу...", pause: 1500 },
+        { text: "✨ Додаю трохи зіркового пилу в твій звіт...", pause: 1500 },
+        { text: "⚡️ Фіналізація космічного паспорта...", pause: 2000 }
     ];
 
-    for (const step of mainSteps) {
-        // 🔥 ОПТИМІЗАЦІЯ: Якщо звіт готовий, ми перериваємо анімацію раніше,
-        // АЛЕ: Для ефекту "вау" краще дати хоча б основним крокам пройти (4-5 сек),
-        // щоб юзер відчув цінність.
-        // Якщо хочеш МИТТЄВО, розкоментуй рядок нижче:
-        // if (isReportReady) break; 
-        
-        await typeWriter(textEl, cursorEl, step.text, typeSpeedMs, step.pause, false);
-    }
+    let isReportReady = false;
+    let apiResultData = null;
 
-    // 4. Чекання (Тільки якщо реально треба чекати)
-    if (!isReportReady) {
-        const waitingMessages = [
-            "✍️ Дописую розділ про майбутнє...",
-            "🎨 Оформлюю твої таблиці...",
-            "✨ Додаю останні штрихи...",
-            "🚀 Майже готово..."
-        ];
-        
-        let msgIndex = 0;
-        while (!isReportReady) {
-            await typeWriter(textEl, cursorEl, waitingMessages[msgIndex], typeSpeedMs, 0, false);
-            for (let i = 0; i < 20; i++) { 
-                if (isReportReady) break;
-                await new Promise(r => setTimeout(r, 100));
+    // --- 2. Логіка Анімації (Розумна черга) ---
+    const runAnimation = async () => {
+        const typeSpeedMs = 50;
+
+        for (let i = 0; i < loadingStepsConfig.length; i++) {
+            // 🔥 КЛЮЧОВИЙ МОМЕНТ: Перевірка перед кожним кроком
+            if (isReportReady) {
+                console.log("🚀 Report is ready! Skipping animation.");
+                return; // Миттєвий вихід з анімації
             }
-            msgIndex = (msgIndex + 1) % waitingMessages.length;
+
+            const step = loadingStepsConfig[i];
+            
+            // Запускаємо друк. Якщо під час друку прийдуть дані - ми це перевіримо після завершення рядка.
+            await typeWriter(textEl, cursorEl, step.text, typeSpeedMs, 0, false);
+            
+            // Пауза після фрази (теж переривається, якщо дані прийшли)
+            const pauseStep = 100;
+            let currentPause = 0;
+            while (currentPause < step.pause) {
+                if (isReportReady) return; // Вихід під час паузи
+                await new Promise(r => setTimeout(r, pauseStep));
+                currentPause += pauseStep;
+            }
         }
+    };
+
+    // Запускаємо анімацію, не чекаючи її (вона живе своїм життям)
+    const animationPromise = runAnimation();
+
+    // --- 3. API Запит (Паралельно) ---
+    try {
+        const data = await generateFullReport(userData, email);
+        
+        // Як тільки дані прийшли:
+        isReportReady = true; // 1. Ставимо прапорець (зупиняє анімацію)
+        
+        if (data && !data.error) {
+            state.set('fullReport', data); 
+            apiResultData = { success: true };
+        } else {
+            console.error("Report Generation Failed:", data);
+            apiResultData = { success: false, message: data.message, type: data.type };
+        }
+    } catch (err) {
+        isReportReady = true;
+        console.error("API Network Error:", err);
+        apiResultData = { success: false, message: "Проблема з мережею" };
     }
 
-    // 5. Фінал
-    await typeWriter(textEl, cursorEl, "✅ Звіт готовий!", 30, 500, true);
-
-    const apiResult = await apiPromise;
-
-    if (apiResult.success) {
-        router.navigateTo('premium-result');
+    // --- 4. Перехід ---
+    if (apiResultData && apiResultData.success) {
+        // Невелика затримка (300мс), щоб око встигло зафіксувати зміну стану, якщо анімація обірвалась різко
+        setTimeout(() => {
+            router.navigateTo('premium-result');
+        }, 300);
     } else {
-        // Error handling stays same
+        // Обробка помилок
         let errorMsg = "З'єднання перервано";
-        if (apiResult.type === 'timeout') {
+        if (apiResultData?.type === 'timeout') {
             errorMsg = "Сервер прогрівається. Спробуйте ще раз.";
-        } else if (apiResult.message) {
-            errorMsg = apiResult.message;
+        } else if (apiResultData?.message) {
+            errorMsg = apiResultData.message;
         }
 
         textEl.innerHTML = `<span style="color: #ef4444; font-size: 0.9em;">⚠️ ${errorMsg}</span>`;
@@ -104,7 +117,15 @@ export async function init(router) {
         const retryBtn = document.createElement('button');
         retryBtn.className = 'btn btn-primary mt-4';
         retryBtn.innerText = 'Натисніть для повтору ↻';
+        retryBtn.style.maxWidth = '240px';
+        retryBtn.style.margin = '20px auto';
         retryBtn.onclick = () => router.navigateTo('generation');
-        document.getElementById('report-typing-container').appendChild(retryBtn);
+        
+        const container = document.getElementById('report-typing-container');
+        // Очищаємо контейнер від старих кнопок, якщо є
+        const oldBtn = container.querySelector('button');
+        if (oldBtn) oldBtn.remove();
+        
+        container.appendChild(retryBtn);
     }
 }

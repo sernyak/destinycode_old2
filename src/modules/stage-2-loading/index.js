@@ -8,6 +8,9 @@ export async function init(router) {
     app.classList.add('funnel-container');
     app.innerHTML = html;
 
+    // 🚀 START WARP SPEED
+    document.body.classList.add('warp-mode');
+
     const loadingTextEl = document.getElementById('loading-text');
     const loadingCursorEl = document.getElementById('loading-cursor');
     const date = state.get('date');
@@ -33,7 +36,7 @@ export async function init(router) {
             };
         });
 
-    // 2. Анімація (Розширена та виправлена)
+    // 2. Анімація (Оптимізована: обривається, якщо API готовий)
     const loadingSteps = [
         { text: "З'єднуюсь з ефемеридами NASA...", pause: 1000 },
         { text: "Аналізую положення планет...", pause: 1200 },
@@ -45,22 +48,29 @@ export async function init(router) {
 
     const animationPromise = (async () => {
         for (let i = 0; i < loadingSteps.length; i++) {
-            const step = loadingSteps[i];
-            
-            // Логіка прискорення, якщо API вже відповів
-            let currentPause = step.pause;
-            if (isApiReady && !step.final) {
-                currentPause = 600; 
+            // 🔥 КЛЮЧОВА ЗМІНА: Перевірка ПЕРЕД кроком
+            // Якщо дані вже є, ми не починаємо новий крок, а виходимо з циклу.
+            if (isApiReady) {
+                console.log("🚀 API Ready! Skipping remaining animation steps.");
+                break;
             }
+
+            const step = loadingSteps[i];
 
             // Перевірка існування елементів перед запуском анімації
             if (loadingTextEl && loadingCursorEl) {
-                await typeWriter(loadingTextEl, loadingCursorEl, step.text, 50, currentPause, step.final);
+                // Якщо API відповість ПІД ЧАС друку цього тексту,
+                // ми все одно дочекаємось завершення рядка (щоб не було візуального "глюку" з обірваним словом),
+                // але паузу після тексту робимо мінімальною.
+                const dynamicPause = isApiReady ? 300 : step.pause;
+                
+                await typeWriter(loadingTextEl, loadingCursorEl, step.text, 50, dynamicPause, step.final);
             }
             
-            // Додаткове очікування на останньому кроці, якщо API ще думає
-            if (step.final && !isApiReady) {
-               // Можна додати логіку очікування, але зазвичай цього часу вистачає
+            // 🔥 КЛЮЧОВА ЗМІНА: Перевірка ПІСЛЯ кроку (подвійний контроль)
+            if (isApiReady) {
+                console.log("🚀 API Ready! Animation loop stopped.");
+                break;
             }
         }
         
@@ -68,7 +78,11 @@ export async function init(router) {
     })();
 
     // 3. Синхронізація
+    // Promise.all завершиться миттєво, коли animationPromise зробить break
     await Promise.all([animationPromise, apiPromise]);
+
+    // 🚀 STOP WARP SPEED
+    document.body.classList.remove('warp-mode');
 
     // 4. Перехід
     router.navigateTo('result'); 

@@ -17,8 +17,8 @@ export function init(router) {
     const lateUpsellBtn = document.getElementById('late-upsell-btn');
 
     const reportData = state.get('fullReport');
-    // Відновлюємо дані планет для PDF (важливо!)
-    const userData = {
+    // Отримуємо userData (вже відновлену)
+    const userData = state.get('userData') || {
         date: state.get('date'), 
         time: state.get('time'), 
         city: state.get('city'), 
@@ -27,8 +27,6 @@ export function init(router) {
     };
     const userEmail = state.get('email');
 
-    // --- Helper: Generate HTML String for Report ---
-    // Ця функція використовується і для рендеру на екрані, і для генерації PDF
     function generateReportHtml(sections) {
         if (!sections) return '';
         return sections.map(section => {
@@ -42,39 +40,26 @@ export function init(router) {
         }).join('');
     }
 
-    // --- Render Logic ---
     async function renderReport() {
         if (!reportData || !reportData.sections) {
             fullReportContentEl.innerHTML = `<div class="text-center p-6"><p class="text-red-400">Дані звіту відсутні.</p></div>`;
             return;
         }
-
-        // 1. Генеруємо HTML тексту звіту
         const reportContentHtml = generateReportHtml(reportData.sections);
-        
-        // 2. Отримуємо HTML астро-блоку (планети)
         const astroHtml = await renderAstroBox(userData);
-        
-        // 3. Вставляємо все в DOM
         fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
-        
         renderButtons();
     }
 
     function renderButtons() {
         reportActionsContainer.innerHTML = '';
 
-        // 1. Download PDF Button
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'btn btn-secondary';
         downloadBtn.innerHTML = '<span class="btn-text">Завантажити PDF</span><span class="btn-spinner"></span>';
-        
-        // 🔥 FIX: Прив'язуємо правильний обробник
         downloadBtn.onclick = () => handleDownloadPDF(downloadBtn);
-        
         reportActionsContainer.appendChild(downloadBtn);
 
-        // 2. Upsell / Restart Button Logic
         if (state.get('hasPaidUpsell')) {
             const tryAgainBtn = document.createElement('button');
             tryAgainBtn.className = 'btn btn-secondary';
@@ -100,19 +85,15 @@ export function init(router) {
         }
     }
 
-    // --- 🔥 REAL PDF DOWNLOAD LOGIC ---
     async function handleDownloadPDF(btn) {
         if (!reportData) return;
-
         btn.classList.add('loading');
         btn.disabled = true;
 
         try {
-            // 1. Генеруємо HTML рядок для PDF (виправляємо баг з JSON)
             const htmlContent = generateReportHtml(reportData.sections);
-
             const payload = {
-                reportHtml: htmlContent, // Тепер це валідний HTML, а не JSON
+                reportHtml: htmlContent, 
                 reportType: 'main',
                 userData: userData
             };
@@ -124,11 +105,9 @@ export function init(router) {
             });
 
             if (!response.ok) throw new Error("Server error");
-
             const result = await response.json();
             
             if (result.success && result.pdfBase64) {
-                // Convert Base64 -> Blob -> Download
                 const byteCharacters = atob(result.pdfBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -156,7 +135,6 @@ export function init(router) {
         }
     }
 
-    // --- Late Upsell Logic ---
     closeLateUpsellBtn.addEventListener('click', () => lateUpsellModal.style.display = 'none');
 
     lateUpsellBtn.addEventListener('click', async () => {
@@ -168,12 +146,13 @@ export function init(router) {
             await processPayment(
                 { name: "Астро-Прогноз на 2026 (Late Upsell)", price: PAYMENT_PRICES.FORECAST_UPSELL }, 
                 { email: userEmail },
+                userData, // 🔥 Pass data here too
                 { returnQueryParams: 'upsell_source=stage8' } 
             );
         } catch (e) {
+            console.error("Late Upsell Error:", e);
             btn.classList.remove('loading');
             btn.disabled = false;
-            // Помилку обробляє payment service, тут просто скидаємо стан
         }
     });
 

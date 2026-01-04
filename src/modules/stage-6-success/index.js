@@ -1,142 +1,154 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { generateForecast } from '../../services/api.service.js';
-import { processPayment } from '../../services/payment.service.js';
+import { processPayment, checkPaymentStatus } from '../../services/payment.service.js'; 
 import { DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
 
-export function init(router) {
+export async function init(router) {
     const app = document.getElementById('app');
+    
     app.classList.add('funnel-container');
     app.innerHTML = html;
 
-    // --- DOM Elements ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderRef = urlParams.get('orderRef');
+    const upsellSource = urlParams.get('upsell_source');
+
+    // --- ЛОГІКА "НЕВИДИМОГО КПП" (Перевірка оплати + ВІДНОВЛЕННЯ СЕСІЇ) ---
+    if (orderRef) {
+        console.log("💳 Validating incoming payment:", orderRef);
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'absolute inset-0 bg-black/60 z-50 flex items-center justify-center fixed top-0 left-0 w-full h-full';
+        overlay.style.zIndex = '9999';
+        overlay.innerHTML = '<div class="spinner"></div>';
+        document.body.appendChild(overlay);
+
+        try {
+            const statusData = await checkPaymentStatus({ 
+                invoiceId: state.get('pendingInvoiceId'),
+                orderRef: orderRef 
+            });
+
+            if (statusData.status === 'approved' || statusData.status === 'success') {
+                console.log("✅ Payment Validated!");
+                
+                state.set('isPaid', true);
+                state.set('currentInvoiceId', statusData.invoiceId);
+                
+                // 🔥 SESSION RECOVERY LOGIC (CROSS-BROWSER FIX) 🔥
+                if (statusData.userData) {
+                    console.log("🔄 Restoring session from cloud backup...", statusData.userData);
+                    state.set('userData', statusData.userData);
+                    
+                    // Відновлюємо окремі поля для сумісності
+                    if (statusData.userData.date) state.set('date', statusData.userData.date);
+                    if (statusData.userData.time) state.set('time', statusData.userData.time);
+                    if (statusData.userData.city) state.set('city', statusData.userData.city);
+                    if (statusData.userData.geo) state.set('geo', statusData.userData.geo);
+
+                } else if (statusData.userEmail && !state.get('userData')?.email) {
+                    // Fallback (краще ніж нічого)
+                    console.warn("⚠️ Full session recovery failed, partial email restore.");
+                    state.set('email', statusData.userEmail);
+                }
+
+                // Чистимо URL
+                const newUrl = window.location.pathname; 
+                window.history.replaceState({}, document.title, newUrl);
+                overlay.remove();
+                
+            } else {
+                alert(`Оплата не підтверджена. Статус: ${statusData.status}`);
+                overlay.remove();
+                router.navigate('/paywall');
+                return;
+            }
+        } catch (e) {
+            console.error(e);
+            overlay.remove();
+            alert("Помилка перевірки статусу. Будь ласка, зверніться в підтримку.");
+        }
+    }
+
+    // ==========================================
+    // UI ELEMENTS & LOGIC
+    // ==========================================
+
     const emailForm = document.getElementById('email-form');
     const userEmailInput = document.getElementById('user-email');
     const mainReportBtn = document.getElementById('main-report-btn');
-    
     const ltvUpsellBox = document.getElementById('ltv-upsell-box');
     const ltvUpsellBtn = document.getElementById('ltv-upsell-btn');
-
-    // 🔥 NEW MODAL ELEMENTS
     const upsellSuccessModal = document.getElementById('upsell-success-modal');
     const upsellSuccessForm = document.getElementById('upsell-success-form');
     const upsellSuccessEmailInput = document.getElementById('upsell-success-email');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment');
-    // 🔥 FIX: Читаємо джерело апселу з URL (надійніше ніж sessionStorage)
-    const urlUpsellSource = urlParams.get('upsell_source');
-
-    // --- Helper: Dynamic Upsell Price ---
     function updateUpsellPriceVisuals() {
         if (ltvUpsellBox) {
             const priceStrong = ltvUpsellBox.querySelector('p span strong');
-            if (priceStrong) {
-                priceStrong.innerText = `${DISPLAY_PRICES.FORECAST_UPSELL} грн.`;
-            }
+            if (priceStrong) priceStrong.innerText = `${DISPLAY_PRICES.FORECAST_UPSELL} грн.`;
             const btnText = ltvUpsellBtn.querySelector('.btn-text');
-            if (btnText) {
-                btnText.innerHTML = `Так, додати прогноз за ${DISPLAY_PRICES.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">${DISPLAY_PRICES.FORECAST_OLD} грн.</span>`;
-            }
+            if (btnText) btnText.innerHTML = `Так, додати прогноз за ${DISPLAY_PRICES.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${DISPLAY_PRICES.FORECAST_OLD} грн.</span>`;
         }
     }
     updateUpsellPriceVisuals();
 
-    // --- Helper: Активувати інтерфейс "Все куплено" ---
     function activatePremiumUI() {
-        // 1. Ховаємо блок апселу (бо вже куплено)
-        if (ltvUpsellBox) {
-            ltvUpsellBox.style.display = 'none';
-        }
-
-        // 2. Змінюємо головну кнопку на "Звіт + Прогноз"
+        if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
         if (mainReportBtn) {
             mainReportBtn.classList.remove('btn-primary');
             mainReportBtn.classList.add('btn-gold-purple');
-            
             const btnText = mainReportBtn.querySelector('.btn-text');
             if (btnText) btnText.innerText = "Надіслати мені Звіт + Прогноз";
         }
     }
 
-    // --- 🔥 ЛОГІКА ПОВЕРНЕННЯ З ОПЛАТИ (UPSELL RETURN) ---
-    // Тепер працює, якщо:
-    // 1. АБО є прапорець в сесії (старий метод)
-    // 2. АБО в URL є upsell_source=stage6 (новий надійний метод)
-    const isUpsellReturn = (state.get('isPendingUpsell') || urlUpsellSource === 'stage6') && paymentStatus === 'success';
+    const isUpsellSuccess = (state.get('isPendingUpsell') || upsellSource === 'stage6'); 
     
-    if (isUpsellReturn) {
-        console.log("🔄 Returned from Upsell Payment (Stage 6)");
-        
-        // Фіксуємо факт оплати
+    if (isUpsellSuccess) {
         state.set('hasPaidUpsell', true);
         state.set('isPendingUpsell', false);
-        
-        // Очищаємо URL від параметрів, щоб при рефреші не спрацьовувало знову
-        // Але обережно, щоб не збити користувача
-        // window.history.replaceState({}, document.title, window.location.pathname);
-
-        const savedEmail = state.get('email'); // Перевіряємо, чи є вже email
-
-        // Ховаємо блок апселу відразу
         if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
-
+        
+        const savedEmail = state.get('email');
         if (savedEmail) {
-            // ✅ СЦЕНАРІЙ 1: Email вже був введений
-            console.log("Scenario 1: Email exists, generating forecast...");
             activatePremiumUI();
-            
-            // Запускаємо генерацію фоном
-            const userData = {
-                date: state.get('date'),
-                time: state.get('time'),
-                city: state.get('city'),
-                geo: state.get('geo')
-            };
-            generateForecast(userData, savedEmail);
-            
-            setTimeout(() => alert("Оплата успішна! Прогноз додано до вашого замовлення."), 500);
-
-        } else {
-            // ❌ СЦЕНАРІЙ 2: Email НЕМАЄ (втрачено сесію або не вводили) -> Показуємо модалку
-            console.log("Scenario 2: No email, showing modal...");
-            
-            if (upsellSuccessModal) {
-                upsellSuccessModal.style.display = 'flex';
+            const userData = state.get('userData'); 
+            if (userData) {
+                generateForecast(userData, savedEmail);
+                setTimeout(() => alert("Прогноз успішно додано!"), 500);
             }
+        } else {
+            if (upsellSuccessModal) upsellSuccessModal.style.display = 'flex';
         }
     }
 
-    // --- ЛОГІКА ВІДНОВЛЕННЯ СТАНУ ---
-    if (state.get('hasPaidUpsell')) {
-        activatePremiumUI();
-    }
-    if (state.get('email')) {
-        userEmailInput.value = state.get('email');
-    }
+    if (state.get('hasPaidUpsell')) activatePremiumUI();
+    if (state.get('email')) userEmailInput.value = state.get('email');
 
-    // --- КЛІК НА КНОПКУ АПСЕЛУ (Старт оплати) ---
+    // UPSELL CLICK
     ltvUpsellBtn.addEventListener('click', async () => {
         const btn = ltvUpsellBtn;
         const originalHtml = btn.querySelector('.btn-text').innerHTML;
-
         btn.classList.add('loading');
         btn.disabled = true;
         btn.querySelector('.btn-text').innerText = "Перехід до оплати...";
 
         try {
             const currentEmail = userEmailInput.value || ""; 
-            
             state.set('isPendingUpsell', true);
             if (currentEmail) state.set('email', currentEmail);
+            
+            // 🔥 Передаємо userData і для апселу
+            const fullUserData = state.get('userData');
 
-            // 🔥 FIX: Додаємо upsell_source=stage6 в URL повернення
             await processPayment(
                 { name: "Астро-Прогноз на 2026 (Upsell)", price: PAYMENT_PRICES.FORECAST_UPSELL }, 
                 { email: currentEmail },
-                { returnQueryParams: 'upsell_source=stage6' } // <--- CRITICAL FIX
+                fullUserData, 
+                { returnQueryParams: 'upsell_source=stage6' }
             );
-
         } catch (error) {
             console.error("Upsell Error:", error);
             btn.classList.remove('loading');
@@ -146,30 +158,21 @@ export function init(router) {
         }
     });
 
-    // --- ОБРОБКА НОВОЇ МОДАЛКИ ---
     if (upsellSuccessForm) {
         upsellSuccessForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const newEmail = upsellSuccessEmailInput.value;
-            
             if (newEmail) {
                 state.set('email', newEmail);
                 userEmailInput.value = newEmail;
                 upsellSuccessModal.style.display = 'none';
                 activatePremiumUI();
-
-                const userData = {
-                    date: state.get('date'),
-                    time: state.get('time'),
-                    city: state.get('city'),
-                    geo: state.get('geo')
-                };
-                generateForecast(userData, newEmail);
+                const userData = state.get('userData');
+                if (userData) generateForecast(userData, newEmail);
             }
         });
     }
 
-    // --- ГОЛОВНА ФОРМА ---
     emailForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = userEmailInput.value;

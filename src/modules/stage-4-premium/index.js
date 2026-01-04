@@ -69,7 +69,8 @@ export function init(router) {
     // --- Helper: Handle City Errors (Shared) ---
     function handleCityError(type, cityName) {
         if (type === 'ambiguous') {
-            cityErrorMessage.innerText = `Місто "${cityName}" знайдено в кількох місцях. Будь ласка, уточни, додавши країну.`;
+            // 🔥 UX UPDATE: Додано приклад формату уточнення
+            cityErrorMessage.innerText = `Місто "${cityName}" знайдено в кількох місцях. Будь ласка, уточни, додавши країну (наприклад: ${cityName}, Україна).`;
         } else {
             cityErrorMessage.innerText = `Не можемо знайти місто "${cityName}". Перевірте назву.`;
         }
@@ -162,6 +163,15 @@ export function init(router) {
         // Лоадер не вимикаємо, переходимо далі
         state.set('time', time);
         
+        // 🔥 COMMIT STEP: Збираємо всі дані в єдиний об'єкт 'userData'.
+        const fullUserData = {
+            date: state.get('date'),
+            time: time,
+            city: state.get('city'),
+            geo: state.get('geo')
+        };
+        state.set('userData', fullUserData);
+
         setTimeout(() => {
             router.navigateTo('paywall');
         }, infoText ? 1200 : 0);
@@ -241,6 +251,15 @@ export function init(router) {
 
         // Якщо успіх — лоадер на головній кнопці залишається крутитися до переходу
         console.log("User skipped time, but city is valid.");
+
+        // 🔥 COMMIT STEP (SKIP MODE): Формуємо об'єкт userData без часу
+        const fullUserData = {
+            date: state.get('date'),
+            time: '', // Порожній час для скіпу
+            city: state.get('city'),
+            geo: state.get('geo')
+        };
+        state.set('userData', fullUserData);
         
         // Navigate
         setTimeout(() => {

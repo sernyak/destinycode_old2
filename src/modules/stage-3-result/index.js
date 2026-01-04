@@ -43,6 +43,7 @@ export function init(router) {
 
     // --- Event Listeners ---
     upgradeButton.addEventListener('click', () => {
-        router.navigateTo('premium-data'); 
+        // 🔥 FIX: Змінено 'premium-data' на 'premium', щоб відповідати switch-case у main.js
+        router.navigateTo('premium'); 
     });
 }

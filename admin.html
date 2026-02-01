@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,14 +8,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; }
-        .card { background: #1e293b; border: 1px solid #334155; }
-        .badge-active { background: #22c55e; color: #0f172a; }
-        .badge-draft { background: #f59e0b; color: #0f172a; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        .badge-active {
+            background: #22c55e;
+            color: #0f172a;
+        }
+
+        .badge-draft {
+            background: #f59e0b;
+            color: #0f172a;
+        }
     </style>
 </head>
+
 <body class="min-h-screen p-8">
-    <div class="max-w-5xl mx-auto">
+
+    <!-- 🔐 LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
+        <div class="card rounded-2xl p-8 w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold text-white mb-2">🔐 Доступ до Адмінки</h2>
+            <p class="text-slate-400 text-sm mb-6">Введіть пароль для входу</p>
+            <input type="password" id="password-input" placeholder="Пароль"
+                class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white text-center text-lg tracking-widest mb-4 focus:outline-none focus:border-indigo-500"
+                autofocus />
+            <button id="login-btn"
+                class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-semibold transition">
+                Увійти
+            </button>
+            <p id="login-error" class="text-red-400 text-sm mt-3 hidden">Невірний пароль</p>
+        </div>
+    </div>
+
+    <!-- 📊 ADMIN CONTENT (hidden until login) -->
+    <div id="admin-content" class="max-w-5xl mx-auto hidden">
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-white mb-2">🛠️ Destiny Code Admin</h1>
             <p class="text-slate-400">Панель керування маркетинговими варіантами</p>
@@ -23,63 +59,100 @@
         <div class="grid gap-4" id="variants-grid">
             <!-- Variants will be rendered here by JS -->
         </div>
-        
+
         <div class="mt-8 p-4 card rounded-lg text-sm text-slate-400">
-            <strong class="text-white">💡 Як редагувати:</strong> Відкрий відповідний файл у папці <code class="bg-slate-700 px-1 rounded">src/variants/</code> та зміни потрібні поля.
+            <strong class="text-white">💡 Як редагувати:</strong> Відкрий відповідний файл у папці <code
+                class="bg-slate-700 px-1 rounded">src/variants/</code> та зміни потрібні поля.
         </div>
     </div>
 
     <script type="module">
-        // Import variants directly
-        import { VARIANTS } from './src/variants/index.js';
-        import { DISPLAY_PRICES, PAYMENT_PRICES } from './src/config.js';
+        const ADMIN_PASSWORD = '1536';
+        const SESSION_KEY = 'dc_admin_auth';
 
-        const grid = document.getElementById('variants-grid');
+        const loginScreen = document.getElementById('login-screen');
+        const adminContent = document.getElementById('admin-content');
+        const passwordInput = document.getElementById('password-input');
+        const loginBtn = document.getElementById('login-btn');
+        const loginError = document.getElementById('login-error');
 
-        function getVariantStatus(variant) {
-            if (variant.enabled === false) return { label: 'Чорновик', class: 'badge-draft' };
-            return { label: 'Активний', class: 'badge-active' };
+        // Check if already authenticated
+        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+            showAdmin();
         }
 
-        function getPriceDisplay(variant) {
-            if (variant.pricing && variant.pricing.display && variant.pricing.display.FULL_REPORT) {
-                return variant.pricing.display.FULL_REPORT + ' грн';
-            }
-            return DISPLAY_PRICES.FULL_REPORT + ' грн (стандартна)';
-        }
-
-        function getOverrides(variant) {
-            const overrides = [];
-            if (variant.ui && Object.keys(variant.ui).some(k => variant.ui[k])) overrides.push('🎨 UI');
-            if (variant.aiContext && variant.aiContext.additionalPrompt) overrides.push('🤖 ШІ');
-            if (variant.pricing) overrides.push('💰 Ціна');
-            if (variant.ui && variant.ui.backgroundColor) overrides.push('🌈 Фон');
-            return overrides.length > 0 ? overrides.join(', ') : 'Немає (ідентичний головній)';
-        }
-
-        Object.entries(VARIANTS).forEach(([id, variant]) => {
-            const status = getVariantStatus(variant);
-            const card = document.createElement('div');
-            card.className = 'card rounded-xl p-5 flex items-center justify-between';
-            card.innerHTML = `
-                <div>
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="text-xl font-bold text-white">/${id}</span>
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}">${status.label}</span>
-                    </div>
-                    <div class="text-sm text-slate-400 space-y-1">
-                        <div><strong>Тип:</strong> ${variant.type || 'N/A'}</div>
-                        <div><strong>Ціна:</strong> ${getPriceDisplay(variant)}</div>
-                        <div><strong>Оверрайди:</strong> ${getOverrides(variant)}</div>
-                        <div><strong>Трекінг:</strong> ${variant.tracking?.campaignName || 'N/A'}</div>
-                    </div>
-                </div>
-                <a href="/${id}" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition">
-                    Відкрити →
-                </a>
-            `;
-            grid.appendChild(card);
+        loginBtn.addEventListener('click', attemptLogin);
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptLogin();
         });
+
+        function attemptLogin() {
+            if (passwordInput.value === ADMIN_PASSWORD) {
+                sessionStorage.setItem(SESSION_KEY, 'true');
+                showAdmin();
+            } else {
+                loginError.classList.remove('hidden');
+                passwordInput.classList.add('border-red-500');
+            }
+        }
+
+        function showAdmin() {
+            loginScreen.classList.add('hidden');
+            adminContent.classList.remove('hidden');
+            loadVariants();
+        }
+
+        async function loadVariants() {
+            const { VARIANTS } = await import('./src/variants/index.js');
+            const { DISPLAY_PRICES } = await import('./src/config.js');
+            const grid = document.getElementById('variants-grid');
+
+            function getVariantStatus(variant) {
+                if (variant.enabled === false) return { label: 'Чорновик', class: 'badge-draft' };
+                return { label: 'Активний', class: 'badge-active' };
+            }
+
+            function getPriceDisplay(variant) {
+                if (variant.pricing && variant.pricing.display && variant.pricing.display.FULL_REPORT) {
+                    return variant.pricing.display.FULL_REPORT + ' грн';
+                }
+                return DISPLAY_PRICES.FULL_REPORT + ' грн (стандартна)';
+            }
+
+            function getOverrides(variant) {
+                const overrides = [];
+                if (variant.ui && Object.keys(variant.ui).some(k => variant.ui[k])) overrides.push('🎨 UI');
+                if (variant.aiContext && variant.aiContext.additionalPrompt) overrides.push('🤖 ШІ');
+                if (variant.pricing) overrides.push('💰 Ціна');
+                if (variant.ui && variant.ui.backgroundColor) overrides.push('🌈 Фон');
+                return overrides.length > 0 ? overrides.join(', ') : 'Немає (ідентичний головній)';
+            }
+
+            Object.entries(VARIANTS).forEach(([id, variant]) => {
+                const status = getVariantStatus(variant);
+                const card = document.createElement('div');
+                card.className = 'card rounded-xl p-5 flex items-center justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-xl font-bold text-white">/${id}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${status.class}">${status.label}</span>
+                        </div>
+                        <div class="text-sm text-slate-400 space-y-1">
+                            <div><strong>Тип:</strong> ${variant.type || 'N/A'}</div>
+                            <div><strong>Ціна:</strong> ${getPriceDisplay(variant)}</div>
+                            <div><strong>Оверрайди:</strong> ${getOverrides(variant)}</div>
+                            <div><strong>Трекінг:</strong> ${variant.tracking?.campaignName || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <a href="/${id}" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition">
+                        Відкрити →
+                    </a>
+                `;
+                grid.appendChild(card);
+            });
+        }
     </script>
 </body>
+
 </html>

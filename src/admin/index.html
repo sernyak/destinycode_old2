@@ -103,8 +103,8 @@
         }
 
         async function loadVariants() {
-            const { VARIANTS } = await import('./src/variants/index.js');
-            const { DISPLAY_PRICES } = await import('./src/config.js');
+            const { VARIANTS } = await import('../variants/index.js');
+            const { DISPLAY_PRICES } = await import('../config.js');
             const grid = document.getElementById('variants-grid');
 
             function getVariantStatus(variant) {

@@ -1,8 +1,9 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
-import { generateForecast } from '../../services/api.service.js';
+import { startBackgroundGeneration } from '../../services/api.service.js'; 
 import { processPayment, checkPaymentStatus } from '../../services/payment.service.js'; 
 import { DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
+import { showModal } from '../../utils/modal.js';
 
 export async function init(router) {
     const app = document.getElementById('app');
@@ -14,9 +15,9 @@ export async function init(router) {
     const orderRef = urlParams.get('orderRef');
     const upsellSource = urlParams.get('upsell_source');
 
-    // --- ЛОГІКА "НЕВИДИМОГО КПП" (Перевірка оплати + ВІДНОВЛЕННЯ СЕСІЇ) ---
+    // --- ЛОГІКА ВІДНОВЛЕННЯ СЕСІЇ ТА ВАЛІДАЦІЇ ОПЛАТИ ---
     if (orderRef) {
-        console.log("💳 Validating incoming payment:", orderRef);
+        console.log("💳 Validating payment & restoring session:", orderRef);
         
         const overlay = document.createElement('div');
         overlay.className = 'absolute inset-0 bg-black/60 z-50 flex items-center justify-center fixed top-0 left-0 w-full h-full';
@@ -36,27 +37,39 @@ export async function init(router) {
                 state.set('isPaid', true);
                 state.set('currentInvoiceId', statusData.invoiceId);
                 
-                // 🔥 SESSION RECOVERY LOGIC (CROSS-BROWSER FIX) 🔥
+                // 🔥 GTM E-COMMERCE: PURCHASE EVENT
+                // Ми перевіряємо, чи ми вже відправляли цю подію для цієї сесії, щоб уникнути дублів при оновленні сторінки
+                if (!state.get('purchaseTracked')) {
+                    if (window.DC_Analytics) {
+                        window.DC_Analytics.trackPurchase(
+                            PAYMENT_PRICES.FULL_REPORT, // Сума (напр. 149)
+                            statusData.invoiceId || orderRef, // ID транзакції
+                            "Natal Chart Full Report"
+                        );
+                    }
+                    state.set('purchaseTracked', true);
+                }
+
                 if (statusData.userData) {
-                    console.log("🔄 Restoring session from cloud backup...", statusData.userData);
                     state.set('userData', statusData.userData);
-                    
-                    // Відновлюємо окремі поля для сумісності
                     if (statusData.userData.date) state.set('date', statusData.userData.date);
                     if (statusData.userData.time) state.set('time', statusData.userData.time);
                     if (statusData.userData.city) state.set('city', statusData.userData.city);
                     if (statusData.userData.geo) state.set('geo', statusData.userData.geo);
-
-                } else if (statusData.userEmail && !state.get('userData')?.email) {
-                    // Fallback (краще ніж нічого)
-                    console.warn("⚠️ Full session recovery failed, partial email restore.");
+                } 
+                
+                if (statusData.userEmail) {
                     state.set('email', statusData.userEmail);
                 }
 
-                // Чистимо URL
-                const newUrl = window.location.pathname; 
-                window.history.replaceState({}, document.title, newUrl);
                 overlay.remove();
+
+                if (!upsellSource) {
+                    const userDataForGen = state.get('userData') || {
+                        date: state.get('date'), time: state.get('time'), city: state.get('city')
+                    };
+                    startBackgroundGeneration(userDataForGen).catch(e => console.warn("Bg gen error", e));
+                }
                 
             } else {
                 alert(`Оплата не підтверджена. Статус: ${statusData.status}`);
@@ -67,7 +80,7 @@ export async function init(router) {
         } catch (e) {
             console.error(e);
             overlay.remove();
-            alert("Помилка перевірки статусу. Будь ласка, зверніться в підтримку.");
+            alert("Помилка перевірки статусу.");
         }
     }
 
@@ -84,91 +97,136 @@ export async function init(router) {
     const upsellSuccessForm = document.getElementById('upsell-success-form');
     const upsellSuccessEmailInput = document.getElementById('upsell-success-email');
 
+    if (userEmailInput) {
+        userEmailInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            if (val) state.set('email', val);
+        });
+    }
+
     function updateUpsellPriceVisuals() {
         if (ltvUpsellBox) {
             const priceStrong = ltvUpsellBox.querySelector('p span strong');
             if (priceStrong) priceStrong.innerText = `${DISPLAY_PRICES.FORECAST_UPSELL} грн.`;
             const btnText = ltvUpsellBtn.querySelector('.btn-text');
-            if (btnText) btnText.innerHTML = `Так, додати прогноз за ${DISPLAY_PRICES.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${DISPLAY_PRICES.FORECAST_OLD} грн.</span>`;
+            if (btnText) btnText.innerHTML = `Так, додати Прогноз всього за ${DISPLAY_PRICES.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${DISPLAY_PRICES.FORECAST_OLD} грн.</span>`;
         }
     }
     updateUpsellPriceVisuals();
 
+    /**
+     * 🔥 Активація Преміум UI (Final State)
+     */
     function activatePremiumUI() {
         if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
+        
         if (mainReportBtn) {
             mainReportBtn.classList.remove('btn-primary');
             mainReportBtn.classList.add('btn-gold-purple');
             const btnText = mainReportBtn.querySelector('.btn-text');
             if (btnText) btnText.innerText = "Надіслати мені Звіт + Прогноз";
         }
+
+        if (state.get('email') && userEmailInput) {
+            userEmailInput.value = state.get('email');
+        }
     }
 
-    const isUpsellSuccess = (state.get('isPendingUpsell') || upsellSource === 'stage6'); 
+    // --- ЛОГІКА ОБРОБКИ UPSELL (ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ) ---
+    const isUpsellSuccess = (state.get('isPendingUpsell') || !!upsellSource); 
     
     if (isUpsellSuccess) {
         state.set('hasPaidUpsell', true);
         state.set('isPendingUpsell', false);
-        if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
         
+        // 🔥 GTM E-COMMERCE: UPSELL PURCHASE
+        if (!state.get('upsellPurchaseTracked')) {
+            if (window.DC_Analytics) {
+                window.DC_Analytics.trackPurchase(
+                    PAYMENT_PRICES.FORECAST_UPSELL, // 97 грн
+                    `upsell_${Date.now()}`, 
+                    "Forecast 2026 Upsell"
+                );
+            }
+            state.set('upsellPurchaseTracked', true);
+        }
+        
+        const newUrl = window.location.pathname; 
+        window.history.replaceState({}, document.title, newUrl);
+
         const savedEmail = state.get('email');
+        
         if (savedEmail) {
             activatePremiumUI();
-            const userData = state.get('userData'); 
-            if (userData) {
-                generateForecast(userData, savedEmail);
-                setTimeout(() => alert("Прогноз успішно додано!"), 500);
-            }
+            showModal(
+                "✨ Дякуємо за покупку!",
+                `Твій <strong>Прогноз на 2026 рік</strong> генерується прямо зараз і буде відправлений на <strong>${savedEmail}</strong><br><br> Натискай <strong>Надіслати мені Звіт + Прогноз</strong> на наступній сторінці`
+            );
+            
         } else {
             if (upsellSuccessModal) upsellSuccessModal.style.display = 'flex';
         }
     }
 
-    if (state.get('hasPaidUpsell')) activatePremiumUI();
-    if (state.get('email')) userEmailInput.value = state.get('email');
+    if (state.get('hasPaidUpsell')) {
+        activatePremiumUI();
+    }
+    
+    if (state.get('email')) {
+        userEmailInput.value = state.get('email');
+    }
 
-    // UPSELL CLICK
-    ltvUpsellBtn.addEventListener('click', async () => {
-        const btn = ltvUpsellBtn;
-        const originalHtml = btn.querySelector('.btn-text').innerHTML;
-        btn.classList.add('loading');
-        btn.disabled = true;
-        btn.querySelector('.btn-text').innerText = "Перехід до оплати...";
+    // --- КНОПКА UPSELL (Ініціалізація оплати) ---
+    if (ltvUpsellBtn) {
+        ltvUpsellBtn.addEventListener('click', async () => {
+            const btn = ltvUpsellBtn;
+            const originalHtml = btn.querySelector('.btn-text').innerHTML;
+            btn.classList.add('loading');
+            btn.disabled = true;
+            btn.querySelector('.btn-text').innerText = "Перехід до оплати...";
 
-        try {
-            const currentEmail = userEmailInput.value || ""; 
-            state.set('isPendingUpsell', true);
-            if (currentEmail) state.set('email', currentEmail);
-            
-            // 🔥 Передаємо userData і для апселу
-            const fullUserData = state.get('userData');
+            try {
+                const currentEmail = userEmailInput.value ? userEmailInput.value.trim() : "";
+                state.set('isPendingUpsell', true);
+                if (currentEmail) state.set('email', currentEmail); 
+                
+                // 🔥 GTM: Трекаємо клік (вже є в main.js global tracker, але тут явний інтент)
+                
+                const fullUserData = state.get('userData');
 
-            await processPayment(
-                { name: "Астро-Прогноз на 2026 (Upsell)", price: PAYMENT_PRICES.FORECAST_UPSELL }, 
-                { email: currentEmail },
-                fullUserData, 
-                { returnQueryParams: 'upsell_source=stage6' }
-            );
-        } catch (error) {
-            console.error("Upsell Error:", error);
-            btn.classList.remove('loading');
-            btn.disabled = false;
-            btn.querySelector('.btn-text').innerHTML = originalHtml;
-            state.set('isPendingUpsell', false);
-        }
-    });
+                await processPayment(
+                    { name: "Астро-Прогноз на 2026", price: PAYMENT_PRICES.FORECAST_UPSELL }, 
+                    { email: currentEmail },
+                    fullUserData, 
+                    { returnQueryParams: 'upsell_source=stage6' }
+                );
+            } catch (error) {
+                console.error("Upsell Error:", error);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                btn.querySelector('.btn-text').innerHTML = originalHtml;
+                state.set('isPendingUpsell', false);
+            }
+        });
+    }
 
+    // --- ОБРОБКА МОДАЛКИ (СЦЕНАРІЙ 1.2) ---
     if (upsellSuccessForm) {
         upsellSuccessForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const newEmail = upsellSuccessEmailInput.value;
+            
             if (newEmail) {
                 state.set('email', newEmail);
-                userEmailInput.value = newEmail;
+                userEmailInput.value = newEmail; 
+                
                 upsellSuccessModal.style.display = 'none';
                 activatePremiumUI();
-                const userData = state.get('userData');
-                if (userData) generateForecast(userData, newEmail);
+
+                showModal(
+                    "✨ Дякуємо за покупку!",
+                    `Твій <strong>Прогноз на 2026 рік</strong> генерується і буде відправлений на <strong>${newEmail}</strong> протягом 1-2 хвилин.<br><br>📧 Перевір папку <strong>'Вхідні'</strong> та <strong>'Спам'</strong>.`
+                );
             }
         });
     }

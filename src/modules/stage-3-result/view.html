@@ -1,7 +1,8 @@
-<!-- 🔥 FIX: Додано клас 'active' для відображення -->
-<section id="result-step" class="funnel-step active space-y-6">
+<!-- 🔥 UPDATE: Зменшено padding-bottom секції до 140px, щоб відповідати компактнішому футеру -->
+<section id="result-step" class="funnel-step active space-y-6" style="padding-bottom: 140px;">
     <h2 class="text-2xl font-bold text-center text-white" id="result-title">Аналіз твоєї особистості</h2>
     
+    <!-- Основна картка з результатом -->
     <div class="p-5 rounded-xl space-y-3" style="background-color: var(--card-bg-color); border: 1px solid var(--border-color);">
         <h3 class="text-xl font-bold" style="color: var(--accent-color);" id="free-report-title">
             <!-- Заголовок заповнюється через JS -->
@@ -10,15 +11,12 @@
             <i>(Тут з'явиться твій персональний аналіз...)</i>
         </div>
 
-        <!-- 🔥 MOVED CONTENT: Divider + Marketing Block тепер всередині картки -->
-        
         <!-- Дивайдер -->
         <div class="relative py-4">
             <div class="absolute inset-0 flex items-center" aria-hidden="true">
                 <div class="w-full border-t border-gray-700"></div>
             </div>
             <div class="relative flex justify-center">
-                <!-- Changed background-color to var(--card-bg-color) to blend with the card -->
                 <span class="px-3 text-sm text-gray-500" style="background-color: var(--card-bg-color);">АЛЕ ЦЕ ЩЕ НЕ ВСЕ</span>
             </div>
         </div>
@@ -37,15 +35,13 @@
                 <li class="flex items-center"><span class="mr-2 text-xl">⚡️</span> Твої майбутні можливості</li>
             </ul>
         </div>
-        <!-- END MOVED CONTENT -->
-
     </div>
 
-    <!-- Прихований елемент для сумісності з JS (щоб не ламалось, якщо є посилання) -->
-    <p id="free-report-hook" style="display: none;"></p>
-
-    <div class="pt-4">
-        <!-- 🔥 STYLE: Анімація "Злітна смуга" -->
+    <!-- 🔥 NEW STICKY FOOTER (Compact Version) -->
+    <!-- UPDATE: Додано inline styles для зменшення відступів (padding) зверху та знизу -->
+    <div class="sticky-paywall-footer" style="padding-top: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+        
+        <!-- Локальні стилі для анімації стрілочок (збережено з оригінального файлу) -->
         <style>
             @keyframes runway-lights {
                 0% { opacity: 0.3; }
@@ -55,18 +51,17 @@
             .runway-arrow {
                 animation: runway-lights 1.2s infinite ease-in-out both;
                 display: inline-block;
-                color: rgba(0, 0, 0, 0.75); /* М'який чорний */
+                color: rgba(0, 0, 0, 0.75); /* М'який чорний колір стрілочок */
             }
-            /* Затримка для кожної стрілочки для створення ефекту руху */
             .runway-arrow:nth-child(1) { animation-delay: 0s; }
             .runway-arrow:nth-child(2) { animation-delay: 0.2s; }
             .runway-arrow:nth-child(3) { animation-delay: 0.4s; }
         </style>
 
-        <button id="upgrade-button" class="btn btn-primary !text-lg !py-4">
+        <!-- Кнопка розтягнута на всю ширину (w-full), ID збережено -->
+        <button id="upgrade-button" class="btn btn-primary w-full !text-lg !py-4 btn-pulse-glow shadow-2xl relative overflow-hidden">
             <span class="btn-text flex items-center justify-center gap-2">
                 Отримати повний аналіз
-                <!-- 🔥 UPDATE: Runway Lights Effect -->
                 <span class="font-bold tracking-widest flex gap-[1px]">
                     <span class="runway-arrow">&gt;</span>
                     <span class="runway-arrow">&gt;</span>
@@ -75,5 +70,12 @@
             </span>
             <span class="btn-spinner"></span>
         </button>
+
+        <!-- Додатковий мікро-текст довіри (Зменшено margin-top з mt-3 до mt-2) -->
+        <div class="mt-2 flex items-center justify-center opacity-70">
+             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+                🔒 Твій результат збережено
+            </span>
+        </div>
     </div>
 </section>

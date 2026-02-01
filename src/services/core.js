@@ -1,12 +1,12 @@
 import { API_BASE } from '../config.js';
 
 /**
- * CORE HTTP CLIENT (Smart Adapter)
+ * CORE HTTP CLIENT (Smart Adapter v2)
  * Єдина точка виходу для всіх запитів.
- * * 🔥 FIX: Тепер вміє розрізняти відносні шляхи (для AI) 
- * і абсолютні URL (для Payments/Functions v2).
+ * Вміє працювати з відносними та абсолютними URL.
+ * 🔥 UPDATE: Додано підтримку `options` для AbortController (таймаути).
  */
-export async function request(endpoint, data = {}) {
+export async function request(endpoint, data = {}, options = {}) {
     try {
         let url;
 
@@ -19,16 +19,19 @@ export async function request(endpoint, data = {}) {
             url = `${API_BASE}/${cleanEndpoint}`;
         }
         
-        // Логування для відладки (можна буде прибрати)
-        console.log(`[API Request] -> ${url}`);
+        // Логування для відладки (можна розкоментувати при потребі)
+        // console.log(`[API Request] -> ${url}`);
 
-        const response = await fetch(url, {
+        const fetchOptions = {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
             },
-            body: JSON.stringify(data)
-        });
+            body: JSON.stringify(data),
+            ...options // 🔥 Прокидаємо додаткові опції (наприклад, signal)
+        };
+
+        const response = await fetch(url, fetchOptions);
 
         if (!response.ok) {
             const errText = await response.text();
@@ -38,7 +41,10 @@ export async function request(endpoint, data = {}) {
 
         return await response.json();
     } catch (error) {
-        console.error(`[API Core Error] ${endpoint}:`, error);
+        // Не логуємо помилку AbortError як "API Core Error", бо це штатна ситуація при таймауті
+        if (error.name !== 'AbortError') {
+            console.error(`[API Core Error] ${endpoint}:`, error);
+        }
         throw error;
     }
 }

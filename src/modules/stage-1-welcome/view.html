@@ -11,10 +11,10 @@
         </div>
         <div class="space-y-4">
             <h2 class="text-3xl font-bold text-white tracking-tight">
-                Дізнайся приховані подробиці твоєї особистості 😈
+                Розкрий свої приховані таланти та сильні сторони
             </h2>
             <p class="text-lg" style="color: var(--secondary-text-color);">
-                Обери дату народження щоб дізнатися на скільки ти чудова 😇
+                Обери дату народження щоб дізнатися про свої приховані таланти та сильні сторони в основних сферах життя: стосунки, кар'єра, фінанси та самореалізація.
             </p>
         </div>
         
@@ -36,7 +36,7 @@
             <p id="error-message" class="error-text">
                 Будь ласка, обери дату народження.
             </p>
-            <button type="submit" class="btn btn-primary !text-lg h-14">
+            <button type="submit" id="birth-form-btn" class="btn btn-primary !text-lg h-14">
                 <span class="btn-text">Дізнатися негайно</span>
                 <span class="btn-spinner"></span>
             </button>
@@ -46,9 +46,10 @@
     <!-- CLEAN FOOTER (JUST ONE LINK) -->
     <div class="clean-footer-link mt-auto">
         <span class="clean-footer-btn" id="open-info-modal-btn">
-            Юридична інформація та Контакти
+            Юридична інформація та Підтримка
         </span>
-        <p class="text-[9px] mt-2 opacity-50">&copy; 2025 Destiny Code</p>
+        <!-- 🔥 UPDATED YEAR TO 2026 -->
+        <p class="text-[9px] mt-2 opacity-50">&copy; 2026 Destiny Code</p>
     </div>
 
 </section>
@@ -66,8 +67,11 @@
                 <span class="legal-link" data-legal-type="offer">Публічна оферта</span>
                 <span class="legal-link" data-legal-type="privacy">Політика конфіденційності</span>
                 <span class="legal-link" data-legal-type="refund">Політика повернень</span>
-                <!-- NEW CONTACTS LINK -->
                 <span class="legal-link" data-legal-type="contacts">Контакти</span>
+                
+                <!-- 🔥 NEW: Telegram Bot Link -->
+                <!-- Використовуємо клас legal-link для збереження стилю, але тег <a> для прямого переходу -->
+                <a href="https://t.me/DestinyCodeHelpBot" target="_blank" class="legal-link" style="color: #cda45e; border-color: #cda45e;">Підтримка в Telegram</a>
             </div>
             
             <div class="opacity-80 text-xs mt-4 border-t border-gray-700 pt-4">

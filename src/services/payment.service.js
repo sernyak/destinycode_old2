@@ -19,24 +19,36 @@ export async function processPayment(product, user, userData, options = {}) {
             userEmail: user.email,
             userName: user.name || "Client",
             
-            // 🔥 CLOUD BACKUP: Відправляємо дані на бекенд
+            // 🔥 CLOUD BACKUP: Відправляємо дані на бекенд для відновлення сесії
             userData: userData,
 
             origin: window.location.origin, 
             returnQueryParams: options.returnQueryParams || ""
         };
 
-        console.log("💳 Payment Payload:", payload);
-
         const response = await request(API.endpoints.PAYMENT_INIT, payload);
-
-        console.log("💳 Payment Init Response:", response);
 
         if (response && response.pageUrl) {
             state.set('pendingInvoiceId', response.invoiceId);
             
-            // 🔥 FIX: Використовуємо assign для більш стабільного переходу
-            window.location.assign(response.pageUrl);
+            console.log("🚀 Redirecting to Monobank (Deep Link Mode)...");
+            
+            // 🔥 FIX: HIDDEN LINK CLICK TECHNIQUE
+            // Замість window.location.replace, ми створюємо посилання і клікаємо його.
+            // Це змушує мобільний браузер агресивніше перевіряти наявність встановленого додатку (Deep Link),
+            // і уникає спроби рендерингу "ламаної" веб-сторінки Монобанку.
+            
+            const link = document.createElement('a');
+            link.href = response.pageUrl;
+            link.target = '_top'; // Force top-level navigation
+            link.rel = 'noopener noreferrer';
+            
+            // Додаємо в DOM, клікаємо, прибираємо (для максимальної сумісності з Safari)
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                document.body.removeChild(link);
+            }, 100);
             
         } else {
             console.error("❌ Invalid Payment Response:", response);
@@ -59,7 +71,7 @@ export async function checkPaymentStatus(params) {
     console.log("🔍 Checking status for:", params);
     try {
         const response = await request(API.endpoints.PAYMENT_CHECK, params);
-        console.log("🔍 Status Response:", response);
+        // console.log("🔍 Status Response:", response); // Можна розкоментувати для дебагу
         return response; 
     } catch (error) {
         console.error("Status Check Failed:", error);

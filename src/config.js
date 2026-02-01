@@ -9,7 +9,7 @@
 // Перемикач Режимів: 
 // false = Тестові ціни (1 грн)
 // true  = Реальні ціни
-export const IS_PRODUCTION = false; 
+export const IS_PRODUCTION = true; // 🔥 ПЕРЕКЛЮЧЕНО НА ПРОДУКЦІЮ
 
 // Головна адреса твого Бекенду (Cloud Functions)
 // ✅ Ми залишаємо це для сумісності з core.js, хоча для Gen 2 це лише дефолт
@@ -23,7 +23,7 @@ export const API_BASE = "https://europe-west1-destinycode-982fa.cloudfunctions.n
  */
 const URLS = {
     // AI & Core (Europe West 1) - run.app domains
-    AI: "https://getaiprediction-kpkshoor7q-ew.a.run.app", 
+    AI: "https://getaiprediction-kpkshoor7q-ew.a.run.app",
     PDF: "https://createpdf-kpkshoor7q-ew.a.run.app",
     EMAIL: "https://sendreportemail-kpkshoor7q-ew.a.run.app",
 
@@ -46,14 +46,14 @@ export const API = {
     endpoints: {
         // AI & Core
         AI_ANALYSIS: "getAIPrediction", // Залишаємо відносний шлях, core.js додасть API_BASE (Europe)
-        PDF_GEN: "createPDF",            
-        SEND_EMAIL: "sendReportEmail",   
-        
+        PDF_GEN: "createPDF",
+        SEND_EMAIL: "sendReportEmail",
+
         // 🔥 ДЛЯ ПЛАТЕЖІВ ВИКОРИСТОВУЄМО ПОВНІ URL
         // Core.js має бути навчений розуміти це (див. нижче)
-        PAYMENT_INIT: URLS.PAYMENT_INIT,      
-        PAYMENT_CHECK: URLS.PAYMENT_CHECK,  
-        
+        PAYMENT_INIT: URLS.PAYMENT_INIT,
+        PAYMENT_CHECK: URLS.PAYMENT_CHECK,
+
         // Auto-Refunds (Optional trigger)
         REFUND_TRIGGER: "processRefunds"
     }
@@ -66,20 +66,21 @@ export const API = {
 export const DISPLAY_PRICES = {
     FULL_REPORT: 149,      // Актуальна ціна на кнопці
     FULL_REPORT_OLD: 799,  // Закреслена ціна
-    
-    FORECAST_UPSELL: 247,  // Актуальна ціна апселу
-    FORECAST_OLD: 1399     // Закреслена ціна апселу
+
+    FORECAST_UPSELL: 97,   // Актуальна ціна апселу
+    // 🔥 UPDATED: Перераховано за формулою: 97 / (1 - 0.83) = 570
+    FORECAST_OLD: 570
 };
 
 // Реальні суми до списання (залежно від режиму)
 const REAL_CHARGES = {
     FULL_REPORT: 149,
-    FORECAST_UPSELL: 247
+    FORECAST_UPSELL: 97
 };
 
 const TEST_CHARGES = {
     FULL_REPORT: 1,      // 1 грн для тестів
-    FORECAST_UPSELL: 1   
+    FORECAST_UPSELL: 1
 };
 
 // Експортуємо фінальний прайс залежно від прапора IS_PRODUCTION
@@ -90,6 +91,8 @@ export const PAYMENT_PRICES = IS_PRODUCTION ? REAL_CHARGES : TEST_CHARGES;
 export const SYSTEM = {
     // 🔥 FIX: Використовуємо запитану версію моделі
     MODEL_NAME: 'gemini-2.5-flash',
-    VERSION: '2.0.0-mono',
-    REQUEST_TIMEOUT_MS: 45000 
+    VERSION: '2.0.4-price-math-fix', // Bump version
+    // 🔥 CRITICAL UPDATE: Збільшено таймаут до 120 секунд (2 хвилини)
+    // Це дасть ШІ достатньо часу подумати над великим звітом.
+    REQUEST_TIMEOUT_MS: 120000
 };

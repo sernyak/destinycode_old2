@@ -8,141 +8,106 @@
 
 /* --- Базові Змінні --- */
 :root {
-    /* 🔥 UPDATE 1: Глибший чорний фон */
-    --bg-color: #0f1115;
+    /* 🔥 SYNC: Колір має відповідати StarryBackground.js Canvas */
+    --bg-color: #050508;
+
     --primary-text-color: #e0e0e0;
     --secondary-text-color: #a0a0a0;
     --accent-color: #cda45e;
-    /* Золотий акцент */
     --accent-secondary: #9d4edd;
-    /* 🔥 NEW: Mystic Violet for Upsell */
     --card-bg-color: #161b22;
-    /* Трохи змінений під новий фон */
     --border-color: #333333;
     --error-color: #ef4444;
-    /* red-500 */
 }
 
-/* 🔥 FIX: ПОВЕРНЕННЯ НАТИВНОГО СКРОЛУ */
+/* 🔥 FIX: iOS STICKY FOOTER SOLUTION (Container Scroll) */
 html {
-    overflow-x: hidden;
+    overflow: hidden;
+    /* Lock window scroll */
     width: 100%;
-    scroll-behavior: smooth;
+    height: 100%;
+    overscroll-behavior: none;
 }
 
 body {
     font-family: 'Montserrat', sans-serif;
-    
-    /* 🔥 COSMIC BACKGROUND UPDATE: ULTRA-MUTED VERSION 🔥 */
+
+    /* 🔥 SYNC: Єдиний колір фону = Canvas StarryBackground.js */
     background-color: var(--bg-color);
-    
-    /* Складний градієнт з мінімальним контрастом: 
-       1. Верхнє світіння (Майже непомітне)
-       2. Основна глибина (Дуже плавний перехід) 
-    */
-    background-image: 
-        radial-gradient(circle at 50% 0%, rgba(157, 78, 221, 0.05) 0%, transparent 60%), /* Ultra-subtle Violet */
-        radial-gradient(circle at 0% 0%, rgba(205, 164, 94, 0.02) 0%, transparent 40%),  /* Ghostly Gold Haze */
-        linear-gradient(to bottom, #0a0b0e 0%, #050505 100%); /* Flat Deep Base (Darker start) */
-    
-    background-attachment: fixed;
-    background-size: cover;
-    
+    /* ❌ REMOVED: CSS градієнт конфліктував з Canvas */
+    background-image: none;
+
     color: var(--primary-text-color);
-    /* Налаштування для iOS */
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-}
 
-/* 🔥 STARRY SKY EFFECT (CSS ONLY) 🔥 */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    /* 🔥 FIX: Body locked, scroll inside container */
     height: 100%;
-    pointer-events: none;
-    z-index: 1; 
-    
-    /* Генерація зірок за допомогою градієнтів */
-    background-image: 
-        radial-gradient(1.5px 1.5px at 15% 15%, white 100%, transparent),
-        radial-gradient(1px 1px at 25% 75%, white 100%, transparent),
-        radial-gradient(2px 2px at 45% 25%, rgba(255, 255, 255, 0.8) 100%, transparent),
-        radial-gradient(1.5px 1.5px at 65% 65%, white 100%, transparent),
-        radial-gradient(1px 1px at 85% 35%, white 100%, transparent),
-        radial-gradient(1.5px 1.5px at 5% 90%, white 100%, transparent),
-        radial-gradient(1px 1px at 95% 5%, white 100%, transparent),
-        radial-gradient(2px 2px at 35% 55%, rgba(255, 255, 255, 0.6) 100%, transparent);
-    
-    background-size: 350px 350px; 
-    opacity: 0.25; 
-    
-    /* Легке мерехтіння */
-    animation: stars-twinkle 8s infinite ease-in-out;
+    overflow: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
 }
 
-@keyframes stars-twinkle {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.35; }
-}
+/* ❌ ВИДАЛЕНО: body::before (Старі CSS зірки) - Конфлікт з Canvas */
 
-/* --- Контейнер Воронки --- */
+/* --- Контейнер Воронки (Main Scroll Container) --- */
 .funnel-container {
     max-width: 480px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    min-height: 100dvh;
+
+    /* 🔥 FIX: Scroll happens HERE */
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+
     justify-content: flex-start;
-    
-    /* 🔥 FIX: Відступи як у моноліті (p-4 = 1rem) */
     padding-left: 1rem;
     padding-right: 1rem;
     padding-top: 40px;
     padding-bottom: 40px;
-    
     position: relative;
-    z-index: 10; 
+    z-index: 10;
+    box-sizing: border-box;
+
+    /* Hide scrollbar for clean look */
+    scrollbar-width: none;
+}
+
+.funnel-container::-webkit-scrollbar {
+    display: none;
 }
 
 .funnel-step {
     display: none;
     animation: fadeIn 0.5s ease-out;
     padding-bottom: 20px;
+    width: 100%;
 }
 
 .funnel-step.active {
     display: block;
 }
 
-/* 🔥 UPDATE v2.3: Centering Helper Class for Animation Steps */
 .step-centered {
     display: none;
-    /* Default hidden */
     flex-direction: column;
     justify-content: center;
     align-items: center;
     flex-grow: 1;
-    /* Take available space */
     height: 100%;
     min-height: 60vh;
-    /* Ensure vertical centering area */
 }
 
 .step-centered.active {
     display: flex;
-    /* Flex when active */
 }
 
-/* Спеціальний відступ для Paywall, щоб контент не ховався за Sticky Button */
 #final-paywall-step {
     padding-bottom: calc(180px + env(safe-area-inset-bottom));
 }
@@ -233,11 +198,18 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.btn:active {
+    transform: translateY(1px);
 }
 
 .btn:disabled {
     opacity: 0.8;
     cursor: not-allowed;
+    transform: none;
 }
 
 /* Спінер */
@@ -336,8 +308,15 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 .spinner {
@@ -352,7 +331,9 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 #report-typing-container {
@@ -426,7 +407,7 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     background-color: var(--card-bg-color);
     border: 1px solid var(--border-color);
     border-top: 4px solid var(--accent-color);
-    border-radius: 0.75rem; 
+    border-radius: 0.75rem;
     padding: 2rem;
     max-width: 90%;
     width: 400px;
@@ -480,7 +461,11 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     opacity: 0.4;
     transition: opacity 0.3s;
 }
-.clean-footer-link:hover { opacity: 1; }
+
+.clean-footer-link:hover {
+    opacity: 1;
+}
+
 .clean-footer-btn {
     font-size: 0.75rem;
     color: #9ca3af;
@@ -490,10 +475,30 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* --- Legal Links --- */
-.legal-footer p { margin-bottom: 0.5rem; }
-.legal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-.legal-link { color: #6b7280; text-decoration: none; border-bottom: 1px dashed #4b5563; transition: color 0.2s; cursor: pointer; }
-.legal-link:hover { color: var(--accent-color); border-color: var(--accent-color); }
+.legal-footer p {
+    margin-bottom: 0.5rem;
+}
+
+.legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.legal-link {
+    color: #6b7280;
+    text-decoration: none;
+    border-bottom: 1px dashed #4b5563;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.legal-link:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
 
 /* --- LTV Апсел --- */
 .ltv-upsell-box {
@@ -522,6 +527,30 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+/* Typography for Report Content */
+.report-content-text p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.report-content-text h2,
+.report-content-text h3 {
+    color: var(--accent-color);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.report-content-text ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.report-content-text li {
+    margin-bottom: 0.5rem;
 }
 
 /* === СТИЛІ ДЛЯ БЛОКУ ПЕРЕВІРКИ ДАНИХ === */
@@ -606,9 +635,17 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
+    0% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.5;
+    }
 }
 
 /* === Sticky Paywall Button === */
@@ -618,7 +655,11 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     left: 0;
     width: 100%;
     padding: 2rem 1rem calc(2rem + env(safe-area-inset-bottom)) 1rem;
-    background: linear-gradient(to top, #0f1115 75%, rgba(15, 17, 21, 0.95) 90%, rgba(15, 17, 21, 0) 100%);
+    /* 🔥 SYNC: Градієнт з Backup */
+    background: linear-gradient(to top,
+            var(--bg-color) 75%,
+            rgba(5, 5, 8, 0.95) 90%,
+            rgba(5, 5, 8, 0) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     z-index: 50;
@@ -639,17 +680,79 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 @keyframes btn-glow {
-    0% { box-shadow: 0 0 0 0 rgba(205, 164, 94, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(205, 164, 94, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(205, 164, 94, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(205, 164, 94, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(205, 164, 94, 0);
+    }
 }
 
 /* 🔥 iOS SAFARI AUTOFILL FIX */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
     -webkit-text-fill-color: var(--primary-text-color) !important;
     transition: background-color 5000s ease-in-out 0s;
+}
+
+/* --- MEDIA QUERIES (ADAPTIVE ADJUSTMENTS) --- */
+@media (min-width: 640px) {
+    .funnel-container {
+        padding-top: 60px;
+    }
+
+    .modal-content {
+        max-width: 450px;
+        padding: 2.5rem;
+    }
+
+    .btn {
+        font-size: 1.1rem;
+    }
+}
+
+@media (min-height: 800px) {
+    .funnel-container {
+        justify-content: center;
+    }
+}
+
+/* Printing styles for reports */
+@media print {
+    body {
+        background: #fff;
+        color: #000;
+    }
+
+    .funnel-container,
+    .sticky-paywall-footer,
+    .btn,
+    .modal-overlay {
+        display: none !important;
+    }
+
+    #full-report-content {
+        display: block !important;
+        background: none !important;
+        border: none !important;
+        color: #000 !important;
+    }
+
+    .report-section {
+        page-break-inside: avoid;
+        border-bottom: 1px solid #ccc !important;
+    }
+
+    h2,
+    h3 {
+        color: #000 !important;
+    }
 }

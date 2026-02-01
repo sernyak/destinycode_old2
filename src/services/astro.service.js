@@ -49,7 +49,7 @@ export async function calculateNatalChart(userData) {
         const d = Math.floor(decimalDegrees);
         const minFloat = (decimalDegrees - d) * 60;
         const m = Math.floor(minFloat);
-        const s = Math.floor((minFloat - m) * 60);
+        const s = Math.round((minFloat - m) * 60);
         return `${d}° ${m}' ${s}"`;
     }
 

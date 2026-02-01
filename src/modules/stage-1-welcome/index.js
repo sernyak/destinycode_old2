@@ -1,14 +1,42 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { initAstroLib } from '../../utils/astro-lib-loader.js';
+// 🔥 StarryBackground тепер ініціалізується глобально в main.js
 
 export function init(router) {
     const app = document.getElementById('app');
-    
+
     // 🔥 Ensure the wrapper matches monolith flex layout if not already set
-    app.classList.add('funnel-container');
-    
+    app.classList.add('funnel-container')
+
     app.innerHTML = html;
+
+    // --- 🔥 DYNAMIC CONTENT INJECTION (SMART ROUTING) ---
+    const variant = state.get('currentVariant');
+    if (variant && variant.ui) {
+        console.log("🎨 Applying Variant UI Overrides:", variant.id);
+
+        // Selectors based on current HTML structure
+        const titleEl = document.querySelector('h2');
+        const subtitleEl = document.querySelector('p.text-lg');
+        const btnTextEl = document.querySelector('#birth-form button .btn-text');
+
+        if (titleEl && variant.ui.heroTitle) {
+            titleEl.innerHTML = variant.ui.heroTitle;
+        }
+        if (subtitleEl && variant.ui.heroSubtitle) {
+            subtitleEl.innerHTML = variant.ui.heroSubtitle;
+        }
+        if (btnTextEl && variant.ui.buttonText) {
+            btnTextEl.innerText = variant.ui.buttonText;
+        }
+
+        // --- 🎨 BACKGROUND OVERRIDE ---
+        if (variant.ui.backgroundColor) {
+            console.log("🖌️ Applying Variant Background Color:", variant.ui.backgroundColor);
+            document.body.style.backgroundColor = variant.ui.backgroundColor;
+        }
+    }
 
     // --- DOM Elements (Form) ---
     const birthForm = document.getElementById('birth-form');
@@ -20,12 +48,12 @@ export function init(router) {
     // --- DOM Elements (Modals) ---
     const infoModal = document.getElementById('info-modal');
     const legalModal = document.getElementById('legal-modal');
-    
+
     // Triggers
     const openInfoBtn = document.getElementById('open-info-modal-btn');
     const closeInfoIcon = document.getElementById('close-info-modal-icon');
     const closeInfoBtn = document.getElementById('close-info-modal-btn');
-    
+
     const closeLegalIcon = document.getElementById('close-legal-modal-icon');
     const closeLegalBtn = document.getElementById('close-legal-modal-btn');
     const legalModalBody = document.getElementById('legal-modal-body');
@@ -114,17 +142,17 @@ export function init(router) {
             // відкрився на 1995 році. Але ми НЕ оновлюємо текст на екрані.
             // Користувач все ще бачить "Обрати дату".
             birthDateInput.value = '1995-01-01';
-            
+
             // ❌ ВИДАЛЕНО: updateDatePlaceholder() тут не викликаємо!
         }
     }
 
     // --- Listeners ---
-    
+
     // Оновлюємо текст тільки коли користувач реально щось змінив
     birthDateInput.addEventListener('input', updateDatePlaceholder);
     birthDateInput.addEventListener('change', updateDatePlaceholder);
-    
+
     // Blur важливий: якщо юзер відкрив календар (там стало 1995), нічого не крутив
     // і натиснув "Готово", подія change може не спрацювати, але blur спрацює.
     // Тоді ми покажемо дату.
@@ -143,8 +171,8 @@ export function init(router) {
     updateDatePlaceholder();
 
     // --- 3. Logic: Form Submit ---
-    birthForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); 
+    birthForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
         const selectedDate = birthDateInput.value;
 
         if (selectedDate === '') {
@@ -152,7 +180,7 @@ export function init(router) {
             errorMessage.style.display = 'block';
         } else {
             errorMessage.style.display = 'none';
-            
+
             state.set('date', selectedDate);
 
             function setButtonLoading(button, isLoading) {
@@ -164,11 +192,11 @@ export function init(router) {
                     button.disabled = false;
                 }
             }
-            
+
             setButtonLoading(landingSubmitButton, true);
 
             // Init Astro Lib (Modular adaptation)
-            initAstroLib(); 
+            initAstroLib();
 
             router.navigateTo('loading');
         }

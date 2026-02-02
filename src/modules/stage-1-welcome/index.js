@@ -108,7 +108,7 @@ export function init(router) {
                         position: absolute;
                         top: 0;
                         left: -50px;
-                        width: 25px;
+                        width: 17px;
                         height: 100%;
                         background: linear-gradient(
                             90deg,
@@ -117,7 +117,7 @@ export function init(router) {
                             transparent
                         );
                         transform: skewX(-25deg);
-                        animation: shine-anim 8s infinite;
+                        animation: shine-anim 11s infinite;
                         animation-delay: 3s;
                         pointer-events: none;
                         z-index: 5; /* Ensure above input background but below text if possible, or manageable */
@@ -125,7 +125,7 @@ export function init(router) {
                     
                     @keyframes shine-anim {
                         0% { left: -50px; }
-                        45% { left: 150%; } /* Slow movement (~3.6s) */
+                        45% { left: 150%; } /* Slow movement */
                         100% { left: 150%; }
                     }
                 `;

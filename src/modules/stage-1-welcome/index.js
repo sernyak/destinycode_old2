@@ -36,6 +36,102 @@ export function init(router) {
             console.log("🖌️ Applying Variant Background Color:", variant.ui.backgroundColor);
             document.body.style.backgroundColor = variant.ui.backgroundColor;
         }
+
+        // --- ➕ HERO FEATURES (Text AFTER Form) ---
+        if (variant.ui.heroFeatures) {
+            // Find container to append features
+            const birthForm = document.getElementById('birth-form');
+            if (birthForm) {
+                const featuresContainer = document.createElement('div');
+                featuresContainer.innerHTML = variant.ui.heroFeatures;
+
+                // Insert AFTER form using parent
+                birthForm.parentNode.insertBefore(featuresContainer, birthForm.nextSibling);
+            }
+        }
+
+        // --- 🖱️ INTERACTIVE SUBTITLE CTA ---
+        const ctaSubtitle = document.getElementById('hero-subtitle-cta');
+        if (ctaSubtitle) {
+            ctaSubtitle.addEventListener('click', () => {
+                const dateInputContainer = document.querySelector('.input-field');
+                if (dateInputContainer) {
+                    dateInputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Add pulse/shake animation
+                    dateInputContainer.classList.remove('animate-pulse'); // reset
+
+                    // 🔥 Reset animation to allow re-triggering
+                    dateInputContainer.style.animation = 'none';
+                    void dateInputContainer.offsetHeight; // force reflow
+
+                    // Custom heavy pulse animation
+                    dateInputContainer.style.animation = 'gentle-shake 0.5s ease-in-out 2';
+                }
+            });
+
+            // Inject styles for animation if not exists
+            if (!document.getElementById('cta-styles')) {
+                const style = document.createElement('style');
+                style.id = 'cta-styles';
+                style.innerHTML = `
+                    @keyframes gentle-shake {
+                        0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
+                        25% { transform: translateX(-5px) rotate(-1deg); }
+                        75% { transform: translateX(5px) rotate(1deg); box-shadow: 0 0 20px 0 rgba(205, 164, 94, 0.5); }
+                    }
+
+                    /* 🌬️ "Mystic Breath" for Subtitle */
+                    @keyframes mystic-breath {
+                        0%, 100% { 
+                            transform: scale(1); 
+                            box-shadow: 0 0 0 rgba(255,255,255,0);
+                            border-color: rgba(255,255,255,0.2);
+                        }
+                        50% { 
+                            transform: scale(0.98); /* Squeeze inward */
+                            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Very subtle glow */
+                            border-color: rgba(255,255,255,0.5);
+                        }
+                    }
+                    #hero-subtitle-cta {
+                        animation: mystic-breath 6s ease-in-out infinite;
+                    }
+
+                    /* ✨ "Star Shine" for Input Field */
+                    .input-field {
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .input-field::after {
+                        content: "";
+                        position: absolute;
+                        top: 0;
+                        left: -50px;
+                        width: 25px;
+                        height: 100%;
+                        background: linear-gradient(
+                            90deg,
+                            transparent,
+                            rgba(255, 255, 255, 0.8),
+                            transparent
+                        );
+                        transform: skewX(-25deg);
+                        animation: shine-anim 8s infinite;
+                        animation-delay: 3s;
+                        pointer-events: none;
+                        z-index: 5; /* Ensure above input background but below text if possible, or manageable */
+                    }
+                    
+                    @keyframes shine-anim {
+                        0% { left: -50px; }
+                        45% { left: 150%; } /* Slow movement (~3.6s) */
+                        100% { left: 150%; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
     }
 
     // --- DOM Elements (Form) ---

@@ -1,16 +1,29 @@
 /**
- * 💰 1UAH - Тестовий варіант
+ * 💰 1UAH - Тестовий варіант для внутрішнього тестування
+ * 
+ * 🔥 ОСОБЛИВІСТЬ:
+ * - Ціни на екрані (display) синхронізуються з головною сторінкою автоматично.
+ * - Лише фактична сума списання (charge) = 1 грн.
  */
 export const oneUahConfig = {
     id: '1uah',
-    type: 'promo',
+    type: 'internal_test',
     enabled: true,
 
-    ui: {},
-    aiContext: {},
+    ui: {},       // Ідентичний головній
+    aiContext: {}, // Ідентичний головній
+
+    // 🔥 Тільки charge перевизначено, display бере з config.js
+    pricing: {
+        // display: {} — НЕ вказуємо, щоб брало глобальні значення
+        charge: {
+            FULL_REPORT: 1,
+            FORECAST_UPSELL: 1
+        }
+    },
 
     tracking: {
-        campaignName: 'test_1uah_promo',
-        customPixelEvent: 'ViewContent_1UAH'
+        campaignName: 'internal_test_1uah',
+        customPixelEvent: 'ViewContent_InternalTest'
     }
 };

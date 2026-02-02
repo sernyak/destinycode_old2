@@ -1,13 +1,13 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
-import { startBackgroundGeneration } from '../../services/api.service.js'; 
-import { processPayment, checkPaymentStatus } from '../../services/payment.service.js'; 
-import { DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
+import { startBackgroundGeneration } from '../../services/api.service.js';
+import { processPayment, checkPaymentStatus } from '../../services/payment.service.js';
+import { getPrices } from '../../utils/pricing.js';
 import { showModal } from '../../utils/modal.js';
 
 export async function init(router) {
     const app = document.getElementById('app');
-    
+
     app.classList.add('funnel-container');
     app.innerHTML = html;
 
@@ -18,7 +18,7 @@ export async function init(router) {
     // --- ЛОГІКА ВІДНОВЛЕННЯ СЕСІЇ ТА ВАЛІДАЦІЇ ОПЛАТИ ---
     if (orderRef) {
         console.log("💳 Validating payment & restoring session:", orderRef);
-        
+
         const overlay = document.createElement('div');
         overlay.className = 'absolute inset-0 bg-black/60 z-50 flex items-center justify-center fixed top-0 left-0 w-full h-full';
         overlay.style.zIndex = '9999';
@@ -26,24 +26,25 @@ export async function init(router) {
         document.body.appendChild(overlay);
 
         try {
-            const statusData = await checkPaymentStatus({ 
+            const statusData = await checkPaymentStatus({
                 invoiceId: state.get('pendingInvoiceId'),
-                orderRef: orderRef 
+                orderRef: orderRef
             });
 
             if (statusData.status === 'approved' || statusData.status === 'success') {
                 console.log("✅ Payment Validated!");
-                
+
                 state.set('isPaid', true);
                 state.set('currentInvoiceId', statusData.invoiceId);
-                
+
                 // 🔥 GTM E-COMMERCE: PURCHASE EVENT
                 // Ми перевіряємо, чи ми вже відправляли цю подію для цієї сесії, щоб уникнути дублів при оновленні сторінки
                 if (!state.get('purchaseTracked')) {
                     if (window.DC_Analytics) {
+                        const { charge: currentCharges } = getPrices();
                         window.DC_Analytics.trackPurchase(
-                            PAYMENT_PRICES.FULL_REPORT, // Сума (напр. 149)
-                            statusData.invoiceId || orderRef, // ID транзакції
+                            currentCharges.FULL_REPORT,
+                            statusData.invoiceId || orderRef,
                             "Natal Chart Full Report"
                         );
                     }
@@ -56,8 +57,8 @@ export async function init(router) {
                     if (statusData.userData.time) state.set('time', statusData.userData.time);
                     if (statusData.userData.city) state.set('city', statusData.userData.city);
                     if (statusData.userData.geo) state.set('geo', statusData.userData.geo);
-                } 
-                
+                }
+
                 if (statusData.userEmail) {
                     state.set('email', statusData.userEmail);
                 }
@@ -70,7 +71,7 @@ export async function init(router) {
                     };
                     startBackgroundGeneration(userDataForGen).catch(e => console.warn("Bg gen error", e));
                 }
-                
+
             } else {
                 alert(`Оплата не підтверджена. Статус: ${statusData.status}`);
                 overlay.remove();
@@ -105,11 +106,12 @@ export async function init(router) {
     }
 
     function updateUpsellPriceVisuals() {
+        const currentPrices = getPrices();
         if (ltvUpsellBox) {
             const priceStrong = ltvUpsellBox.querySelector('p span strong');
-            if (priceStrong) priceStrong.innerText = `${DISPLAY_PRICES.FORECAST_UPSELL} грн.`;
+            if (priceStrong) priceStrong.innerText = `${currentPrices.display.FORECAST_UPSELL} грн.`;
             const btnText = ltvUpsellBtn.querySelector('.btn-text');
-            if (btnText) btnText.innerHTML = `Так, додати Прогноз всього за ${DISPLAY_PRICES.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${DISPLAY_PRICES.FORECAST_OLD} грн.</span>`;
+            if (btnText) btnText.innerHTML = `Так, додати Прогноз всього за ${currentPrices.display.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${currentPrices.display.FORECAST_OLD} грн.</span>`;
         }
     }
     updateUpsellPriceVisuals();
@@ -119,7 +121,7 @@ export async function init(router) {
      */
     function activatePremiumUI() {
         if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
-        
+
         if (mainReportBtn) {
             mainReportBtn.classList.remove('btn-primary');
             mainReportBtn.classList.add('btn-gold-purple');
@@ -133,36 +135,37 @@ export async function init(router) {
     }
 
     // --- ЛОГІКА ОБРОБКИ UPSELL (ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ) ---
-    const isUpsellSuccess = (state.get('isPendingUpsell') || !!upsellSource); 
-    
+    const isUpsellSuccess = (state.get('isPendingUpsell') || !!upsellSource);
+
     if (isUpsellSuccess) {
         state.set('hasPaidUpsell', true);
         state.set('isPendingUpsell', false);
-        
+
         // 🔥 GTM E-COMMERCE: UPSELL PURCHASE
         if (!state.get('upsellPurchaseTracked')) {
             if (window.DC_Analytics) {
+                const { charge: currentCharges } = getPrices();
                 window.DC_Analytics.trackPurchase(
-                    PAYMENT_PRICES.FORECAST_UPSELL, // 97 грн
-                    `upsell_${Date.now()}`, 
+                    currentCharges.FORECAST_UPSELL,
+                    `upsell_${Date.now()}`,
                     "Forecast 2026 Upsell"
                 );
             }
             state.set('upsellPurchaseTracked', true);
         }
-        
-        const newUrl = window.location.pathname; 
+
+        const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
 
         const savedEmail = state.get('email');
-        
+
         if (savedEmail) {
             activatePremiumUI();
             showModal(
                 "✨ Дякуємо за покупку!",
                 `Твій <strong>Прогноз на 2026 рік</strong> генерується прямо зараз і буде відправлений на <strong>${savedEmail}</strong><br><br> Натискай <strong>Надіслати мені Звіт + Прогноз</strong> на наступній сторінці`
             );
-            
+
         } else {
             if (upsellSuccessModal) upsellSuccessModal.style.display = 'flex';
         }
@@ -171,7 +174,7 @@ export async function init(router) {
     if (state.get('hasPaidUpsell')) {
         activatePremiumUI();
     }
-    
+
     if (state.get('email')) {
         userEmailInput.value = state.get('email');
     }
@@ -188,16 +191,17 @@ export async function init(router) {
             try {
                 const currentEmail = userEmailInput.value ? userEmailInput.value.trim() : "";
                 state.set('isPendingUpsell', true);
-                if (currentEmail) state.set('email', currentEmail); 
-                
+                if (currentEmail) state.set('email', currentEmail);
+
                 // 🔥 GTM: Трекаємо клік (вже є в main.js global tracker, але тут явний інтент)
-                
+
                 const fullUserData = state.get('userData');
+                const { charge: currentCharges } = getPrices();
 
                 await processPayment(
-                    { name: "Астро-Прогноз на 2026", price: PAYMENT_PRICES.FORECAST_UPSELL }, 
+                    { name: "Астро-Прогноз на 2026", price: currentCharges.FORECAST_UPSELL },
                     { email: currentEmail },
-                    fullUserData, 
+                    fullUserData,
                     { returnQueryParams: 'upsell_source=stage6' }
                 );
             } catch (error) {
@@ -215,11 +219,11 @@ export async function init(router) {
         upsellSuccessForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const newEmail = upsellSuccessEmailInput.value;
-            
+
             if (newEmail) {
                 state.set('email', newEmail);
-                userEmailInput.value = newEmail; 
-                
+                userEmailInput.value = newEmail;
+
                 upsellSuccessModal.style.display = 'none';
                 activatePremiumUI();
 

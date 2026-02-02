@@ -3,6 +3,7 @@ import { februaryConfig } from './months/february.js';
 import { oneUahConfig } from './promos/1uah.js';
 import { devConfig } from './system/dev.js';
 import { natalChartConfig } from './products/natal_chart.js';
+import { natalChartHyphenConfig } from './products/natal-chart.js';
 import { forecastConfig } from './products/forecast.js';
 
 /**
@@ -19,6 +20,7 @@ export const VARIANTS = {
 
     // Products
     'natal_chart': natalChartConfig,
+    'natal-chart': natalChartHyphenConfig,
     'forecast': forecastConfig,
 
     // System / Development

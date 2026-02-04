@@ -9,8 +9,11 @@
 import './styles/main.css';
 import { state } from './utils/state.js';
 import { router } from './utils/router.js';
+import { haptics } from './utils/haptics.js';
 import { warmUpBackend } from './services/api.service.js';
+
 import { StarryBackground } from './utils/StarryBackground.js';
+import { Logger } from './utils/logger.js';
 
 // --- ІМПОРТ МОДУЛІВ ---
 import { init as initWelcome } from './modules/stage-1-welcome/index.js';
@@ -96,6 +99,38 @@ function setupGlobalClickTracking() {
             }
         }
     }, true);
+
+    // 🔊 GLOBAL HAPTICS for all Buttons/Links
+    document.addEventListener('click', (e) => {
+        // Find if user clicked a button or link (bubble up)
+        const interactable = e.target.closest('button, a, .btn, .clickable, input[type="radio"], input[type="checkbox"]');
+
+        if (interactable) {
+            // Check if it's "disabled"
+            if (interactable.disabled || interactable.classList.contains('disabled')) {
+                haptics.trigger('error'); // Buzz if disabled
+            } else {
+                // Determine intensity based on class or type
+                if (interactable.classList.contains('btn-primary') || interactable.classList.contains('btn-action')) {
+                    // Heavy haptic is already triggered manually in specific modules for submitting.
+                    // We avoid double trigger here by checking manual handling or just doing light "feedback"
+                    // Strategy: If it has specific logic, we might double trigger.
+                    // Let's use a "debounced" approach or just trigger 'medium' unless it's a known heavy button.
+
+                    // Simple heuristic: If it sends data (submit), modules usually handle it. 
+                    // But for generic navigation buttons, we want feedback.
+
+                    // Let's try: trigger 'medium' for all buttons globally.
+                    // If a specific handler triggers 'heavy' or 'success' immediately after, 
+                    // the haptic engine (sound/vibrate) usually overlaps or overrides acceptable.
+
+                    haptics.trigger('medium');
+                } else {
+                    haptics.trigger('light');
+                }
+            }
+        }
+    }, true);
 }
 
 /**
@@ -123,7 +158,7 @@ window.DC_Analytics = {
                 items: [{ item_name: itemName, price: value, quantity: 1 }]
             }
         });
-        console.log(`🚀 [Analytics] ${gtmEvent.toUpperCase()}: ${itemName}`);
+        Logger.log(`🚀 [Analytics] ${gtmEvent.toUpperCase()}: ${itemName}`);
     },
 
     trackPurchase: (value, transactionId, itemName) => {
@@ -144,7 +179,7 @@ window.DC_Analytics = {
                 items: [{ item_name: itemName, price: value, quantity: 1 }]
             }
         });
-        console.log(`💰💰💰 [Analytics] ${gtmPurchaseEvent.toUpperCase()}: ${itemName}`);
+        Logger.log(`💰💰💰 [Analytics] ${gtmPurchaseEvent.toUpperCase()}: ${itemName}`);
     }
 };
 
@@ -156,6 +191,15 @@ async function bootstrap() {
     if (!window.starryBgInstance) {
         window.starryBgInstance = new StarryBackground();
     }
+
+    // 🔊 Global Audio Unlock (Touch/Click)
+    const unlockHaptics = () => {
+        haptics.init();
+        document.body.removeEventListener('click', unlockHaptics);
+        document.body.removeEventListener('touchstart', unlockHaptics);
+    };
+    document.body.addEventListener('click', unlockHaptics);
+    document.body.addEventListener('touchstart', unlockHaptics);
 
     setupGlobalClickTracking();
     router.init({

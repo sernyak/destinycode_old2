@@ -19,8 +19,8 @@ export const VARIANTS = {
     '1uah': oneUahConfig,
 
     // Products
-    'natal_chart': natalChartConfig,
-    'natal-chart': natalChartHyphenConfig,
+    'natal_chart': natalChartHyphenConfig, // Swapped
+    'natal-chart': natalChartConfig,       // Swapped
     'forecast': forecastConfig,
 
     // System / Development

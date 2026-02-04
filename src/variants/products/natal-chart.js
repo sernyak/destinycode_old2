@@ -10,7 +10,7 @@ export const natalChartHyphenConfig = {
     ui: {
         heroTitle: `ТВОЯ
 <br>НАТАЛЬНА КАРТА
-<br><span id="hero-subtitle-cta" class="relative text-xl font-medium opacity-90 border border-white/20 rounded-lg px-4 py-1 inline-block mt-2 cursor-pointer hover:bg-white/5 transition-colors">інструкція до щасливого життя</span>`,
+<br><span id="hero-subtitle-cta" class="relative text-base font-medium opacity-90 border border-white/20 rounded-lg px-3 py-1 inline-block mt-2 cursor-pointer hover:bg-white/5 transition-colors">інструкція до щасливого життя</span>`,
 
         // 1. Текст ПЕРЕД формою
         heroSubtitle: `Обери дату народження, щоб отримати повну розшифровку свого потенціалу та долі.`,

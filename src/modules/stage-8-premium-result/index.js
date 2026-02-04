@@ -5,7 +5,9 @@ import { processPayment } from '../../services/payment.service.js';
 import { API, DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
 import { getPrices } from '../../utils/pricing.js';
 import { generateFullReport } from '../../services/api.service.js';
+
 import { showModal } from '../../utils/modal.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Stage 8: Premium Result (v3.6.1 Full Version)
@@ -61,7 +63,7 @@ export function init(router) {
     const isUpsellReturn = urlParams.get('upsell_source') === 'stage8';
 
     if (isUpsellReturn) {
-        console.log("💎 Detected return from Late Upsell payment. Restoring state...");
+        Logger.log("💎 Detected return from Late Upsell payment. Restoring state...");
         state.set('hasPaidUpsell', true);
 
         try {
@@ -69,7 +71,7 @@ export function init(router) {
             if (backup) {
                 const parsedBackup = JSON.parse(backup);
                 if (parsedBackup && parsedBackup.sections) {
-                    console.log("⚡️ Instant Report Restore from LocalStorage success!");
+                    Logger.log("⚡️ Instant Report Restore from LocalStorage success!");
                     state.set('fullReport', parsedBackup);
                 }
             }
@@ -402,7 +404,7 @@ export function init(router) {
 
             const currentReport = state.get('fullReport');
             if (currentReport) {
-                console.log("💾 Backing up report to LocalStorage before payment redirect...");
+                Logger.log("💾 Backing up report to LocalStorage before payment redirect...");
                 localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(currentReport));
             }
 

@@ -1,7 +1,9 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
+import { haptics } from '../../utils/haptics.js';
 import { initAstroLib } from '../../utils/astro-lib-loader.js';
 // 🔥 StarryBackground тепер ініціалізується глобально в main.js
+
 
 export function init(router) {
     const app = document.getElementById('app');
@@ -54,6 +56,7 @@ export function init(router) {
         const ctaSubtitle = document.getElementById('hero-subtitle-cta');
         if (ctaSubtitle) {
             ctaSubtitle.addEventListener('click', () => {
+                haptics.trigger('light');
                 const dateInputContainer = document.querySelector('.input-field');
                 if (dateInputContainer) {
                     dateInputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -69,69 +72,95 @@ export function init(router) {
                     dateInputContainer.style.animation = 'gentle-shake 0.5s ease-in-out 2';
                 }
             });
-
-            // Inject styles for animation if not exists
-            if (!document.getElementById('cta-styles')) {
-                const style = document.createElement('style');
-                style.id = 'cta-styles';
-                style.innerHTML = `
-                    @keyframes gentle-shake {
-                        0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
-                        25% { transform: translateX(-5px) rotate(-1deg); }
-                        75% { transform: translateX(5px) rotate(1deg); box-shadow: 0 0 20px 0 rgba(205, 164, 94, 0.5); }
-                    }
-
-                    /* 🌬️ "Mystic Breath" for Subtitle */
-                    @keyframes mystic-breath {
-                        0%, 100% { 
-                            transform: scale(1); 
-                            box-shadow: 0 0 0 rgba(255,255,255,0);
-                            border-color: rgba(255,255,255,0.2);
-                        }
-                        50% { 
-                            transform: scale(0.98); /* Squeeze inward */
-                            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Very subtle glow */
-                            border-color: rgba(255,255,255,0.5);
-                        }
-                    }
-                    #hero-subtitle-cta {
-                        animation: mystic-breath 6s ease-in-out infinite;
-                    }
-
-                    /* ✨ "Star Shine" for Input Field */
-                    .input-field {
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .input-field::after {
-                        content: "";
-                        position: absolute;
-                        top: 0;
-                        left: -50px;
-                        width: 17px;
-                        height: 100%;
-                        background: linear-gradient(
-                            90deg,
-                            transparent,
-                            rgba(255, 255, 255, 0.8),
-                            transparent
-                        );
-                        transform: skewX(-25deg);
-                        animation: shine-anim 11s infinite;
-                        animation-delay: 3s;
-                        pointer-events: none;
-                        z-index: 5; /* Ensure above input background but below text if possible, or manageable */
-                    }
-                    
-                    @keyframes shine-anim {
-                        0% { left: -50px; }
-                        45% { left: 150%; } /* Slow movement */
-                        100% { left: 150%; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
         }
+    }
+
+    // 🔥 GLOBAL ANIMATION STYLES (Always Injected)
+    if (!document.getElementById('global-anim-styles')) {
+        const style = document.createElement('style');
+        style.id = 'global-anim-styles';
+        style.innerHTML = `
+            @keyframes gentle-shake {
+                0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
+                25% { transform: translateX(-5px) rotate(-1deg); }
+                75% { transform: translateX(5px) rotate(1deg); box-shadow: 0 0 20px 0 rgba(205, 164, 94, 0.5); }
+            }
+
+            /* 🌬️ "Mystic Breath" for Subtitle (used only if element exists) */
+            @keyframes mystic-breath {
+                0%, 100% { 
+                    transform: scale(1); 
+                    box-shadow: 0 0 0 rgba(255,255,255,0);
+                    border-color: rgba(255,255,255,0.2);
+                }
+                50% { 
+                    transform: scale(0.98); /* Squeeze inward */
+                    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Very subtle glow */
+                    border-color: rgba(255,255,255,0.5);
+                }
+            }
+            #hero-subtitle-cta {
+                animation: mystic-breath 6s ease-in-out infinite;
+            }
+
+            /* ✨ "Star Shine" for Date Input Field ONLY (Stage 1) */
+            /* Excludes time input on Stage 4 */
+            #landing-step .input-field {
+                position: relative;
+                overflow: hidden;
+            }
+            #landing-step .input-field::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -50px;
+                width: 17px;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.8),
+                    transparent
+                );
+                transform: skewX(-25deg);
+                animation: shine-anim 11s infinite;
+                animation-delay: 3s;
+                pointer-events: none;
+                z-index: 5; 
+            }
+            
+            /* ✨ "Star Shine" Restored (Scoped to .shine-effect) */
+            .shine-effect {
+                position: relative;
+                overflow: hidden;
+            }
+            .shine-effect::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -50px;
+                width: 17px;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.8),
+                    transparent
+                );
+                transform: skewX(-25deg);
+                animation: shine-anim 11s infinite;
+                animation-delay: 3s;
+                pointer-events: none;
+                z-index: 5; 
+            }
+            
+            @keyframes shine-anim {
+                0% { left: -50px; }
+                45% { left: 150%; } 
+                100% { left: 150%; }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     // --- DOM Elements (Form) ---
@@ -155,6 +184,37 @@ export function init(router) {
     const legalModalBody = document.getElementById('legal-modal-body');
 
     const legalLinks = document.querySelectorAll('.legal-link[data-legal-type]');
+
+    // ==========================================
+    // FORM VALIDATION & LOGIC
+    // ==========================================
+
+    if (birthDateInput) {
+        // 🔥 Existing logic for validation styling can go here if needed
+
+        // 🆕 Animate Button on Date Selection (Done / Blur)
+        birthDateInput.addEventListener('blur', (e) => {
+            if (e.target.value) {
+                // haptics.trigger('success'); // ❌ REMOVED to avoid double trigger with button click
+                // User finished selecting date -> "Gentle Shake" animation
+
+                // Reset animation (smart way without visible delay)
+                landingSubmitButton.style.animation = 'none';
+
+                requestAnimationFrame(() => {
+                    // Apply shake instantly in the next frame
+                    landingSubmitButton.style.animation = 'gentle-shake 0.5s ease-in-out 2';
+                });
+
+                // Clean up inline style after animation completes to avoid interference
+                setTimeout(() => {
+                    landingSubmitButton.style.animation = '';
+                }, 1000);
+            }
+        });
+
+        // Ensure standard submit behavior is not blocked unless verified
+    }
 
     // ==========================================
     // MODAL LOGIC (Smart Copy-Paste)
@@ -181,12 +241,12 @@ export function init(router) {
     }
 
     // Attach Listeners
-    if (openInfoBtn) openInfoBtn.addEventListener('click', openInfoModal);
-    if (closeInfoIcon) closeInfoIcon.addEventListener('click', closeInfoModal);
-    if (closeInfoBtn) closeInfoBtn.addEventListener('click', closeInfoModal);
+    if (openInfoBtn) openInfoBtn.addEventListener('click', () => { haptics.trigger('light'); openInfoModal(); });
+    if (closeInfoIcon) closeInfoIcon.addEventListener('click', () => { haptics.trigger('light'); closeInfoModal(); });
+    if (closeInfoBtn) closeInfoBtn.addEventListener('click', () => { haptics.trigger('light'); closeInfoModal(); });
 
-    if (closeLegalIcon) closeLegalIcon.addEventListener('click', closeLegalModal);
-    if (closeLegalBtn) closeLegalBtn.addEventListener('click', closeLegalModal);
+    if (closeLegalIcon) closeLegalIcon.addEventListener('click', () => { haptics.trigger('light'); closeLegalModal(); });
+    if (closeLegalBtn) closeLegalBtn.addEventListener('click', () => { haptics.trigger('light'); closeLegalModal(); });
 
     // Close on overlay click
     if (infoModal) {
@@ -227,6 +287,9 @@ export function init(router) {
                 const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
                 datePlaceholder.innerText = formattedDate;
                 datePlaceholder.style.color = 'var(--primary-text-color)';
+
+                // 🔥 FIX: Hide error immediately when date is selected
+                if (errorMessage) errorMessage.style.display = 'none';
             }
         }
     }
@@ -269,9 +332,11 @@ export function init(router) {
     // --- 3. Logic: Form Submit ---
     birthForm.addEventListener('submit', async function (e) {
         e.preventDefault();
+        haptics.trigger('heavy');
         const selectedDate = birthDateInput.value;
 
         if (selectedDate === '') {
+            haptics.trigger('error');
             errorMessage.innerText = "Будь ласка, обери дату народження.";
             errorMessage.style.display = 'block';
         } else {

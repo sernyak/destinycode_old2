@@ -1,7 +1,7 @@
 import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { typeWriter } from '../../utils/animations.js';
-import { getFreeAnalysis, warmUpBackend } from '../../services/api.service.js'; 
+import { getFreeAnalysis, warmUpBackend } from '../../services/api.service.js';
 
 export async function init(router) {
     const app = document.getElementById('app');
@@ -43,7 +43,7 @@ export async function init(router) {
         { text: "Зчитую твій енергетичний код...", pause: 1200 },
         { text: "Розшифровую кармічні вузли...", pause: 1500 },
         { text: "Будую твою натальну карту...", pause: 1500 },
-        { text: "Приготуйся дізнатись, наскільки ти дивовижна 😈", pause: 2000, final: true }
+        { text: "Приготуйся дізнатись, наскільки ти дивовижна 💖", pause: 2000, final: true }
     ];
 
     const animationPromise = (async () => {
@@ -63,17 +63,17 @@ export async function init(router) {
                 // ми все одно дочекаємось завершення рядка (щоб не було візуального "глюку" з обірваним словом),
                 // але паузу після тексту робимо мінімальною.
                 const dynamicPause = isApiReady ? 300 : step.pause;
-                
+
                 await typeWriter(loadingTextEl, loadingCursorEl, step.text, 50, dynamicPause, step.final);
             }
-            
+
             // 🔥 КЛЮЧОВА ЗМІНА: Перевірка ПІСЛЯ кроку (подвійний контроль)
             if (isApiReady) {
                 console.log("🚀 API Ready! Animation loop stopped.");
                 break;
             }
         }
-        
+
         if (loadingCursorEl) loadingCursorEl.style.display = 'none';
     })();
 
@@ -85,5 +85,5 @@ export async function init(router) {
     document.body.classList.remove('warp-mode');
 
     // 4. Перехід
-    router.navigateTo('result'); 
+    router.navigateTo('result');
 }

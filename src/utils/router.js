@@ -5,6 +5,7 @@
 import { StarryBackground } from './StarryBackground.js';
 import { VARIANTS, getVariantByUrl } from '../variants/index.js';
 import { state } from './state.js';
+import { Logger } from './logger.js';
 
 class Router {
     constructor() {
@@ -18,7 +19,7 @@ class Router {
      */
     init(config) {
         if (!config || typeof config.onRoute !== 'function') {
-            console.error('Router init failed: config.onRoute is missing');
+            Logger.error('Router init failed: config.onRoute is missing');
             return;
         }
 
@@ -27,7 +28,7 @@ class Router {
         // 1. Detect Variant based on URL
         const variant = getVariantByUrl();
         if (variant) {
-            console.log(`🚀 Active Variant: ${variant.id}`);
+            Logger.log(`🚀 Active Variant: ${variant.id}`);
             this.currentVariant = variant;
 
             // Store globally so other modules (API, UI) can access it
@@ -58,7 +59,7 @@ class Router {
         // If we are on a variant URL (e.g. /december), treat it as Stage 1 (Welcome)
         // effectively mapping "/december" -> "/" for internal routing
         if (this.currentVariant && (path === `/${this.currentVariant.id}` || path === `/${this.currentVariant.id}/`)) {
-            console.log(`🔀 Rendering Variant Root as Welcome Screen`);
+            Logger.log(`🔀 Rendering Variant Root as Welcome Screen`);
             path = '/';
         } else if (!this.currentVariant) {
             // Reset variant-specific styles if we are on global path
@@ -91,7 +92,7 @@ class Router {
 
     trackVariantView(variant) {
         if (window.fbq) {
-            console.log("📊 Tracking Variant View:", variant.id);
+            Logger.log("📊 Tracking Variant View:", variant.id);
             window.fbq('track', 'ViewContent', {
                 content_name: variant.id,
                 content_category: variant.type

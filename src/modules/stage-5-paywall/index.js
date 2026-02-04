@@ -5,6 +5,7 @@ import { warmUpBackend } from '../../services/api.service.js';
 import { processPayment } from '../../services/payment.service.js';
 import { DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
 import { getPrices } from '../../utils/pricing.js';
+import { haptics } from '../../utils/haptics.js';
 
 export function init(router) {
     const app = document.getElementById('app');
@@ -55,11 +56,12 @@ export function init(router) {
         if (paywallPopup) paywallPopup.style.display = 'none';
     };
 
-    if (popupCloseBtn) popupCloseBtn.addEventListener('click', closePopup);
-    if (popupCloseIcon) popupCloseIcon.addEventListener('click', closePopup); // 🔥 NEW listener for X icon
+    if (popupCloseBtn) popupCloseBtn.addEventListener('click', () => { haptics.trigger('light'); closePopup(); });
+    if (popupCloseIcon) popupCloseIcon.addEventListener('click', () => { haptics.trigger('light'); closePopup(); }); // 🔥 NEW listener for X icon
 
     if (popupCheckoutBtn) {
         popupCheckoutBtn.addEventListener('click', () => {
+            haptics.trigger('heavy');
             closePopup();
             handleCheckout(finalCheckoutButton);
         });
@@ -117,7 +119,10 @@ export function init(router) {
     };
 
     // Додаємо слухача тільки на контейнер
-    if (astroContainer) astroContainer.addEventListener('click', openDecryptionPopup);
+    if (astroContainer) astroContainer.addEventListener('click', () => {
+        haptics.trigger('medium');
+        openDecryptionPopup();
+    });
 
 
     // TIMER LOGIC
@@ -178,6 +183,9 @@ export function init(router) {
     }
 
     if (finalCheckoutButton) {
-        finalCheckoutButton.addEventListener('click', () => handleCheckout(finalCheckoutButton));
+        finalCheckoutButton.addEventListener('click', () => {
+            haptics.trigger('heavy');
+            handleCheckout(finalCheckoutButton);
+        });
     }
 }

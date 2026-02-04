@@ -1,7 +1,9 @@
 import { calculateNatalChart } from './astro.service.js';
 import { state } from '../utils/state.js';
 import { API, SYSTEM } from '../config.js';
+
 import { request } from './core.js';
+import { Logger } from '../utils/logger.js';
 
 // ======================================================
 // GLOBAL CACHE 
@@ -14,7 +16,7 @@ let cachedReportData = null;
 // ======================================================
 
 export function warmUpBackend() {
-    console.log("🔥 Warming up PDF backend...");
+    Logger.log("🔥 Warming up PDF backend...");
     if (API && API.PDF) {
         request(API.PDF, { warmup: true }).catch(() => { });
     }
@@ -100,7 +102,7 @@ async function requestAI(action, data) {
             throw new Error("Configuration Error: API.PROXY is missing. Please check src/config.js");
         }
 
-        console.log(`📡 Sending request to: ${API.PROXY} [Action: ${action}]`);
+        Logger.log(`📡 Sending request to: ${API.PROXY} [Action: ${action}]`);
 
         const result = await request(
             API.PROXY,
@@ -136,7 +138,16 @@ async function requestAI(action, data) {
 export async function getFreeAnalysis(date) {
     warmUpBackend();
     try {
-        const rawJsonText = await requestAI('free_analysis', { date });
+        let astroTechnicalData = `Дата народження: ${date}`;
+        try {
+            // Розраховуємо базові дані (без часу та міста, по дефолту на 12:00)
+            const astroResult = await calculateNatalChart({ date });
+            if (astroResult && astroResult.planets) {
+                astroTechnicalData = `Дата: ${date}\n== Технічні Астрологічні Дані ==\n${astroResult.planets.join('\n')}`;
+            }
+        } catch (e) { console.warn("Free astro calc skipped", e); }
+
+        const rawJsonText = await requestAI('free_analysis', { date, userQuery: astroTechnicalData });
         const parsedData = parseAIResponse(rawJsonText);
         return parsedData;
 
@@ -151,7 +162,7 @@ export async function getFreeAnalysis(date) {
 
 export async function startBackgroundGeneration(userData) {
     if (backgroundGenerationPromise) return backgroundGenerationPromise;
-    console.log("🚀 Starting background generation (Secure)...");
+    Logger.log("🚀 Starting background generation (Secure)...");
 
     let astroTechnicalData = "";
     try {
@@ -159,6 +170,12 @@ export async function startBackgroundGeneration(userData) {
         if (astroResult && astroResult.planets) {
             astroTechnicalData = `== Технічні Астрологічні Дані ==\n${astroResult.planets.join('\n')}`;
             state.set('planets', astroResult.planets);
+
+            // 🔥 ASPECTS: Додаємо таблицю аспектів до промпту
+            if (astroResult.aspects && astroResult.aspects.length > 0) {
+                astroTechnicalData += `\n\n== Аспекти Натальної Карти ==\n${astroResult.aspects.join('\n')}`;
+                state.set('aspects', astroResult.aspects);
+            }
         }
     } catch (e) { console.warn("Local calc skipped", e); }
 
@@ -169,17 +186,17 @@ export async function startBackgroundGeneration(userData) {
     let finalQuery = userQuery;
 
     if (variant && variant.aiContext && variant.aiContext.additionalPrompt) {
-        console.log("🧠 Injecting AI Context from Variant:", variant.id);
+        Logger.log("🧠 Injecting AI Context from Variant:", variant.id);
         finalQuery += `\n\n[ВАЖЛИВИЙ КОНТЕКСТ МАРКЕТИНГУ: ${variant.aiContext.additionalPrompt}]`;
     }
 
-    const enrichedUserData = state.get('planets') ? { ...userData, planets: state.get('planets') } : userData;
+    const enrichedUserData = state.get('planets') ? { ...userData, planets: state.get('planets'), aspects: state.get('aspects') } : userData;
 
     backgroundGenerationPromise = requestAI('full_report', { userQuery: finalQuery })
         .then(rawJson => {
             const data = parseAIResponse(rawJson);
             cachedReportData = { data, enrichedUserData };
-            console.log("✅ Background generation finished!");
+            Logger.log("✅ Background generation finished!");
             return data;
         })
         .catch(err => {
@@ -209,7 +226,7 @@ export async function generateFullReport(userData, email) {
         }
 
         if (email && email.includes('@')) {
-            console.log("📧 Preparing Main Report Email (Frontend Trigger)...");
+            Logger.log("📧 Preparing Main Report Email (Frontend Trigger)...");
             const formattedHtml = formatReportToHtml(reportData.sections);
 
             request(API.EMAIL, {
@@ -240,7 +257,7 @@ export async function generateForecast(userData, email) {
     const query = `Користувач: Жінка. Дата: ${userData.date}. Місто: ${userData.city}`;
 
     try {
-        console.log("🔮 Generating Forecast for UI preview...");
+        Logger.log("🔮 Generating Forecast for UI preview...");
 
         const rawJson = await requestAI('forecast', { userQuery: query });
         const parsedData = parseAIResponse(rawJson);
@@ -252,7 +269,7 @@ export async function generateForecast(userData, email) {
         const forecastHtml = formatReportToHtml(parsedData.sections);
 
         // 🔥 Email Logic REMOVED.
-        console.log("✅ Forecast HTML generated. Email буде відправлено backend'ом.");
+        Logger.log("✅ Forecast HTML generated. Email буде відправлено backend'ом.");
 
         return forecastHtml;
 

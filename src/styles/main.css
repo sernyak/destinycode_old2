@@ -185,14 +185,19 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
-/* --- Стилі Кнопок --- */
+/* Soften the shine on input fields */
+.input-field::after {
+    opacity: 0.4;
+}
+
+/* --- Стилі Кнопок (PREMIUM MOLTEN GOLD & COSMIC VIOLET) --- */
 .btn {
     width: 100%;
     font-weight: 700;
     border-radius: 0.75rem;
     padding: 1rem;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
     display: flex;
@@ -200,16 +205,61 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     justify-content: center;
     user-select: none;
     -webkit-user-select: none;
+    overflow: hidden;
+    /* REMOVED: text-transform: uppercase & letter-spacing (Reverted font style) */
+}
+
+/* Shine Effect for all premium buttons - PERMANENT & SLOW */
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.28) 50%,
+            /* 30% softer (was 0.4) */
+            rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-25deg);
+    pointer-events: none;
+    z-index: 1;
+    animation: shine 27s infinite linear;
+    /* 27x slower (was 0.6s -> 3s -> 9s -> 27s) & infinite */
+}
+
+/* REMOVED: .btn:hover::before triggers */
+
+@keyframes shine {
+    0% {
+        left: -75%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        left: 125%;
+        opacity: 0;
+    }
 }
 
 .btn:active {
-    transform: translateY(1px);
+    transform: scale(0.98);
 }
 
 .btn:disabled {
-    opacity: 0.8;
+    opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+    filter: grayscale(0.8);
 }
 
 /* Спінер */
@@ -238,29 +288,55 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     transform: none;
 }
 
+/* MOLTEN GOLD - Luxury, Wealth, Premium */
 .btn-primary {
-    background: linear-gradient(135deg, #cda45e 0%, #a87e38 100%);
-    color: #0f1115;
-    box-shadow: 0 4px 20px -5px rgba(205, 164, 94, 0.4);
+    background: linear-gradient(180deg, #F3C471 0%, #CDA45E 30%, #906D30 100%);
+    color: #1a1500;
+    /* Deep dark gold/brown text for better contrast & look */
     border: none;
+
+    /* 3D Bevel & Glow */
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        /* Top Rim Light */
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+        /* Bottom Shadow */
+        0 4px 20px rgba(205, 164, 94, 0.4),
+        /* Ambient Golden Glow */
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    /* Depth Shadow */
+
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    /* Etched text effect */
 }
 
 .btn-primary:not(:disabled):hover {
-    opacity: 0.95;
-    box-shadow: 0 6px 25px -5px rgba(205, 164, 94, 0.5);
+    filter: brightness(1.1);
+    /* Mobile First: Removed extra glow on hover */
     transform: translateY(-1px);
 }
 
+/* COSMIC VIOLET - Mystical, Deep, Magic */
 .btn-violet {
-    background: linear-gradient(135deg, #9d4edd 0%, #7b2cbf 100%);
+    background: linear-gradient(180deg, #C77DFF 0%, #9D4EDD 40%, #5A189A 100%);
     color: #ffffff;
-    box-shadow: 0 4px 20px -5px rgba(157, 78, 221, 0.4);
     border: none;
+
+    /* 3D Bevel & Glow */
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        /* Top Rim Light */
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+        0 4px 20px rgba(157, 78, 221, 0.5),
+        /* Ambient Violet Glow */
+        0 2px 4px rgba(0, 0, 0, 0.4);
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .btn-violet:not(:disabled):hover {
-    opacity: 0.95;
-    box-shadow: 0 6px 25px -5px rgba(157, 78, 221, 0.5);
+    filter: brightness(1.1);
+    /* Mobile First: Removed extra glow on hover */
     transform: translateY(-1px);
 }
 
@@ -272,20 +348,32 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     font-weight: 500;
 }
 
+/* Remove shine from skip/text buttons */
+.btn-skip::before {
+    display: none !important;
+}
+
 .btn-skip:hover {
     color: var(--primary-text-color);
 }
 
+/* STARLIGHT GLASS - Secondary Action */
 .btn-secondary {
-    background-color: var(--card-bg-color);
+    background-color: rgba(22, 27, 34, 0.6);
+    /* Semi-transparent dark */
     color: var(--accent-color);
-    border: 1px solid var(--accent-color);
-    opacity: 0.8;
+    border: 1px solid rgba(205, 164, 94, 0.4);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
 .btn-secondary:not(:disabled):hover {
-    opacity: 1;
-    background-color: rgba(205, 164, 94, 0.05);
+    background-color: rgba(205, 164, 94, 0.1);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px rgba(205, 164, 94, 0.2);
+    color: #F3C471;
+    /* Brighter gold on hover */
 }
 
 /* --- Стилі Завантаження --- */
@@ -676,20 +764,28 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .btn-pulse-glow {
-    animation: btn-glow 2s infinite;
+    animation: btn-glow 3s infinite ease-in-out;
+    /* Slower, smoother breathing */
 }
 
 @keyframes btn-glow {
     0% {
-        box-shadow: 0 0 0 0 rgba(205, 164, 94, 0.7);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.4),
+            0 4px 20px rgba(205, 164, 94, 0.4);
     }
 
-    70% {
-        box-shadow: 0 0 0 10px rgba(205, 164, 94, 0);
+    50% {
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.5),
+            0 0 30px rgba(205, 164, 94, 0.6);
+        /* Intense glow peak */
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(205, 164, 94, 0);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.4),
+            0 4px 20px rgba(205, 164, 94, 0.4);
     }
 }
 
@@ -722,6 +818,134 @@ input:-webkit-autofill:active {
 @media (min-height: 800px) {
     .funnel-container {
         justify-content: center;
+    }
+}
+
+/* ================================================================= */
+/* 🖥️ DESKTOP ADAPTATION (min-width: 768px)                         */
+/* ================================================================= */
+@media (min-width: 768px) {
+
+    /* --- Body: Enable natural scroll on desktop --- */
+    html {
+        overflow: auto;
+        overscroll-behavior: auto;
+    }
+
+    body {
+        overflow: auto;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    /* --- Container: Centered column with max-width --- */
+    .funnel-container {
+        max-width: 480px;
+        margin: 0 auto;
+        height: auto;
+        min-height: 100vh;
+        overflow-y: visible;
+        padding-top: 80px;
+        padding-bottom: 80px;
+    }
+
+    /* --- Buttons: Full width within container (same as inputs) --- */
+    .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    /* --- Skip Button: Original style preserved --- */
+    .btn-skip {
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0.8;
+    }
+
+    /* --- Input Fields: Full clickable area --- */
+    .input-field {
+        cursor: pointer;
+    }
+
+    input[type="date"],
+    input[type="time"] {
+        cursor: pointer;
+    }
+
+    /* Ensure the entire input field triggers the picker */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* --- Stage 4: Disable shine effect on time input --- */
+    #birth-time+.input-field::after,
+    input[type="time"]~.input-field::after {
+        display: none !important;
+    }
+
+    /* Target the time input container specifically */
+    #premium-data-step .input-field::after {
+        display: none !important;
+    }
+
+    /* --- Stage 3: Rounded corner at report-button junction --- */
+    #result-step .sticky-paywall-footer {
+        border-radius: 0.75rem 0.75rem 0 0;
+        background: linear-gradient(to top,
+                var(--bg-color) 60%,
+                rgba(5, 5, 8, 0.95) 85%,
+                rgba(5, 5, 8, 0) 100%);
+    }
+
+    /* --- Sticky Footer: Match container width exactly --- */
+    .sticky-paywall-footer {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .sticky-paywall-footer .btn {
+        width: 100%;
+        max-width: none;
+    }
+
+    /* --- Custom Scrollbar (Webkit) --- */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(205, 164, 94, 0.3);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(205, 164, 94, 0.5);
+    }
+
+    /* --- Modal: Ensure full viewport coverage --- */
+    .modal-overlay {
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .modal-content {
+        max-width: 500px;
     }
 }
 

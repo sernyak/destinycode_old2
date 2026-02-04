@@ -1,4 +1,5 @@
 import { API_BASE } from '../config.js';
+import { Logger } from '../utils/logger.js';
 
 /**
  * CORE HTTP CLIENT (Smart Adapter v2)
@@ -18,14 +19,14 @@ export async function request(endpoint, data = {}, options = {}) {
             const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
             url = `${API_BASE}/${cleanEndpoint}`;
         }
-        
+
         // Логування для відладки (можна розкоментувати при потребі)
         // console.log(`[API Request] -> ${url}`);
 
         const fetchOptions = {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json' 
+            headers: {
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data),
             ...options // 🔥 Прокидаємо додаткові опції (наприклад, signal)
@@ -43,7 +44,7 @@ export async function request(endpoint, data = {}, options = {}) {
     } catch (error) {
         // Не логуємо помилку AbortError як "API Core Error", бо це штатна ситуація при таймауті
         if (error.name !== 'AbortError') {
-            console.error(`[API Core Error] ${endpoint}:`, error);
+            Logger.error(`[API Core Error] ${endpoint}:`, error);
         }
         throw error;
     }

@@ -14,65 +14,89 @@ export function init(router) {
     app.innerHTML = html;
 
     // --- 🔥 DYNAMIC CONTENT INJECTION (SMART ROUTING) ---
-    const variant = state.get('currentVariant');
-    if (variant && variant.ui) {
-        console.log("🎨 Applying Variant UI Overrides:", variant.id);
+    // --- 🔥 DYNAMIC CONTENT INJECTION (SMART ROUTING) ---
+    try {
+        const variant = state.get('currentVariant');
+        if (variant && variant.ui) {
+            console.log("🎨 Applying Variant UI Overrides:", variant.id);
 
-        // Selectors based on current HTML structure
-        const titleEl = document.querySelector('h2');
-        const subtitleEl = document.querySelector('p.text-lg');
-        const btnTextEl = document.querySelector('#birth-form button .btn-text');
+            // Selectors based on current HTML structure
+            const titleEl = document.querySelector('h2');
+            const subtitleEl = document.querySelector('p.text-lg');
+            const btnTextEl = document.querySelector('#birth-form button .btn-text');
 
-        if (titleEl && variant.ui.heroTitle) {
-            titleEl.innerHTML = variant.ui.heroTitle;
-        }
-        if (subtitleEl && variant.ui.heroSubtitle) {
-            subtitleEl.innerHTML = variant.ui.heroSubtitle;
-        }
-        if (btnTextEl && variant.ui.buttonText) {
-            btnTextEl.innerText = variant.ui.buttonText;
-        }
+            if (titleEl && variant.ui.heroTitle) {
+                titleEl.innerHTML = variant.ui.heroTitle;
+                // 🎨 Make title lighter (semibold instead of bold) + Inter font
+                // 🔥 EXCEPTION: February uses original Main Variant font (Montserrat Bold)
+                if (variant.id !== 'february') {
+                    titleEl.classList.remove('font-bold');
+                    titleEl.classList.add('font-semibold');
+                    titleEl.style.fontFamily = "'Inter', sans-serif";
+                }
 
-        // --- 🎨 BACKGROUND OVERRIDE ---
-        if (variant.ui.backgroundColor) {
-            console.log("🖌️ Applying Variant Background Color:", variant.ui.backgroundColor);
-            document.body.style.backgroundColor = variant.ui.backgroundColor;
-        }
+                // --- ➕ HERO PRE-TITLE (Text BEFORE Title) ---
+                if (variant.ui.heroPreTitle) {
+                    const preTitle = document.createElement('p');
+                    // 🎨 Design: Gold accent, normal case, elegant spacing
+                    preTitle.className = 'text-base font-semibold mb-3';
+                    preTitle.style.cssText = 'color: #cda45e; letter-spacing: 0.5px;';
+                    preTitle.innerHTML = variant.ui.heroPreTitle;
+                    if (titleEl.parentNode) {
+                        titleEl.parentNode.insertBefore(preTitle, titleEl);
+                    }
+                }
+            }
+            if (subtitleEl && variant.ui.heroSubtitle) {
+                subtitleEl.innerHTML = variant.ui.heroSubtitle;
+            }
+            if (btnTextEl && variant.ui.buttonText) {
+                btnTextEl.innerText = variant.ui.buttonText;
+            }
 
-        // --- ➕ HERO FEATURES (Text AFTER Form) ---
-        if (variant.ui.heroFeatures) {
-            // Find container to append features
-            const birthForm = document.getElementById('birth-form');
-            if (birthForm) {
-                const featuresContainer = document.createElement('div');
-                featuresContainer.innerHTML = variant.ui.heroFeatures;
+            // --- 🎨 BACKGROUND OVERRIDE ---
+            if (variant.ui.backgroundColor) {
+                console.log("🖌️ Applying Variant Background Color:", variant.ui.backgroundColor);
+                document.body.style.backgroundColor = variant.ui.backgroundColor;
+            }
 
-                // Insert AFTER form using parent
-                birthForm.parentNode.insertBefore(featuresContainer, birthForm.nextSibling);
+            // --- ➕ HERO FEATURES (Text AFTER Form) ---
+            if (variant.ui.heroFeatures) {
+                // Find container to append features
+                const birthForm = document.getElementById('birth-form');
+                if (birthForm && birthForm.parentNode) {
+                    const featuresContainer = document.createElement('div');
+                    featuresContainer.innerHTML = variant.ui.heroFeatures;
+
+                    // Insert AFTER form using parent
+                    birthForm.parentNode.insertBefore(featuresContainer, birthForm.nextSibling);
+                }
+            }
+
+            // --- 🖱️ INTERACTIVE SUBTITLE CTA ---
+            const ctaSubtitle = document.getElementById('hero-subtitle-cta');
+            if (ctaSubtitle) {
+                ctaSubtitle.addEventListener('click', () => {
+                    haptics.trigger('light');
+                    const dateInputContainer = document.querySelector('.input-field');
+                    if (dateInputContainer) {
+                        dateInputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // Add pulse/shake animation
+                        dateInputContainer.classList.remove('animate-pulse'); // reset
+
+                        // 🔥 Reset animation to allow re-triggering
+                        dateInputContainer.style.animation = 'none';
+                        void dateInputContainer.offsetHeight; // force reflow
+
+                        // Custom heavy pulse animation
+                        dateInputContainer.style.animation = 'gentle-shake 0.5s ease-in-out 2';
+                    }
+                });
             }
         }
-
-        // --- 🖱️ INTERACTIVE SUBTITLE CTA ---
-        const ctaSubtitle = document.getElementById('hero-subtitle-cta');
-        if (ctaSubtitle) {
-            ctaSubtitle.addEventListener('click', () => {
-                haptics.trigger('light');
-                const dateInputContainer = document.querySelector('.input-field');
-                if (dateInputContainer) {
-                    dateInputContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Add pulse/shake animation
-                    dateInputContainer.classList.remove('animate-pulse'); // reset
-
-                    // 🔥 Reset animation to allow re-triggering
-                    dateInputContainer.style.animation = 'none';
-                    void dateInputContainer.offsetHeight; // force reflow
-
-                    // Custom heavy pulse animation
-                    dateInputContainer.style.animation = 'gentle-shake 0.5s ease-in-out 2';
-                }
-            });
-        }
+    } catch (err) {
+        console.error("❌ Error applying variant UI:", err);
     }
 
     // 🔥 GLOBAL ANIMATION STYLES (Always Injected)

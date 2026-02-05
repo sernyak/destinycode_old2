@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🤖 Bot Logs | Destiny Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        /* Custom scrollbar for log messages */
+        .log-msg::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log-msg::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .log-msg::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- 🔐 LOGIN SCREEN (Reusing same logic) -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
+        <div class="card rounded-2xl p-8 w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold text-white mb-2">🔐 Bot Admin</h2>
+            <input type="password" id="password-input" placeholder="Pass: 1536"
+                class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-white text-center text-lg tracking-widest mb-4 focus:outline-none focus:border-indigo-500"
+                autofocus />
+            <button id="login-btn"
+                class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-semibold transition">
+                Увійти
+            </button>
+        </div>
+    </div>
+
+    <!-- 📊 DASHBOARD -->
+    <div id="admin-content" class="max-w-6xl mx-auto hidden pb-20">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <a href="/admin" class="text-indigo-400 hover:text-indigo-300 text-sm mb-1 inline-block">← Назад до
+                    Варіантів</a>
+                <h1 class="text-3xl font-bold text-white">🤖 Telegram Bot Logs</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchView('logs')" id="btn-view-logs"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm text-white">📝 Logs</button>
+                <button onclick="switchView('summaries')" id="btn-view-summaries"
+                    class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-slate-300">📊
+                    Summaries</button>
+                <button onclick="refreshData()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm">🔄
+                    Refresh</button>
+            </div>
+        </div>
+
+        <!-- VIEW: SUMMARIES -->
+        <div id="view-summaries" class="hidden">
+            <div id="summaries-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards will go here -->
+            </div>
+        </div>
+
+        <!-- VIEW: LOGS -->
+        <div id="view-logs">
+
+            <!-- STATS ROW -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="card rounded-xl p-5 border-l-4 border-indigo-500">
+                    <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Всього</div>
+                    <div class="text-3xl font-bold text-white" id="stat-all">-</div>
+                </div>
+                <div class="card rounded-xl p-5 border-l-4 border-red-500">
+                    <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Негатив</div>
+                    <div class="text-3xl font-bold text-white" id="stat-neg">-</div>
+                </div>
+                <div class="card rounded-xl p-5 border-l-4 border-yellow-500">
+                    <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Ідеї</div>
+                    <div class="text-3xl font-bold text-white" id="stat-idea">-</div>
+                </div>
+                <div class="card rounded-xl p-5 border-l-4 border-green-500">
+                    <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Позитив</div>
+                    <div class="text-3xl font-bold text-white" id="stat-pos">-</div>
+                </div>
+            </div>
+
+            <!-- FILTERS -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="filterLogs('all')" id="btn-all"
+                    class="filter-btn px-4 py-2 rounded-lg bg-indigo-600 text-white">Всі</button>
+                <button onclick="filterLogs('-')" id="btn-neg"
+                    class="filter-btn px-4 py-2 rounded-lg bg-slate-700 text-slate-300">😡 Негатив</button>
+                <button onclick="filterLogs('!')" id="btn-idea"
+                    class="filter-btn px-4 py-2 rounded-lg bg-slate-700 text-slate-300">💡 Ідеї</button>
+                <button onclick="filterLogs('+')" id="btn-pos"
+                    class="filter-btn px-4 py-2 rounded-lg bg-slate-700 text-slate-300">🥰 Позитив</button>
+            </div>
+
+            <!-- LOGS GRID -->
+            <div id="logs-container" class="grid gap-4">
+                <!-- Loading State -->
+                <div class="text-center py-20 text-slate-500">Завантаження...</div>
+            </div>
+        </div>
+
+        <!-- FIREBASE SDK -->
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+            import { getFirestore, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+            // 🔥 FIREBASE CONFIG (Web)
+            const firebaseConfig = {
+                projectId: "destinycode-982fa",
+                appId: "1:168629222416:web:3283f6a4051f57a85c9e95",
+                storageBucket: "destinycode-982fa.firebasestorage.app",
+                apiKey: "AIzaSyA20BvSogSuHTni09Y54HwmlpG7UKXuxk8",
+                authDomain: "destinycode-982fa.firebaseapp.com",
+                messagingSenderId: "168629222416",
+                measurementId: "G-ZKS4RCNFGX"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            // --- AUTH LOGIC ---
+            const ADMIN_PASSWORD = '1536';
+            const SESSION_KEY = 'dc_admin_auth';
+
+            if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadLogs();
+            }
+
+            document.getElementById('login-btn').addEventListener('click', attemptLogin);
+            document.getElementById('password-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') attemptLogin();
+            });
+
+            function attemptLogin() {
+                const pass = document.getElementById('password-input').value;
+                if (pass === ADMIN_PASSWORD) {
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('admin-content').classList.remove('hidden');
+                    loadLogs();
+                } else {
+                    alert('Wrong password');
+                }
+            }
+
+            // --- LOGS LOGIC ---
+            let currentFilter = 'all';
+            let allLogs = [];
+
+            window.filterLogs = (tag) => {
+                currentFilter = tag;
+
+                // Update Buttons UI
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-indigo-600', 'text-white');
+                    btn.classList.add('bg-slate-700', 'text-slate-300');
+                });
+
+                let activeBtnId = 'btn-all';
+                if (tag === '-') activeBtnId = 'btn-neg';
+                if (tag === '!') activeBtnId = 'btn-idea';
+                if (tag === '+') activeBtnId = 'btn-pos';
+
+                const activeBtn = document.getElementById(activeBtnId);
+                activeBtn.classList.remove('bg-slate-700', 'text-slate-300');
+                activeBtn.classList.add('bg-indigo-600', 'text-white');
+
+                renderLogs();
+            };
+
+            // --- VIEW SWITCHING ---
+            let currentView = 'logs';
+
+            window.switchView = (view) => {
+                currentView = view;
+                if (view === 'logs') {
+                    document.getElementById('view-logs').classList.remove('hidden');
+                    document.getElementById('view-summaries').classList.add('hidden');
+                    document.getElementById('btn-view-logs').classList.replace('bg-slate-700', 'bg-indigo-600');
+                    document.getElementById('btn-view-logs').classList.replace('text-slate-300', 'text-white');
+                    document.getElementById('btn-view-summaries').classList.replace('bg-indigo-600', 'bg-slate-700');
+                    document.getElementById('btn-view-summaries').classList.replace('text-white', 'text-slate-300');
+                    loadLogs();
+                } else {
+                    document.getElementById('view-logs').classList.add('hidden');
+                    document.getElementById('view-summaries').classList.remove('hidden');
+                    document.getElementById('btn-view-logs').classList.replace('bg-indigo-600', 'bg-slate-700');
+                    document.getElementById('btn-view-logs').classList.replace('text-white', 'text-slate-300');
+                    document.getElementById('btn-view-summaries').classList.replace('bg-slate-700', 'bg-indigo-600');
+                    document.getElementById('btn-view-summaries').classList.replace('text-slate-300', 'text-white');
+                    loadSummaries();
+                }
+            };
+
+            window.refreshData = () => {
+                if (currentView === 'logs') loadLogs();
+                else loadSummaries();
+            }
+
+            // --- LOAD SUMMARIES ---
+            window.loadSummaries = async () => {
+                const container = document.getElementById('summaries-container');
+                container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500 animate-pulse">Завантаження підсумків...</div>';
+
+                try {
+                    const q = query(collection(db, "telegram_summaries"), orderBy("timestamp", "desc"), limit(50));
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        container.innerHTML = '<div class="col-span-full text-center py-10 text-slate-600">Поки що немає підсумків 🍃</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('uk-UA') : 'No Date';
+
+                        const card = document.createElement('div');
+                        card.className = "card rounded-xl p-5 border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition";
+                        card.innerHTML = `
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="font-bold text-indigo-400">@${data.username}</div>
+                                <div class="text-xs text-slate-500">ID: ${data.userId}</div>
+                            </div>
+                            <div class="text-xs text-slate-500 text-right">
+                                ${date}<br>
+                                <span class="text-slate-600">${data.messagesCount || '?'} msgs</span>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed border-t border-slate-700/50 pt-3">
+                            ${data.summary}
+                        </div>
+                    `;
+                        container.appendChild(card);
+                    });
+
+                } catch (e) {
+                    console.error(e);
+                    container.innerHTML = `<div class="col-span-full text-red-500 text-center">Error: ${e.message}</div>`;
+                }
+            };
+
+            // --- LOAD LOGS (Original) ---
+            window.loadLogs = async () => {
+                const container = document.getElementById('logs-container');
+                container.innerHTML = '<div class="text-center py-20 text-slate-500 animate-pulse">Завантаження логів...</div>';
+
+                try {
+                    // Get last 100 logs
+                    const q = query(collection(db, "telegram_logs"), orderBy("timestamp", "desc"), limit(100));
+                    const querySnapshot = await getDocs(q);
+
+                    allLogs = [];
+                    let stats = { all: 0, neg: 0, idea: 0, pos: 0 };
+
+                    querySnapshot.forEach((doc) => {
+                        const data = { id: doc.id, ...doc.data() };
+                        allLogs.push(data);
+
+                        stats.all++;
+                        if (data.tag === '-') stats.neg++;
+                        if (data.tag === '!') stats.idea++;
+                        if (data.tag === '+') stats.pos++;
+                    });
+
+                    // Update Stats UI
+                    document.getElementById('stat-all').innerText = stats.all;
+                    document.getElementById('stat-neg').innerText = stats.neg;
+                    document.getElementById('stat-idea').innerText = stats.idea;
+                    document.getElementById('stat-pos').innerText = stats.pos;
+
+                    renderLogs();
+                } catch (e) {
+                    container.innerHTML = `<div class="text-red-500 text-center">Error: ${e.message}</div>`;
+                    console.error(e);
+                }
+            }
+
+            function renderLogs() {
+                const container = document.getElementById('logs-container');
+                container.innerHTML = '';
+
+                const filtered = currentFilter === 'all'
+                    ? allLogs
+                    : allLogs.filter(l => l.tag === currentFilter);
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div class="text-center py-10 text-slate-500">Пусто 🍃</div>';
+                    return;
+                }
+
+                filtered.forEach(log => {
+                    const date = log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleString('uk-UA') : 'Just now';
+                    const isPaid = log.isPaid === true;
+
+                    // Colors
+                    let tagColor = 'bg-slate-600';
+                    let borderColor = 'border-slate-700';
+
+                    if (log.tag === '-') { tagColor = 'bg-red-500'; borderColor = 'border-red-900/50'; }
+                    if (log.tag === '+') { tagColor = 'bg-green-500'; borderColor = 'border-green-900/50'; }
+                    if (log.tag === '!') { tagColor = 'bg-yellow-500 text-black'; borderColor = 'border-yellow-900/50'; }
+
+                    const html = `
+                    <div class="card rounded-xl p-5 ${borderColor} border-l-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="relative">
+                                    <span class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sm text-slate-300">
+                                        ${log.username ? log.username[0].toUpperCase() : 'U'}
+                                    </span>
+                                    ${isPaid ? '<span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-black border border-slate-900">💎</span>' : ''}
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-white flex items-center gap-2">
+                                        ${log.username || 'Anon'} 
+                                        ${isPaid ? '<span class="text-[10px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/20 uppercase font-bold">Paid</span>' : ''}
+                                    </div>
+                                    <div class="text-xs text-slate-400">${date} <span class="ml-2 opacity-50">ID: ${log.userId}</span></div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 rounded text-[10px] font-bold ${tagColor} text-white">${getTagLabel(log.tag)}</span>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+                                <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider font-bold">User Context</div>
+                                <div class="text-slate-200 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto custom-scroll">${escapeHtml(log.userMessage)}</div>
+                            </div>
+                            <div class="bg-indigo-900/10 p-3 rounded-lg border border-indigo-900/20">
+                                <div class="text-[10px] text-indigo-400 mb-1 uppercase tracking-wider font-bold">Anna (Astrologer)</div>
+                                <div class="text-indigo-200 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto custom-scroll">${escapeHtml(log.aiResponse)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                    container.insertAdjacentHTML('beforeend', html);
+                });
+            }
+
+            function getTagLabel(tag) {
+                if (tag === '-') return 'НЕГАТИВ';
+                if (tag === '+') return 'ПОЗИТИВ';
+                if (tag === '!') return 'ІДЕЯ';
+                if (tag === '0') return 'INFO';
+                return tag;
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        </script>
+</body>
+
+</html>

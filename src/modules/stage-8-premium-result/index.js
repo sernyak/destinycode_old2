@@ -8,11 +8,13 @@ import { generateFullReport } from '../../services/api.service.js';
 
 import { showModal } from '../../utils/modal.js';
 import { Logger } from '../../utils/logger.js';
+import { feedbackService } from '../../services/feedback.service.js';
 
 /**
  * Stage 8: Premium Result (v3.6.1 Full Version)
  * Всі 400+ рядків коду збережено. 
  * Єдина зміна: late-upsell-btn замінено на ltv-upsell-btn для GTM.
+ * UPDATE: Added Feedback System.
  */
 export function init(router) {
     const app = document.getElementById('app');
@@ -237,7 +239,12 @@ export function init(router) {
         downloadBtn.className = 'btn btn-secondary';
         downloadBtn.innerHTML = '<span class="btn-text">Завантажити PDF (Звіт)</span><span class="btn-spinner"></span>';
         downloadBtn.onclick = () => handleDownloadPDF(downloadBtn);
+        downloadBtn.onclick = () => handleDownloadPDF(downloadBtn);
         reportActionsContainer.appendChild(downloadBtn);
+
+        // --- FEEDBACK SYSTEM INTEGRATION ---
+        renderFeedbackSystem();
+        // ------------------------------------
 
         if (state.get('hasPaidUpsell')) {
             const successContainer = document.createElement('div');
@@ -424,4 +431,151 @@ export function init(router) {
     }
 
     renderReport();
+
+    // ============================================================
+    // 💬 FEEDBACK SYSTEM LOGIC
+    // ============================================================
+    function renderFeedbackSystem() {
+        // Prevent double rendering
+        if (reportActionsContainer.querySelector('.feedback-controls')) return;
+
+        const container = document.createElement('div');
+        container.className = 'feedback-controls';
+
+        // 1. Like / Dislike Buttons
+        const buttonsRow = document.createElement('div');
+        buttonsRow.className = 'feedback-buttons';
+
+        const btnLike = createFeedbackIcon('👍', 'like');
+        const btnDislike = createFeedbackIcon('👎', 'dislike');
+
+        buttonsRow.appendChild(btnDislike);
+        buttonsRow.appendChild(btnLike);
+        container.appendChild(buttonsRow);
+
+        // 2. Conditional "Write Feedback" Link (Upsell Only)
+        if (state.get('hasPaidUpsell')) {
+            const feedbackLink = document.createElement('button');
+            feedbackLink.className = 'btn-feedback-text';
+            feedbackLink.innerText = 'Написати відгук розробникам';
+            feedbackLink.onclick = openFeedbackModal;
+            container.appendChild(feedbackLink);
+        }
+
+        reportActionsContainer.appendChild(container);
+    }
+
+    function createFeedbackIcon(icon, type) {
+        const btn = document.createElement('div');
+        btn.className = 'btn-feedback-icon';
+        btn.innerText = icon;
+
+        btn.onclick = async () => {
+            // Visual Toggle
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.btn-feedback-icon').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Send Data
+            await feedbackService.send({ type, value: type, source: 'premium_report' });
+
+            // Simple Toast
+            showToast("Дякую 💜");
+
+            // 🔥 AUTO-OPEN MODAL ON DISLIKE
+            if (type === 'dislike') {
+                setTimeout(openFeedbackModal, 500); // Small delay for better UX
+            }
+        };
+
+        return btn;
+    }
+
+    function openFeedbackModal() {
+        const overlay = document.createElement('div');
+        overlay.className = 'feedback-modal-overlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'feedback-modal';
+
+        const title = document.createElement('h3');
+        title.innerText = "Ваш відгук допоможе нам стати кращими";
+        title.style.color = "#cda45e";
+        title.style.marginBottom = "8px";
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'feedback-textarea';
+        textarea.placeholder = "Що нам варто покращити?";
+
+        const sendBtn = document.createElement('button');
+        sendBtn.className = 'btn btn-violet';
+        sendBtn.innerText = 'Надіслати';
+
+        // Close on click outside
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                if (document.body.contains(overlay)) document.body.removeChild(overlay);
+            }
+        };
+
+        sendBtn.onclick = async () => {
+            if (!textarea.value.trim()) return;
+
+            sendBtn.innerText = 'Відправка...';
+            sendBtn.disabled = true;
+
+            try {
+                // Check upsell status for context, or default to premium_feedback
+                const context = state.get('hasPaidUpsell') ? 'premium_upsell' : 'premium_feedback';
+                await feedbackService.send({ type: 'text', value: textarea.value, source: context });
+            } catch (e) {
+                console.error("Feedback send error", e);
+            } finally {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+                showModal("Повідомлення відправлено", "Ми дуже цінуємо ваш час та увагу. Дякуємо! 🙏");
+            }
+        };
+
+        modal.appendChild(title);
+        modal.appendChild(textarea);
+        modal.appendChild(sendBtn);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translate(-50%, -20px)';
+        toast.style.background = 'linear-gradient(135deg, #0f1115 0%, #1a1c23 100%)';
+        toast.style.color = '#fff';
+        toast.style.border = '1px solid rgba(205, 164, 94, 0.3)';
+        toast.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 15px -3px rgba(205, 164, 94, 0.1)';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '99px';
+        toast.style.fontWeight = 'bold';
+        toast.style.opacity = '0';
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.zIndex = '2000';
+
+        document.body.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translate(-50%, 0)';
+        });
+
+        // Remove after 0.9s
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translate(-50%, -20px)';
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 900);
+    }
 }

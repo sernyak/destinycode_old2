@@ -1,0 +1,83 @@
+/* === ZODIAC WHEEL STYLES (WHITE/SILVER 90% VERSION) === */
+
+.zodiac-wheel-svg {
+    width: 280px;
+    height: 280px;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+}
+
+.wheel-sign-group {
+    fill: #ffffff;
+    opacity: 0.9;
+    transition: all 0.5s ease;
+}
+
+.active-sign {
+    fill: #ffffff;
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+.center-sign-icon {
+    fill: #ffffff;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.6));
+    animation: pulseSymbol 2s ease-in-out infinite;
+}
+
+@keyframes pulseSymbol {
+
+    0%,
+    100% {
+        opacity: 0.9;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.wheel-center-group {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6));
+    }
+}
+
+.wheel-glint-circle {
+    stroke-linecap: round;
+    animation: wheelGlint 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes wheelGlint {
+    0% {
+        stroke-dashoffset: 600;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.8;
+    }
+
+    40% {
+        opacity: 0;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+}
+
+.zodiac-wheel-mode {
+    aspect-ratio: 1 / 1 !important;
+    max-width: 200px;
+}

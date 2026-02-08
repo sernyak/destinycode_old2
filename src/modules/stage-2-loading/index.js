@@ -2,6 +2,11 @@ import html from './view.html?raw';
 import { state } from '../../utils/state.js';
 import { typeWriter } from '../../utils/animations.js';
 import { getFreeAnalysis, warmUpBackend } from '../../services/api.service.js';
+import { getZodiacSign } from '../../utils/zodiac.js';
+import { generateConstellationSVG, CONSTELLATIONS } from '../../utils/constellation-data.js';
+import { getVariantByUrl } from '../../variants/index.js';
+import { generateZodiacWheelSVG } from '../../components/zodiac-wheel/index.js';
+import '../../components/zodiac-wheel/style.css';
 
 export async function init(router) {
     const app = document.getElementById('app');
@@ -13,7 +18,47 @@ export async function init(router) {
 
     const loadingTextEl = document.getElementById('loading-text');
     const loadingCursorEl = document.getElementById('loading-cursor');
+    const constellationContainer = document.getElementById('constellation-container');
     const date = state.get('date');
+
+    // 🌌 CONSTELLATION ANIMATION (Enabled globally)
+    if (constellationContainer && date) {
+        const zodiacSign = getZodiacSign(date);
+        console.log(`🌟 Zodiac Sign: ${zodiacSign.name} (${zodiacSign.id})`);
+
+        const svgHTML = generateConstellationSVG(zodiacSign.id);
+        constellationContainer.innerHTML = svgHTML;
+
+        // 🔥 UPDATE: Додаємо назву сузір'я у новий центральний контейнер
+        const signData = CONSTELLATIONS[zodiacSign.id];
+        const labelContainer = document.getElementById('zodiac-label-container');
+
+        if (signData && labelContainer) {
+            const labelHTML = `<div class="constellation-label">${signData.symbol} ${signData.name}</div>`;
+            labelContainer.innerHTML = labelHTML;
+        }
+
+        // 🔥 DEV MODE: Zodiac Wheel
+        // Fix: Use state.get('currentVariant') because router changes URL to /loading
+        // Also fallback to getVariantByUrl just in case, or if we want to support it
+        const currentVariant = state.get('currentVariant') || getVariantByUrl();
+        console.log("🔍 DEBUG: state.currentVariant:", currentVariant);
+
+        if (currentVariant && currentVariant.id === 'dev') {
+            const wheelContainer = document.getElementById('zodiac-wheel-container');
+            const spinner = app.querySelector('.spinner');
+            console.log("🔍 DEBUG: Containers - Wheel:", wheelContainer, "Spinner:", spinner);
+
+            if (wheelContainer && spinner) {
+                console.log("🎡 DEV MODE: Showing Zodiac Wheel");
+                spinner.style.display = 'none';
+                wheelContainer.style.display = 'flex';
+                wheelContainer.innerHTML = generateZodiacWheelSVG(zodiacSign.id);
+            } else {
+                console.error("❌ DEBUG: Missing containers!");
+            }
+        }
+    }
 
     // 🔥 WARM UP STRATEGY:
     warmUpBackend();

@@ -1,15 +1,20 @@
 <!-- 🔥 UPDATE: Центрування анімації звіту за допомогою CSS класу -->
-<section id="generation-step" class="funnel-step active step-centered text-center" style="margin-top: auto; margin-bottom: auto;">
+<section id="generation-step" class="funnel-step active step-centered text-center"
+    style="margin-top: auto; margin-bottom: auto;">
     <h2 class="text-2xl font-bold text-center text-white mb-6">
         <span style="color: var(--accent-color);">Підготовка звіту!</span>
     </h2>
-    
-    <!-- Spinner (Margin from Monolith) -->
-    <div class="spinner" style="margin-top: 2rem; margin-bottom: 1rem; margin-left: auto; margin-right: auto;"></div>
-    
-    <!-- Typing Container -->
-    <div id="report-typing-container" class="typing-container" style="min-height: 3rem; display: flex; align-items: center; justify-content: center;">
-        <span id="report-loading-text" style="color: var(--secondary-text-color); font-size: 1.1rem;"></span>
-        <span id="report-cursor" class="typing-cursor" style="display: none;"></span>
+
+    <!-- 🔥 Unified Spinner Area (Matching stage-2-loading) -->
+    <div class="flex flex-col items-center justify-center w-full my-8">
+        <div class="spinner"></div>
+
+        <!-- Typing Container -->
+        <div id="report-typing-container" class="typing-container mt-4 w-full"
+            style="min-height: 4rem; display: flex; align-items: center; justify-content: center;">
+            <span id="report-loading-text"
+                style="color: var(--secondary-text-color); font-size: 1.1rem; text-align: center; width: 100%;"></span>
+            <span id="report-cursor" class="typing-cursor" style="display: none;"></span>
+        </div>
     </div>
 </section>

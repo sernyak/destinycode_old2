@@ -62,8 +62,14 @@ export const feedbackService = {
             sessionStorage.setItem('dc_feedback_session_id', sessionId);
         }
 
-        // 🔥 DOC ID: One record per SESSION per source
-        const docId = `feedback_${sessionId}_${source}`;
+        // 🔥 DOC ID:
+        // - Likes/Dislikes: One per session (overwrite allowed)
+        // - Text/Messages: Multiple allowed (e.g. asking different questions)
+        let docId = `feedback_${sessionId}_${source}`;
+
+        if (payload.type === 'text') {
+            docId += `_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        }
 
         const data = {
             ...payload,

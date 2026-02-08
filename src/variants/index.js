@@ -1,6 +1,7 @@
 import { februaryConfig } from './months/february.js';
 import { oneUahConfig } from './promos/1uah.js';
 import { devConfig } from './system/dev.js';
+import { zodiakConfig } from './system/zodiak.js';
 import { natalChartConfig } from './products/natal_chart.js';
 import { natalChartHyphenConfig } from './products/natal-chart.js';
 import { forecastConfig } from './products/forecast.js';
@@ -22,6 +23,7 @@ export const VARIANTS = {
 
     // System / Development
     'dev': devConfig, // 🔥 DISABLED by default (draft)
+    'zodiak': zodiakConfig, // 🌟 Test variant for constellation animation
 };
 
 /**

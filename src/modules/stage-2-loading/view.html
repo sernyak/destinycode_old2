@@ -9,8 +9,14 @@
     <div
         style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; width: 100%; padding-bottom: 10vh;">
 
+        <!-- 🔥 /forecast specific text -->
+        <div id="forecast-loading-descriptor" style="display: none; font-size: 0.85rem; color: var(--secondary-text-color); text-align: center; max-width: 80%; opacity: 0.8; margin-bottom: 10px; margin-top: -20px; z-index: 10;">
+            Створення прогнозу запущено, зіркам може знадобитись близько 30 секунд.
+        </div>
+
         <!-- ♊ Zodiac Label -->
-        <div id="zodiac-label-container" style="display: flex; align-items: center; justify-content: center;">
+        <div id="zodiac-label-container"
+            style="display: flex; align-items: center; justify-content: center; position: relative;">
         </div>
 
         <!-- 🌀 Spinner (Restored) -->

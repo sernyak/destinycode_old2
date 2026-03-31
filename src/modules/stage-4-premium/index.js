@@ -4,10 +4,10 @@ import { getCoordinates } from '../../services/geo.service.js';
 
 export function init(router) {
     const app = document.getElementById('app');
-    
+
     // Ensure container class
     app.classList.add('funnel-container');
-    
+
     app.innerHTML = html;
 
     // --- DOM Elements ---
@@ -19,9 +19,42 @@ export function init(router) {
     const birthCityInput = document.getElementById('birth-city');
     const cityErrorMessage = document.getElementById('city-error-message');
     const cityInfoMessage = document.getElementById('city-info-message');
-    
+
     const continueToPaywallButton = document.getElementById('continue-to-paywall-button');
     const skipButton = document.getElementById('skip-button');
+
+    // 🔥 VARIANT OVERRIDE: Premium UI
+    const currentVariant = state.get('currentVariant');
+    if (currentVariant && currentVariant.ui && currentVariant.ui.premium) {
+        const ui = currentVariant.ui.premium;
+
+        // 1. Title
+        const titleEl = document.querySelector('h2');
+        if (titleEl && ui.title) titleEl.innerText = ui.title;
+
+        // 2. Subtitle
+        const subtitleEl = document.querySelector('.space-y-2 p.text-sm');
+        if (subtitleEl && ui.subtitle) subtitleEl.innerText = ui.subtitle;
+
+        // 3. Features List
+        if (ui.features && Array.isArray(ui.features)) {
+            const featuresList = document.querySelector('.max-w-\\[340px\\] ul');
+            if (featuresList) {
+                featuresList.innerHTML = ui.features.map(f => `
+                    <li class="flex items-center gap-3">
+                        <span class="text-lg min-w-[24px] text-center">${f.icon}</span>
+                        <span style="color: var(--primary-text-color);">${f.text}</span>
+                    </li>
+                `).join('');
+            }
+        }
+
+        // 4. Button Text
+        if (ui.buttonText) {
+            const btnTextSpan = continueToPaywallButton.querySelector('.btn-text');
+            if (btnTextSpan) btnTextSpan.innerText = ui.buttonText;
+        }
+    }
 
     // --- 1. Time Placeholder Logic ---
     function updateTimePlaceholder() {
@@ -33,7 +66,7 @@ export function init(router) {
         } else {
             timePlaceholder.innerText = birthTimeInput.value;
             timePlaceholder.style.color = 'var(--primary-text-color)';
-            
+
             // При виборі часу прибираємо помилки
             if (birthTimeWrapper) birthTimeWrapper.classList.remove('input-error');
             if (timeErrorMessage) timeErrorMessage.style.display = 'none';
@@ -83,7 +116,7 @@ export function init(router) {
         const time = birthTimeInput.value;
         let city = birthCityInput.value.trim();
         const originalUserCityInput = city;
-        
+
         let hasBlockingErrors = false;
 
         // Reset UI Messages
@@ -109,12 +142,12 @@ export function init(router) {
         // Якщо міста немає - стоп (нема сенсу питати API)
         if (!city && hasBlockingErrors) {
             if (navigator.vibrate) navigator.vibrate(50);
-            return; 
+            return;
         }
 
         // КРОК 2: Geo API
         setButtonLoading(continueToPaywallButton, true);
-        
+
         const coords = await getCoordinates(city);
         let infoText = null;
 
@@ -123,12 +156,12 @@ export function init(router) {
             if (coords.corrected_name) {
                 birthCityInput.value = coords.corrected_name;
                 city = coords.corrected_name;
-                
+
                 if (originalUserCityInput.toLowerCase() !== coords.corrected_name.toLowerCase()) {
                     infoText = `Ми уточнили: ${coords.corrected_name} 😉`;
                 }
             }
-            
+
             state.set('geo', {
                 latitude: coords.latitude || coords.lat,
                 longitude: coords.longitude || coords.lon,
@@ -138,7 +171,7 @@ export function init(router) {
 
         } else if (coords && coords.error === 'ambiguous') {
             handleCityError('ambiguous', city);
-            hasBlockingErrors = true; 
+            hasBlockingErrors = true;
         } else {
             handleCityError('not_found', city);
             hasBlockingErrors = true;
@@ -149,7 +182,7 @@ export function init(router) {
             cityInfoMessage.innerText = infoText;
             cityInfoMessage.style.display = 'block';
         } else {
-             cityInfoMessage.style.display = 'none';
+            cityInfoMessage.style.display = 'none';
         }
 
         // Якщо є помилки, вимикаємо лоадер на кнопці
@@ -162,7 +195,7 @@ export function init(router) {
         // КРОК 4: Успіх
         // Лоадер не вимикаємо, переходимо далі
         state.set('time', time);
-        
+
         // 🔥 COMMIT STEP: Збираємо всі дані в єдиний об'єкт 'userData'.
         const fullUserData = {
             date: state.get('date'),
@@ -198,7 +231,7 @@ export function init(router) {
         }
 
         // 🔥 TARGET CHANGE: Запускаємо лоадер на ГОЛОВНІЙ кнопці
-        setButtonLoading(continueToPaywallButton, true); 
+        setButtonLoading(continueToPaywallButton, true);
         // Додатково блокуємо кнопку пропуску, щоб не клікали двічі
         skipButton.disabled = true;
 
@@ -211,7 +244,7 @@ export function init(router) {
             if (coords.corrected_name) {
                 birthCityInput.value = coords.corrected_name;
                 city = coords.corrected_name;
-                
+
                 if (originalUserCityInput.toLowerCase() !== coords.corrected_name.toLowerCase()) {
                     infoText = `Ми уточнили: ${coords.corrected_name} 😉`;
                 }
@@ -223,9 +256,9 @@ export function init(router) {
                 timezone: coords.timezone
             });
             state.set('city', coords.corrected_name);
-            
+
             // 🔥 CLEAR TIME Explicitly
-            state.set('time', ''); 
+            state.set('time', '');
 
         } else if (coords && coords.error === 'ambiguous') {
             handleCityError('ambiguous', city);
@@ -260,7 +293,7 @@ export function init(router) {
             geo: state.get('geo')
         };
         state.set('userData', fullUserData);
-        
+
         // Navigate
         setTimeout(() => {
             router.navigateTo('paywall');

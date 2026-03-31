@@ -3,6 +3,7 @@ import { state } from '../../utils/state.js';
 import { startBackgroundGeneration } from '../../services/api.service.js';
 import { processPayment, checkPaymentStatus } from '../../services/payment.service.js';
 import { getPrices } from '../../utils/pricing.js';
+import { VARIANTS } from '../../variants/index.js';
 import { showModal } from '../../utils/modal.js';
 
 export async function init(router) {
@@ -14,6 +15,13 @@ export async function init(router) {
     const urlParams = new URLSearchParams(window.location.search);
     const orderRef = urlParams.get('orderRef');
     const upsellSource = urlParams.get('upsell_source');
+    const variantId = urlParams.get('variant');
+
+    // 🔥 RESTORE VARIANT CONTEXT (FIX FOR MONOBANK REDIRECT)
+    if (variantId && VARIANTS[variantId]) {
+        console.log("🔄 Restoring Variant Session:", variantId);
+        state.set('currentVariant', VARIANTS[variantId]);
+    }
 
     // --- ЛОГІКА ВІДНОВЛЕННЯ СЕСІЇ ТА ВАЛІДАЦІЇ ОПЛАТИ ---
     if (orderRef) {
@@ -31,8 +39,34 @@ export async function init(router) {
                 orderRef: orderRef
             });
 
+            // 🔥 COMPREHENSIVE VARIANT RESTORATION (3 LAYERS)
+            // Layer 1: URL Param (handled at init)
+
             if (statusData.status === 'approved' || statusData.status === 'success') {
                 console.log("✅ Payment Validated!");
+
+                // Layer 2: Backend Persistence
+                if (statusData.variant && VARIANTS[statusData.variant]) {
+                    console.log("🔄 Restoring Variant from Backend:", statusData.variant);
+                    state.set('currentVariant', VARIANTS[statusData.variant]);
+                }
+
+                // Layer 2.1: Traffic Source Restoration (🛰️ Fix for missing Meta Conversions)
+                if (statusData.trafficSource) {
+                    console.log("🛰️ Restoring Traffic Source from Backend:", statusData.trafficSource);
+                    state.set('traffic_type', statusData.trafficSource);
+                }
+
+                // Layer 3: LocalStorage Fallback (Safari ITP / Cross-browser)
+                if (!state.get('currentVariant')) {
+                    const localVariant = localStorage.getItem('pendingVariantId');
+                    if (localVariant && VARIANTS[localVariant]) {
+                        console.log("🔄 Restoring Variant from LocalStorage:", localVariant);
+                        state.set('currentVariant', VARIANTS[localVariant]);
+                    }
+                }
+                // Cleanup
+                localStorage.removeItem('pendingVariantId');
 
                 state.set('isPaid', true);
                 state.set('currentInvoiceId', statusData.invoiceId);
@@ -69,6 +103,17 @@ export async function init(router) {
                     const userDataForGen = state.get('userData') || {
                         date: state.get('date'), time: state.get('time'), city: state.get('city')
                     };
+
+                    // 🔥 INJECT CHILD GENDER IF NATAL_CHILD VARIANT
+                    const currentVariant = state.get('currentVariant');
+                    if (currentVariant && currentVariant.id === 'natal_child') {
+                        const childGender = localStorage.getItem('childGender');
+                        if (childGender) {
+                            userDataForGen.childGender = childGender;
+                            console.log("👶 Injected childGender into background generation payload:", childGender);
+                        }
+                    }
+
                     startBackgroundGeneration(userDataForGen).catch(e => console.warn("Bg gen error", e));
                 }
 
@@ -107,11 +152,35 @@ export async function init(router) {
 
     function updateUpsellPriceVisuals() {
         const currentPrices = getPrices();
+        const variant = state.get('currentVariant');
+        const productType = variant?.productType || variant?.aiContext?.productType;
+        const isForecast = productType === 'forecast';
+
         if (ltvUpsellBox) {
-            const priceStrong = ltvUpsellBox.querySelector('p span strong');
-            if (priceStrong) priceStrong.innerText = `${currentPrices.display.FORECAST_UPSELL} грн.`;
-            const btnText = ltvUpsellBtn.querySelector('.btn-text');
-            if (btnText) btnText.innerHTML = `Так, додати Прогноз всього за ${currentPrices.display.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${currentPrices.display.FORECAST_OLD} грн.</span>`;
+            if (isForecast) {
+                // 🔥 FORECAST VARIANT: Upsell → Partner Match
+                const titleEl = ltvUpsellBox.querySelector('h3');
+                if (titleEl) titleEl.innerText = 'Додай до свого замовлення';
+
+                const descEl = ltvUpsellBox.querySelector('p');
+                if (descEl) descEl.innerHTML = `
+                    Хочеш дізнатися, який <strong>Ідеальний Партнер</strong> тобі підходить за твоєю натальною картою? Психологічний портрет, місце зустрічі та секрети зваблення.<br>
+                    <span style="color: var(--primary-text-color);">Лише зараз: <strong>${currentPrices.display.FORECAST_UPSELL} грн.</strong> замість <span style="text-decoration: line-through; opacity: 0.7;">${currentPrices.display.FORECAST_OLD} грн</span></span>
+                `;
+
+                const btnText = ltvUpsellBtn?.querySelector('.btn-text');
+                if (btnText) btnText.innerHTML = `Так, додати Портрет Партнера за ${currentPrices.display.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">${currentPrices.display.FORECAST_OLD} грн.</span>`;
+
+                // Update modal text
+                const modalText = upsellSuccessModal?.querySelector('p strong');
+                if (modalText) modalText.innerText = '"Портрет Ідеального Партнера"';
+            } else {
+                // Default: Forecast Upsell
+                const priceStrong = ltvUpsellBox.querySelector('p span strong');
+                if (priceStrong) priceStrong.innerText = `${currentPrices.display.FORECAST_UPSELL} грн.`;
+                const btnText = ltvUpsellBtn?.querySelector('.btn-text');
+                if (btnText) btnText.innerHTML = `Так, додати Прогноз всього за ${currentPrices.display.FORECAST_UPSELL} грн. <span style="text-decoration: line-through; opacity: 0.7; margin-left: 4px;">${currentPrices.display.FORECAST_OLD} грн.</span>`;
+            }
         }
     }
     updateUpsellPriceVisuals();
@@ -122,15 +191,43 @@ export async function init(router) {
     function activatePremiumUI() {
         if (ltvUpsellBox) ltvUpsellBox.style.display = 'none';
 
+        const variant = state.get('currentVariant');
+        const productType = variant?.productType || variant?.aiContext?.productType;
+        const isForecast = productType === 'forecast';
+
         if (mainReportBtn) {
             mainReportBtn.classList.remove('btn-primary');
             mainReportBtn.classList.add('btn-gold-purple');
             const btnText = mainReportBtn.querySelector('.btn-text');
-            if (btnText) btnText.innerText = "Надіслати мені Звіт + Прогноз";
+            if (btnText) {
+                btnText.innerText = isForecast
+                    ? "Надіслати мені Прогноз + Партнер"
+                    : "Надіслати мені Звіт + Прогноз";
+            }
         }
 
         if (state.get('email') && userEmailInput) {
             userEmailInput.value = state.get('email');
+        }
+    }
+
+    // 🔥 VARIANT OVERRIDE: Button Text
+    const currentVariant = state.get('currentVariant');
+    if (currentVariant && currentVariant.ui && currentVariant.ui.success) {
+        if (mainReportBtn && currentVariant.ui.success.buttonText) {
+            const btnText = mainReportBtn.querySelector('.btn-text');
+            // Only change if NOT premium (premium has its own text)
+            // But usually success page starts with normal state.
+            if (btnText && !state.get('hasPaidUpsell')) {
+                btnText.innerText = currentVariant.ui.success.buttonText;
+            }
+        }
+        // Override description text
+        if (currentVariant.ui.success.description) {
+            const descriptionEl = document.querySelector('#email-capture-box > p');
+            if (descriptionEl) {
+                descriptionEl.innerHTML = currentVariant.ui.success.description;
+            }
         }
     }
 
@@ -145,15 +242,29 @@ export async function init(router) {
         if (!state.get('upsellPurchaseTracked')) {
             if (window.DC_Analytics) {
                 const { charge: currentCharges } = getPrices();
+                const variant = state.get('currentVariant');
+                const productType = variant?.productType || variant?.aiContext?.productType;
+                const isForecast = productType === 'forecast';
                 window.DC_Analytics.trackPurchase(
                     currentCharges.FORECAST_UPSELL,
                     `upsell_${Date.now()}`,
-                    "Forecast 2026 Upsell"
+                    isForecast ? "Partner Match Upsell" : "Forecast Year Upsell"
                 );
             }
             state.set('upsellPurchaseTracked', true);
         }
 
+        // 🔥 Якщо це допродаж ЗІ ЗВІТУ (8 екран) -> миттєво повертаємо юзера назад
+        if (upsellSource === 'stage8') {
+            console.log("🔙 Redirecting back to premium-result after successful Late Upsell...");
+            // Робимо невелику затримку для збереження стейту і перезавантажуємо екран 8
+            setTimeout(() => {
+                router.navigate('/premium-result?upsell_source=stage8');
+            }, 100);
+            return; // ‼️ Припиняємо виконання 6-го екрану, щоб не показувати модалок
+        }
+
+        // 🔥 Для стандартного апселу з 6-го екрану продовжуємо логіку:
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
 
@@ -161,9 +272,13 @@ export async function init(router) {
 
         if (savedEmail) {
             activatePremiumUI();
+            const variant = state.get('currentVariant');
+            const productType = variant?.productType || variant?.aiContext?.productType;
+            const isForecast = productType === 'forecast';
+            const upsellProductName = isForecast ? 'Портрет Партнера' : 'Прогноз на рік';
             showModal(
                 "✨ Дякую за покупку!",
-                `Твій <strong>Прогноз на 2026 рік</strong> генерується прямо зараз і буде відправлений на <strong>${savedEmail}</strong><br><br> Натискай <strong>Надіслати мені Звіт + Прогноз</strong> на наступній сторінці`
+                `Твій Прогноз генерується і буде автоматично відправлений на <strong>${savedEmail}</strong><br><br> Натискай <strong>Надіслати мені Звіт</strong> на наступній сторінці`
             );
 
         } else {
@@ -197,9 +312,13 @@ export async function init(router) {
 
                 const fullUserData = state.get('userData');
                 const { charge: currentCharges } = getPrices();
+                const variant = state.get('currentVariant');
+                const productType = variant?.productType || variant?.aiContext?.productType;
+                const isForecast = productType === 'forecast';
+                const upsellName = isForecast ? 'Астро-Портрет Партнера' : 'Астро-Прогноз на рік';
 
                 await processPayment(
-                    { name: "Астро-Прогноз на 2026", price: currentCharges.FORECAST_UPSELL },
+                    { name: upsellName, price: currentCharges.FORECAST_UPSELL },
                     { email: currentEmail },
                     fullUserData,
                     { returnQueryParams: 'upsell_source=stage6' }
@@ -229,7 +348,7 @@ export async function init(router) {
 
                 showModal(
                     "✨ Дякую за покупку!",
-                    `Твій <strong>Прогноз на 2026 рік</strong> генерується і буде відправлений на <strong>${newEmail}</strong> протягом 1-2 хвилин.<br><br>📧 Перевір папку <strong>'Вхідні'</strong> та <strong>'Спам'</strong>.`
+                    `Твій Прогноз генерується і буде автоматично відправлений на <strong>${newEmail}</strong><br><br>📧 Перевір папку <strong>'Вхідні'</strong> та <strong>'Спам'</strong>.`
                 );
             }
         });

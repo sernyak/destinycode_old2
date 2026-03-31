@@ -30,7 +30,10 @@ const URLS = {
     // Payments (Europe West 1) - Correct Gen 2 URLs
     // 🔥 FIX: Оновлено на run.app адреси для стабільної роботи
     PAYMENT_INIT: "https://initiatepayment-kpkshoor7q-ew.a.run.app",
-    PAYMENT_CHECK: "https://checkpaymentstatus-kpkshoor7q-ew.a.run.app"
+    PAYMENT_CHECK: "https://checkpaymentstatus-kpkshoor7q-ew.a.run.app",
+
+    // 🔥 Report Sync (Frontend → Firestore, для Telegram Bot)
+    UPDATE_REPORT: "https://europe-west1-destinycode-982fa.cloudfunctions.net/updateReportData"
 };
 
 
@@ -53,6 +56,7 @@ export const API = {
         // Core.js має бути навчений розуміти це (див. нижче)
         PAYMENT_INIT: URLS.PAYMENT_INIT,
         PAYMENT_CHECK: URLS.PAYMENT_CHECK,
+        UPDATE_REPORT: URLS.UPDATE_REPORT,
 
         // Auto-Refunds (Optional trigger)
         REFUND_TRIGGER: "processRefunds"
@@ -64,18 +68,18 @@ export const API = {
 
 // Ціни для відображення на UI (закреслені старі ціни)
 export const DISPLAY_PRICES = {
-    FULL_REPORT: 149,      // Актуальна ціна на кнопці
-    FULL_REPORT_OLD: 799,  // Закреслена ціна
+    FULL_REPORT: 347,      // Актуальна ціна на кнопці
+    FULL_REPORT_OLD: 997,  // Закреслена ціна
 
-    FORECAST_UPSELL: 97,   // Актуальна ціна апселу
-    // 🔥 UPDATED: Перераховано за формулою: 97 / (1 - 0.83) = 570
-    FORECAST_OLD: 570
+    FORECAST_UPSELL: 199,   // Актуальна ціна апселу
+    // 🔥 UPDATED: Перераховано пропорційно (997/347 ≈ 2.873 → 199 × 2.873 ≈ 572)
+    FORECAST_OLD: 572
 };
 
 // Реальні суми до списання (залежно від режиму)
 const REAL_CHARGES = {
-    FULL_REPORT: 149,
-    FORECAST_UPSELL: 97
+    FULL_REPORT: 347,
+    FORECAST_UPSELL: 199
 };
 
 const TEST_CHARGES = {

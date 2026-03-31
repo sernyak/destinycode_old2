@@ -1,5 +1,5 @@
-<section id="premium-data-step" class="funnel-step active space-y-5 text-center">
-    
+<section id="premium-data-step" class="funnel-step active space-y-5 text-center" style="padding-bottom: 110px;">
+
     <div class="space-y-2">
         <h2 class="text-2xl font-bold text-white tracking-tight">
             Отримай повний аналіз
@@ -12,17 +12,23 @@
     <div id="premium-form-container" class="w-full space-y-5 mt-4">
         <!-- Time Input -->
         <div>
-            <label for="birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2" style="color: var(--accent-color);">Час народження</label>
-            
-            <div class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
-                <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2" style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <label for="birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                style="color: var(--accent-color);">Час народження</label>
+
+            <div
+                class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
+                <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2"
+                    style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                
-                <span id="time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери час</span>
-                <input type="time" id="birth-time" name="birth-time" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                <span id="time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери
+                    час</span>
+                <input type="time" id="birth-time" name="birth-time"
+                    class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
             </div>
-            
+
             <p id="time-error-message" class="error-text" style="display: none;">
                 Будь ласка, обери час народження.
             </p>
@@ -30,38 +36,41 @@
 
         <!-- City Input -->
         <div>
-            <label for="birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2" style="color: var(--accent-color);">Місто народження</label>
-            
-            <input 
-                type="text" 
-                id="birth-city" 
-                name="birth-city" 
-                placeholder="Наприклад, Київ" 
+            <label for="birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                style="color: var(--accent-color);">Місто народження</label>
+
+            <input type="text" id="birth-city" name="birth-city" placeholder="Наприклад, Київ"
                 class="input-field text-center hover:border-[#cda45e] transition-colors w-full"
-                style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;"
-            >
-            
+                style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;">
+
             <style>
                 #birth-city {
                     color: #ffffff !important;
                     -webkit-text-fill-color: #ffffff !important;
                     caret-color: var(--accent-color);
                 }
+
                 #birth-city:-webkit-autofill,
-                #birth-city:-webkit-autofill:hover, 
-                #birth-city:-webkit-autofill:focus, 
+                #birth-city:-webkit-autofill:hover,
+                #birth-city:-webkit-autofill:focus,
                 #birth-city:-webkit-autofill:active {
                     -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
                     -webkit-text-fill-color: #ffffff !important;
                     transition: background-color 5000s ease-in-out 0s;
                 }
+
                 #birth-city::placeholder {
                     color: var(--secondary-text-color);
                     opacity: 0.7;
                     transition: opacity 0.2s ease;
                     -webkit-text-fill-color: var(--secondary-text-color) !important;
                 }
-                #birth-city:focus::placeholder { opacity: 0; color: transparent; -webkit-text-fill-color: transparent !important; }
+
+                #birth-city:focus::placeholder {
+                    opacity: 0;
+                    color: transparent;
+                    -webkit-text-fill-color: transparent !important;
+                }
             </style>
 
             <p id="city-error-message" class="error-text">Текст помилки...</p>
@@ -71,7 +80,8 @@
         <!-- 🔥 NEW LOCATION: Value Proposition List (Clean, No Border) -->
         <!-- Цей блок тепер тут: під полями, над кнопкою. Без фону і рамок. -->
         <div class="text-left mx-auto max-w-[340px] pt-2 pb-1">
-            <p class="text-[10px] text-center mb-3 uppercase tracking-widest opacity-50" style="color: var(--secondary-text-color);">Що буде розраховано:</p>
+            <p class="text-[10px] text-center mb-3 uppercase tracking-widest opacity-50"
+                style="color: var(--secondary-text-color);">Що буде розраховано:</p>
             <ul class="space-y-2 text-sm pl-2">
                 <li class="flex items-center gap-3">
                     <span class="text-lg min-w-[24px] text-center">🎭</span>
@@ -91,21 +101,25 @@
                 </li>
                 <li class="flex items-center gap-3">
                     <span class="text-lg min-w-[24px] text-center">⚡️</span>
-                    <span style="color: var(--primary-text-color);"><strong>Майбутнє</strong> (Персональний прогноз)</span>
+                    <span style="color: var(--primary-text-color);"><strong>Майбутнє</strong> (Персональний
+                        прогноз)</span>
                 </li>
             </ul>
         </div>
 
-        <div class="pt-2 space-y-3">
-            <!-- Кнопка без ціни, як просили -->
-            <button type="button" id="continue-to-paywall-button" class="btn btn-primary !text-lg !py-4 shadow-xl">
-                <span class="btn-text">Отримати детальний аналіз</span>
-                <span class="btn-spinner"></span>
-            </button>
-            
-            <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs">
-                Я не знаю часу (Розрахувати Космограму без Домів)
-            </button>
-        </div>
+    </div>
+
+    <!-- 🔥 STICKY FOOTER BUTTON (COMPACT) -->
+    <div class="sticky-paywall-footer"
+        style="padding-top: 0.5rem; padding-bottom: calc(0.4rem + env(safe-area-inset-bottom));">
+        <button type="button" id="continue-to-paywall-button" class="btn btn-primary w-full !text-lg !py-3 shadow-xl">
+            <span class="btn-text">Отримати детальний аналіз</span>
+            <span class="btn-spinner"></span>
+        </button>
+
+        <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs"
+            style="margin-top: 4px; padding-top: 4px; padding-bottom: 4px;">
+            Я не знаю часу (Розрахувати Космограму без Домів)
+        </button>
     </div>
 </section>

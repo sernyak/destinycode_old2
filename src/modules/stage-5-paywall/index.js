@@ -12,6 +12,10 @@ export function init(router) {
     app.classList.add('funnel-container');
     app.innerHTML = html;
 
+    // 🔥 Auto-scroll to top: заголовок завжди видно першим
+    app.scrollTop = 0;
+    window.scrollTo(0, 0);
+
     const currentPrices = getPrices(); // 🔥 Отримуємо актуальні ціни
 
     const timerDisplay = document.getElementById('paywall-timer');
@@ -36,12 +40,71 @@ export function init(router) {
         if (mainBtnText) {
             mainBtnText.innerText = `Розблокувати все за ${currentPrices.display.FULL_REPORT} грн`;
         }
-        const popupBtnText = popupCheckoutBtn.querySelector('.whitespace-nowrap');
+
+        const oldPriceText = finalCheckoutButton.querySelector('.line-through');
+        if (oldPriceText) {
+            oldPriceText.innerText = `${currentPrices.display.FULL_REPORT_OLD || 799} грн`;
+        }
+
+        // 🔥 FIX: Select by font-bold, as whitespace-nowrap might be removed for mobile layout
+        const popupBtnText = popupCheckoutBtn.querySelector('.font-bold');
         if (popupBtnText) {
             popupBtnText.innerText = `Розблокувати все за ${currentPrices.display.FULL_REPORT} грн`;
         }
     }
     updatePricesVisuals();
+
+    // 🔥 VARIANT OVERRIDE: Paywall UI
+    const currentVariant = state.get('currentVariant');
+    if (currentVariant && currentVariant.ui && currentVariant.ui.paywall) {
+        const ui = currentVariant.ui.paywall;
+
+        // 1. Title
+        const titleEl = document.querySelector('h2');
+        if (titleEl && ui.title) titleEl.innerHTML = ui.title;
+
+        // 2. Description
+        const descEl = document.querySelector('p.text-sm.sm\\:text-base');
+        if (descEl && ui.description) descEl.innerHTML = ui.description;
+
+        // 3. Features List (Rich List)
+        if (ui.features && Array.isArray(ui.features)) {
+            const listContainer = document.querySelector('.space-y-3.pt-2');
+            if (listContainer) {
+                // Helper to escape quotes for inline JS
+                const safeStr = (str) => str ? str.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+
+                listContainer.innerHTML = ui.features.map(f => `
+                    <div class="paywall-item" onclick="showPaywallPopup('${safeStr(f.popupTitle || f.title)}', '${safeStr(f.popupText || f.text)}')">
+                        <span class="paywall-icon">${f.icon}</span>
+                        <div>
+                            <span class="block font-bold text-white text-[15px]">${f.title}</span>
+                            <span class="text-xs text-gray-400">${f.text}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 4. Button Text
+        if (ui.buttonText) {
+            const btnTextSpan = finalCheckoutButton.querySelector('.btn-text span span.font-bold');
+            if (btnTextSpan) {
+                btnTextSpan.innerText = `${ui.buttonText} за ${currentPrices.display.FULL_REPORT} грн`;
+            }
+
+            const oldPriceText = finalCheckoutButton.querySelector('.line-through');
+            if (oldPriceText) {
+                oldPriceText.innerText = `${currentPrices.display.FULL_REPORT_OLD} грн`;
+            }
+
+            // Update popup button as well
+            const popupBtnText = popupCheckoutBtn.querySelector('.font-bold');
+            if (popupBtnText) {
+                popupBtnText.innerText = `${ui.buttonText} за ${currentPrices.display.FULL_REPORT} грн`;
+            }
+        }
+    }
 
     // POPUP LOGIC
     window.showPaywallPopup = function (title, messageHtml) {
@@ -89,7 +152,12 @@ export function init(router) {
                 astroContainer.innerHTML = htmlContent;
                 astroContainer.style.display = 'block';
 
-                // Note: Підказка прибрана, анімація заголовку працює через CSS
+                // 🔥 ADAPT TITLE FOR PARTNER MATCH
+                const currentVariant = state.get('currentVariant'); // Get fresh state
+                if (currentVariant && currentVariant.productType === 'partner') {
+                    const titleEl = astroContainer.querySelector('.astro-data-title');
+                    if (titleEl) titleEl.innerText = "Твій Астро-Код Кохання";
+                }
             } else {
                 astroContainer.style.display = 'none';
             }
@@ -98,6 +166,31 @@ export function init(router) {
 
     // DECRYPTION POPUP LOGIC (Клік по блоку з цифрами)
     const openDecryptionPopup = () => {
+        const currentVariant = state.get('currentVariant');
+
+        // 🔥 PARTNER MATCH POPUP CONTENT
+        if (currentVariant && currentVariant.productType === 'partner') {
+            const decryptionHtml = `
+                <p class="mb-3">Ти бачиш <strong>точні координати</strong> Венеру, Марсу та 7-го дому (градуси та знаки).</p>
+                
+                <p class="mb-3 text-sm italic" style="color: #cda45e; border-left: 2px solid #cda45e; padding-left: 10px;">
+                    "Це формула твого кохання. Вона показує, кого ти шукаєш і хто шукає тебе."
+                </p>
+
+                <ul class="text-sm space-y-2 mb-4">
+                    <li><strong>Венера ♀:</strong> Твій стиль зваблення та те, що приносить тобі задоволення.</li>
+                    <li><strong>Марс ♂:</strong> Типаж чоловіка, який викликає у тебе фізичний потяг.</li>
+                    <li><strong>7-й Дім:</strong> Обставини знайомства та сценарій шлюбу.</li>
+                </ul>
+
+                <p class="mb-1">В <strong>Повному Портреті</strong> ми розшифруємо ці коди:</p>
+                <p class="text-white text-sm">✅ Де саме відбудеться зустріч?<br>✅ Як впізнати "свого" чоловіка серед інших?</p>
+            `;
+            window.showPaywallPopup("🔑 Код Твого Кохання", decryptionHtml);
+            return;
+        }
+
+        // DEFAULT (NATAL CHART) CONTENT
         const decryptionHtml = `
             <p class="mb-3">Ти бачиш <strong>точні координати</strong> планет в момент твого народження (градуси, хвилини, секунди).</p>
             
@@ -164,12 +257,58 @@ export function init(router) {
                 geo: state.get('geo')
             };
 
-            console.log("📦 Preparing backup data for Safari:", fullUserData);
+            // 🔥 FIX: Збагачуємо userData розрахованими планетами
+            // Ми ВИДАЛЯЄМО аспекти з цього запиту, щоб максимально прискорити Firestore Write (Critical for Apple Pay)
+            const savedPlanets = state.get('planets');
+            let enrichedUserData = savedPlanets
+                ? { ...fullUserData, planets: savedPlanets }
+                : { ...fullUserData }; // Ensure it's a clone
+
+            // 🔥 INJECT CHILD GENDER IF NATAL_CHILD VARIANT
+            const currentVariant = state.get('currentVariant');
+            if (currentVariant && currentVariant.id === 'natal_child') {
+                const childGender = localStorage.getItem('childGender');
+                if (childGender) {
+                    enrichedUserData.childGender = childGender;
+                    console.log("👶 Injected childGender into payload:", childGender);
+                }
+            }
+
+            if (savedPlanets) {
+                console.log("🪐 Planets attached to payment payload:", savedPlanets.length, "bodies");
+            } else {
+                console.warn("⚠️ No pre-calculated planets found in state. Backend will use date only.");
+            }
+
+            console.log("📦 Preparing backup data for Safari:", enrichedUserData);
+
+            // 🔥 Use Variant Product Name if available
+            const productName = (currentVariant && currentVariant.productName)
+                ? currentVariant.productName
+                : "Natal Chart Full Report";
+            const currentEmail = state.get('email') || "";
+
+            // 🔥 BACKUP: Save Variant ID to LocalStorage (Survivability Layer 3)
+            if (currentVariant && currentVariant.id) {
+                try {
+                    localStorage.setItem('pendingVariantId', currentVariant.id);
+                    console.log("💾 Backup Variant ID to LocalStorage:", currentVariant.id);
+                } catch (e) {
+                    console.warn("LocalStorage backup failed", e);
+                }
+            }
+
+            // 🔥 VARIANT RESTORATION FOR MONOBANK
+            let returnQuery = 'source=paywall';
+            if (currentVariant && currentVariant.id) {
+                returnQuery += `&variant=${currentVariant.id}`;
+            }
 
             await processPayment(
-                { name: "Повний Астро-Портрет (Premium)", price: currentPrices.charge.FULL_REPORT },
-                { email: state.get('email') || "" },
-                fullUserData // 🔥 ВІДПРАВЛЯЄМО ДАНІ
+                { name: productName, price: currentPrices.charge.FULL_REPORT },
+                { email: currentEmail },
+                enrichedUserData, // 🔥 FIX: Тепер містить точні планети
+                { returnQueryParams: returnQuery, variant: currentVariant?.id } // 🔥 PASS VARIANT TO SERVICE
             );
 
         } catch (error) {

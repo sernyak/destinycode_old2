@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "destinycode-982fa"
+  },
+  "targets": {
+    "destinycode-982fa": {
+      "hosting": {
+        "main": [
+          "destinycode-982fa"
+        ]
+      }
+    }
   }
 }

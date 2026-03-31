@@ -1,8 +1,7 @@
-<section id="landing-step" class="funnel-step active space-y-8 text-center flex flex-col justify-between"
-    style="min-height: 100dvh;">
+<section id="landing-step" class="funnel-step active space-y-8 text-center flex flex-col" style="flex-grow: 1;">
 
     <!-- Main Content Wrapper -->
-    <div class="flex-grow flex flex-col justify-center space-y-8">
+    <div class="flex-grow flex flex-col justify-center space-y-8 pb-20">
         <div>
             <svg class="w-16 h-16 mx-auto" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
                 style="color: var(--accent-color);">
@@ -17,7 +16,11 @@
         </div>
         <div class="space-y-4">
             <h2 class="text-3xl font-bold text-white tracking-tight">
-                Розкрий свої приховані таланти та сильні сторони
+                <span
+                    style="display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent-color); margin-bottom: 12px; line-height: 1.4; opacity: 0.8; white-space: nowrap;">Персональний
+                    розрахунок Натальної карти</span>
+                <span style="display: block; margin-bottom: 8px;">Дізнайся яка ти дивовижна</span>
+                <span style="display: block; font-size: 16px; font-weight: 400; color: var(--accent-color); line-height: 1.3;">Розкрий свої приховані таланти та сильні сторони</span>
             </h2>
             <p class="text-lg" style="color: var(--secondary-text-color);">
                 Обери дату народження щоб дізнатися про свої приховані таланти та сильні сторони в основних сферах
@@ -56,15 +59,18 @@
             <p id="error-message" class="error-text">
                 Будь ласка, обери дату народження.
             </p>
-            <button type="submit" id="birth-form-btn" class="btn btn-primary !text-lg h-14">
+            <button type="submit" id="birth-form-btn" class="btn btn-primary w-full !text-lg h-14">
                 <span class="btn-text">Дізнатися негайно</span>
                 <span class="btn-spinner"></span>
             </button>
-            <p class="text-[9px] !mt-[2px] opacity-40" style="color: var(--accent-color);">
+            <p id="calculation-disclaimer" class="text-[9px] !mt-[2px] opacity-40" style="color: var(--accent-color);">
                 Персональний розрахунок Натальної карти за точними Ефемеридами
             </p>
         </form>
     </div>
+
+    <!-- 🔥 LANDING SECTIONS CONTAINER 🔥 -->
+    <div id="landing-sections-container" style="display: none; width: 100%;" class="pb-6"></div>
 
     <!-- CLEAN FOOTER (JUST ONE LINK) -->
     <div class="clean-footer-link mt-auto">

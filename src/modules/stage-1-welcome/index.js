@@ -246,7 +246,7 @@ export function init(router) {
                                 </div>
                                 <div class="landing-transformation-arrow">⬇️</div>
                                 <div class="landing-transformation-item after">
-                                    <div class="landing-transformation-badge">Після Натальки:</div>
+                                    <div class="landing-transformation-badge">З Натальною картою:</div>
                                     <p>${sections.transformation.after}</p>
                                 </div>
                             </div>

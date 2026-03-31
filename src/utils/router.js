@@ -73,7 +73,7 @@ class Router {
 
     /**
      * Метод для навігації (змінює URL і викликає обробку)
-     * @param {string} path - новий шлях
+     * @param {string} path - новий шлях (може містити query parameters)
      */
     navigate(path) {
         window.history.pushState({}, "", path);
@@ -92,6 +92,14 @@ class Router {
 
     trackVariantView(variant) {
         if (window.fbq) {
+            const trafficType = state.get('traffic_type');
+            const skipTracking = variant?.skipMetaTracking || ['1uah', 'man1uah'].includes(variant?.id);
+            
+            if (trafficType !== 'paid' || skipTracking) {
+                Logger.log(`🍃 [Analytics] Skip fbq ViewContent for Organic/Test traffic: ${variant.id}`);
+                return;
+            }
+
             Logger.log("📊 Tracking Variant View:", variant.id);
             window.fbq('track', 'ViewContent', {
                 content_name: variant.id,

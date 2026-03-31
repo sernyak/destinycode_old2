@@ -1,65 +1,788 @@
 <!-- 🔥 UPDATE: Зменшено padding-bottom секції до 140px, щоб відповідати компактнішому футеру -->
 <section id="result-step" class="funnel-step active space-y-6" style="padding-bottom: 140px;">
     <h2 class="text-2xl font-bold text-center text-white" id="result-title">Аналіз твоєї особистості</h2>
-    
+
     <!-- Основна картка з результатом -->
-    <div class="p-5 rounded-xl space-y-3" style="background-color: var(--card-bg-color); border: 1px solid var(--border-color);">
+    <div class="space-y-3" style="background-color: transparent; border: none; padding: 0;">
         <h3 class="text-xl font-bold" style="color: var(--accent-color);" id="free-report-title">
             <!-- Заголовок заповнюється через JS -->
         </h3>
-        <div id="free-report-text" class="text-left leading-relaxed space-y-4" style="color: var(--secondary-text-color);">
+        <div id="free-report-text" class="text-left leading-relaxed space-y-4"
+            style="color: var(--secondary-text-color);">
             <i>(Тут з'явиться твій персональний аналіз...)</i>
         </div>
 
         <!-- Дивайдер -->
-        <div class="relative py-4">
+        <div id="marketing-divider" class="relative py-4">
             <div class="absolute inset-0 flex items-center" aria-hidden="true">
                 <div class="w-full border-t border-gray-700"></div>
             </div>
             <div class="relative flex justify-center">
-                <span class="px-3 text-sm text-gray-500" style="background-color: var(--card-bg-color);">АЛЕ ЦЕ ЩЕ НЕ ВСЕ</span>
+                <span class="px-3 text-sm text-gray-500" style="background-color: var(--bg-color);">АЛЕ ЦЕ ЩЕ НЕ
+                    ВСЕ</span>
             </div>
         </div>
 
         <!-- Статичний продаючий блок -->
         <div id="marketing-hook-block" class="text-center leading-relaxed">
             <p class="text-base mb-4" style="color: var(--primary-text-color);">
-                Це лише <span style="color: var(--accent-color); font-weight: bold;">8%</span> аналізу твоєї особистості.
+                Це лише <span style="color: var(--accent-color); font-weight: bold;">8%</span> аналізу твоєї
+                особистості.
                 <br>
-                <span style="color: var(--secondary-text-color); font-size: 0.95rem;">Дізнайся більш детально про всі сфери свого життя:</span>
+                <span style="color: var(--secondary-text-color); font-size: 0.95rem;">Дізнайся більш детально про всі
+                    сфери свого життя:</span>
             </p>
-            <ul class="text-left inline-block space-y-2" style="color: var(--secondary-text-color); font-size: 0.95rem;">
+            <ul class="text-left inline-block space-y-2"
+                style="color: var(--secondary-text-color); font-size: 0.95rem;">
                 <li class="flex items-center"><span class="mr-2 text-xl">❤️‍🔥</span> Кохання та стосунки</li>
                 <li class="flex items-center"><span class="mr-2 text-xl">💸</span> Гроші та кар'єра</li>
                 <li class="flex items-center"><span class="mr-2 text-xl">🔮</span> Кармічні уроки та призначення</li>
                 <li class="flex items-center"><span class="mr-2 text-xl">⚡️</span> Твої майбутні можливості</li>
             </ul>
         </div>
+
+        <!-- SECTION 3.5: Divider before form (For natal_chart_offer) -->
+        <div id="offer-form-divider" class="relative py-5" style="display: none;">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-gray-700"></div>
+            </div>
+            <div class="relative flex justify-center">
+                <span class="px-3 text-sm text-center" style="background-color: var(--bg-color); color: var(--accent-color); font-weight: 600; letter-spacing: 0.5px; line-height: 1.4;">УТОЧНИ ДАНІ</span>
+            </div>
+        </div>
+
+        <!-- SECTION 4: Title & Description (For natal_chart_price) -->
+        <div id="premium-form-title-container" class="space-y-2 text-center" style="display: none;">
+            <h2 class="text-2xl font-bold text-white tracking-tight">
+                Отримай повну розшифровку своєї Натальної карти
+            </h2>
+            <p class="text-sm" style="color: var(--secondary-text-color);">
+                Введи час і місце народження - і отримай свій персональний звіт одразу після оплати
+            </p>
+        </div>
+
+        <!-- SECTION 5: Time & City Form (For natal_chart_price) -->
+        <div id="premium-form-container" class="w-full space-y-5 mt-4" style="display: none;">
+            <!-- Time Input -->
+            <div>
+                <label for="birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                    style="color: var(--accent-color);">Час народження</label>
+
+                <div
+                    class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
+                    <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2"
+                        style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+
+                    <span id="time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери
+                        час</span>
+                    <input type="time" id="birth-time" name="birth-time"
+                        class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+                </div>
+
+                <p id="time-error-message" class="error-text" style="display: none;">
+                    Будь ласка, обери час народження.
+                </p>
+                <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-align: center; margin-top: 8px; line-height: 1.3; font-weight: 300;">
+                    Якщо не знаєш точного часу &mdash; не страшно, наші алгоритми адаптують розрахунок за датою та містом
+                </p>
+            </div>
+
+            <!-- City Input -->
+            <div>
+                <label for="birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                    style="color: var(--accent-color);">Місце народження</label>
+
+                <input type="text" id="birth-city" name="birth-city" placeholder="Наприклад, Київ"
+                    class="input-field text-center hover:border-[#cda45e] transition-colors w-full"
+                    style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;">
+
+                <style>
+                    #birth-city {
+                        color: #ffffff !important;
+                        -webkit-text-fill-color: #ffffff !important;
+                        caret-color: var(--accent-color);
+                    }
+
+                    #birth-city:-webkit-autofill,
+                    #birth-city:-webkit-autofill:hover,
+                    #birth-city:-webkit-autofill:focus,
+                    #birth-city:-webkit-autofill:active {
+                        -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
+                        -webkit-text-fill-color: #ffffff !important;
+                        transition: background-color 5000s ease-in-out 0s;
+                    }
+
+                    #birth-city::placeholder {
+                        color: var(--secondary-text-color);
+                        opacity: 0.7;
+                        transition: opacity 0.2s ease;
+                        -webkit-text-fill-color: var(--secondary-text-color) !important;
+                    }
+
+                    #birth-city:focus::placeholder {
+                        opacity: 0;
+                        color: transparent;
+                        -webkit-text-fill-color: transparent !important;
+                    }
+                </style>
+
+                <p id="city-error-message" class="error-text" style="display: none;">Текст помилки...</p>
+                <p id="city-info-message" class="info-text" style="display: none;"></p>
+            </div>
+
+            <!-- Skip Button (під формою) -->
+            <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs mt-1 w-full" style="padding: 12px; height: auto;">
+                Розрахувати без точного часу (точність 95%)
+            </button>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- 🔥 OFFER LANDING PAGE BLOCKS (Only for natal_chart_offer variant) -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+        <!-- BLOCK 2: TRANSFORMATION — What She Gets -->
+        <div id="offer-block-transformation" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Що ти дізнаєшся з <span>повного звіту</span></h3>
+                <div class="offer-section-body">
+                    <p>Повна розшифровка Натальної Карти — це <strong>персональна інструкція</strong>, яка покаже тобі:</p>
+                    <div class="offer-feature-grid">
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">✨</span>
+                            <div>
+                                <strong>Твоя Справжня Роль (Ядро)</strong>
+                                <span>Твій справжній архетип — як вийти з тіні та стати головною героїнею свого життя</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">🗝️</span>
+                            <div>
+                                <strong>Призначення та Місія</strong>
+                                <span>Кармічні уроки, таланти та твій унікальний шлях у цьому світі</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">❤️‍🔥</span>
+                            <div>
+                                <strong>Магніт для чоловіків</strong>
+                                <span>Як перестати приваблювати "не тих" чоловіків і розкрити власну природну привабливість</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">💰</span>
+                            <div>
+                                <strong>Визнання та Фінанси</strong>
+                                <span>Де твоя точка росту і як перестати старатися безрезультатно</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Planet coordinates highlight -->
+                    <div class="offer-feature-item" style="margin-top: 14px; background: rgba(205, 164, 94, 0.06); border-color: rgba(205, 164, 94, 0.15);">
+                        <span class="offer-feature-icon">📡</span>
+                        <div>
+                            <strong>Точні Координати Планет</strong>
+                            <span>Карта з градусами, хвилинами та секундами дуги для кожної планети — можеш звіритися з будь-яким астрологом або порівняти з іншим сервісом</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 3: DELIVERY FORMAT -->
+        <div id="offer-block-delivery" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Як ти отримаєш <span>свій звіт</span></h3>
+                <div class="offer-section-body">
+                    <div class="offer-delivery-list">
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🌐</span>
+                            <div>
+                                <strong>На сайті</strong>
+                                <span>Твій повний звіт буде доступний на екрані у зручному для читання вигляді</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">📧</span>
+                            <div>
+                                <strong>На Email</strong>
+                                <span>Повний текст + PDF-документ у зручному форматі</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">💬</span>
+                            <div>
+                                <strong>У Telegram</strong>
+                                <span>Бот надішле тобі повний розбір у чат</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🔗</span>
+                            <div>
+                                <strong>Довічне посилання</strong>
+                                <span>Унікальний URL, за яким звіт доступний назавжди</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 4: HOW IT WORKS — 4 Pillars (from Knowledge Base) -->
+        <div id="offer-block-science" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card" style="background: rgba(205, 164, 94, 0.03); border: 1px solid rgba(205, 164, 94, 0.15);">
+                <h3 class="offer-section-title">Чому <span>це працює?</span></h3>
+                <div class="offer-section-body">
+                    <p>Розшифровка Натальної карти від Destiny Code — це <strong>не гороскоп із журналу</strong>. Ми не ділимо 8 мільярдів людей на 12 груп. Це точний персональний розрахунок, і ось чому йому можна довіряти:</p>
+                    <div class="offer-science-grid">
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">01</span>
+                            <div>
+                                <strong>Фізика та Біоритми</strong>
+                                <span>Місяць рухає мільярди тонн води у Світовому океані. Організм людини складається з води на 70-80%. Науково доведено, що у дні повні змінюється гормональний фон і якість сну. Космічні ритми — це реальна фізика, а не містика.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">02</span>
+                            <div>
+                                <strong>Математична Точність</strong>
+                                <span>Швейцарські Ефемериди (NASA JPL), сферична геометрія, система Плацидус. За 4 хвилини Земля зсувається на 1 градус — навіть близнюки з різницею у 10 хвилин мають різні долі. Кількість комбінацій перевищує число людей на планеті.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">03</span>
+                            <div>
+                                <strong>Тисячолітня Статистика</strong>
+                                <span>Кеплер, Галілей, Карл Юнг — тисячоліттями найкращі уми спостерігали за рухом планет і фіксували закономірності. Юнг називав астрологію "психологією давнини". Ми перетворили цю базу даних у точний алгоритм.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">04</span>
+                            <div>
+                                <strong>Прогноз Погоди, а Не Вирок</strong>
+                                <span>Натальна карта — це не "доля", яку неможливо змінити. Це як прогноз погоди: ти не можеш зупинити дощ, але можеш взяти парасольку. Знаючи свою карту, ти бачиш, де підстелити соломку, а де тиснути на газ.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="offer-quote" style="margin-top: 16px;">
+                        <span class="offer-quote-mark">🧭</span>
+                        Натальна карта — це як GPS-навігатор. Ти сама тримаєш кермо і натискаєш на педалі. Але їхати вночі без фар — значить постійно ризикувати.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 5: COSMIC IMPRINT PREVIEW -->
+        <div id="offer-block-cosmic" class="offer-landing-block w-full" style="display: none; margin-top: 16px;">
+            <div id="offer-astro-data-container" class="interactive-astro-box"></div>
+        </div>
+
+        <!-- BLOCK 5.5: REVIEWS (SOCIAL PROOF) -->
+        <div id="offer-block-reviews" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
+                <h3 class="offer-section-title" style="margin-bottom: 24px;">Що кажуть <span>інші дівчата</span></h3>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Review 1 -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-color), #8a6a3b); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">О</div>
+                            <div>
+                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Олена, 28 років</div>
+                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
+                            </div>
+                        </div>
+                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Взагалі в астрологію не вірила, але після того як я прочитала свою Розшифровку за даними народження трохи офігіла. Стільки співпадінь з реальними фактами про мене і мій характер, точно навмання вгадати ніхто не міг. Дуже цікаво і корисно. А про 'Магніт для чоловіків' — в саме серденько."</p>
+                    </div>
+                    <!-- Review 2 -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4A90E2, #2C3E50); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">Е</div>
+                            <div>
+                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Ельвіра, 42 роки</div>
+                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
+                            </div>
+                        </div>
+                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Астрологією цікавлюсь давно. Зробила дану розшифровку чисто з цікавості. Розбір якісний. Краще ніж очікувала. І зручно що можна зберегти посилання."</p>
+                    </div>
+                    <!-- Review 3 -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #9b59b6, #8e44ad); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">М</div>
+                            <div>
+                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Мар'яна, 36 років</div>
+                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
+                            </div>
+                        </div>
+                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Давно хотіла розібратися у своїх сильних сторонах для роботи. Розшифровка допомогла розставити пріоритети та зрозуміти, куди рухатися далі. Дуже влучно про внутрішні конфлікти!"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 6: FAQ -->
+        <div id="offer-block-faq" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                <h3 class="offer-section-title">Часті <span>запитання</span></h3>
+                <div class="offer-faq-list">
+                    <div class="offer-faq-item">
+                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                            <span>Це ворожіння чи магія?</span>
+                            <span class="offer-faq-arrow">▼</span>
+                        </div>
+                        <div class="offer-faq-answer">
+                            <p>Ні. Destiny Code використовує математичні алгоритми на базі Швейцарських Ефемерид — астрономічних баз даних, аналогічних NASA JPL. Це чиста астрономія та геометрія, переведена в код. Жодної магії, карт Таро чи інтуїтивних "відчуттів".</p>
+                        </div>
+                    </div>
+                    <div class="offer-faq-item">
+                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                            <span>Чому результат відрізняється від інших сервісів?</span>
+                            <span class="offer-faq-arrow">▼</span>
+                        </div>
+                        <div class="offer-faq-answer">
+                            <p>Більшість сервісів використовують спрощені алгоритми або Сидеричний зодіак (Джйотіш). Ми працюємо за стандартом Тропічного Зодіаку та системою Плацидус із точністю до секунди дуги — це золотий стандарт класичної Західної астрології.</p>
+                        </div>
+                    </div>
+                    <div class="offer-faq-item">
+                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                            <span>Що я отримаю після оплати?</span>
+                            <span class="offer-faq-arrow">▼</span>
+                        </div>
+                        <div class="offer-faq-answer">
+                            <p>Одразу після оплати ти отримаєш повний персональний звіт на екрані. Протягом декількох хвилин він також прийде на email (текст + PDF) та через Telegram-бот. Плюс — довічне посилання для повторного доступу.</p>
+                        </div>
+                    </div>
+                    <div class="offer-faq-item">
+                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                            <span>Що якщо я не знаю точного часу народження?</span>
+                            <span class="offer-faq-arrow">▼</span>
+                        </div>
+                        <div class="offer-faq-answer">
+                            <p>Ти можеш натиснути "Розрахувати без точного часу" біля форми. Система адаптує алгоритм на розрахунок за датою та містом. Точність результату все одно складатиме близько 95% для Сонця, Венери та базових кармічних вузлів.</p>
+                        </div>
+                    </div>
+                    <div class="offer-faq-item">
+                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                            <span>Це одноразовий платіж?</span>
+                            <span class="offer-faq-arrow">▼</span>
+                        </div>
+                        <div class="offer-faq-answer">
+                            <p>Так, абсолютно. 347 грн — це одноразовий платіж. Жодних підписок, прихованих списань чи автоматичних продовжень. Ти платиш один раз і отримуєш довічний доступ до свого звіту.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END: OFFER LANDING PAGE BLOCKS -->
+
     </div>
 
     <!-- 🔥 NEW STICKY FOOTER (Compact Version) -->
     <!-- UPDATE: Додано inline styles для зменшення відступів (padding) зверху та знизу -->
-    <div class="sticky-paywall-footer" style="padding-top: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
-        
+    <div class="sticky-paywall-footer"
+        style="padding-top: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+
         <!-- Локальні стилі для анімації стрілочок (збережено з оригінального файлу) -->
         <style>
             @keyframes runway-lights {
-                0% { opacity: 0.3; }
-                50% { opacity: 1; }
-                100% { opacity: 0.3; }
+                0% {
+                    opacity: 0.3;
+                }
+
+                50% {
+                    opacity: 1;
+                }
+
+                100% {
+                    opacity: 0.3;
+                }
             }
+
             .runway-arrow {
                 animation: runway-lights 1.2s infinite ease-in-out both;
                 display: inline-block;
-                color: rgba(0, 0, 0, 0.75); /* М'який чорний колір стрілочок */
+                color: rgba(0, 0, 0, 0.75);
+                /* М'який чорний колір стрілочок */
             }
-            .runway-arrow:nth-child(1) { animation-delay: 0s; }
-            .runway-arrow:nth-child(2) { animation-delay: 0.2s; }
-            .runway-arrow:nth-child(3) { animation-delay: 0.4s; }
+
+            .runway-arrow:nth-child(1) {
+                animation-delay: 0s;
+            }
+
+            .runway-arrow:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .runway-arrow:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            /* ═══════════════════════════════════════════════ */
+            /* 🔥 OFFER LANDING BLOCKS STYLES                */
+            /* ═══════════════════════════════════════════════ */
+
+            .offer-landing-block {
+                margin-top: 36px;
+            }
+
+            .offer-section-card {
+                background: rgba(28, 28, 30, 0.5);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-top: 1px solid rgba(205, 164, 94, 0.2);
+                border-radius: 16px;
+                padding: 24px 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .offer-section-icon {
+                display: none; /* Removed for more premium look */
+            }
+
+            .offer-section-title {
+                color: #fff;
+                font-weight: 700;
+                font-size: 1.25em;
+                line-height: 1.4;
+                text-align: center;
+                margin-bottom: 20px;
+                letter-spacing: 0.2px;
+                text-transform: none;
+            }
+
+            .offer-section-title span {
+                color: var(--accent-color);
+            }
+
+            .offer-section-body {
+                color: var(--secondary-text-color);
+                font-size: 0.95em;
+                line-height: 1.7;
+            }
+
+            .offer-section-body p {
+                margin-bottom: 12px;
+            }
+
+            .offer-section-body strong {
+                color: var(--primary-text-color);
+                font-weight: 600;
+            }
+
+            .offer-section-body em {
+                color: var(--accent-color);
+                font-style: italic;
+            }
+
+            /* Quote Block */
+            .offer-quote {
+                background: rgba(205, 164, 94, 0.08);
+                border-left: 3px solid var(--accent-color);
+                border-radius: 0 8px 8px 0;
+                padding: 14px 16px;
+                margin-top: 16px;
+                font-size: 0.95em;
+                color: var(--primary-text-color);
+                font-style: italic;
+                line-height: 1.6;
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .offer-quote-mark {
+                font-size: 1.3em;
+                flex-shrink: 0;
+                font-style: normal;
+            }
+
+            /* Feature Grid (4 modules) */
+            .offer-feature-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-top: 16px;
+            }
+
+            .offer-feature-item {
+                display: flex;
+                gap: 14px;
+                align-items: flex-start;
+                padding: 14px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                transition: border-color 0.2s;
+            }
+
+            .offer-feature-item:hover {
+                border-color: rgba(205, 164, 94, 0.3);
+            }
+
+            .offer-feature-icon {
+                font-size: 1.5em;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+
+            .offer-feature-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-feature-item strong {
+                color: #fff;
+                font-size: 0.95em;
+            }
+
+            .offer-feature-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.5;
+            }
+
+            /* Delivery List (Grid) */
+            .offer-delivery-list {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .offer-delivery-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+                text-align: center;
+                padding: 14px 10px;
+                background: rgba(255, 255, 255, 0.04);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .offer-delivery-icon {
+                font-size: 1.6em;
+                margin-bottom: 2px;
+            }
+
+            .offer-delivery-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-delivery-item strong {
+                color: #fff;
+                font-size: 0.85em;
+                line-height: 1.2;
+            }
+
+            .offer-delivery-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.75em;
+                line-height: 1.4;
+            }
+
+            /* Science Grid */
+            .offer-science-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-top: 16px;
+            }
+
+            .offer-science-item {
+                display: flex;
+                gap: 14px;
+                align-items: flex-start;
+            }
+
+            .offer-science-num {
+                font-size: 1.5em;
+                font-weight: 800;
+                color: var(--accent-color);
+                opacity: 0.4;
+                flex-shrink: 0;
+                min-width: 32px;
+                text-align: center;
+                line-height: 1;
+                margin-top: 2px;
+            }
+
+            .offer-science-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-science-item strong {
+                color: #fff;
+                font-size: 0.95em;
+            }
+
+            .offer-science-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.5;
+            }
+
+            /* Cosmic Imprint Preview */
+            .offer-cosmic-preview {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 16px;
+            }
+
+            .offer-cosmic-item {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                padding: 10px 12px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                transition: border-color 0.2s, background 0.2s;
+            }
+
+            .offer-cosmic-item:hover {
+                border-color: rgba(205, 164, 94, 0.2);
+                background: rgba(205, 164, 94, 0.04);
+            }
+
+            .offer-cosmic-planet {
+                font-size: 1.4em;
+                flex-shrink: 0;
+            }
+
+            .offer-cosmic-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .offer-cosmic-item strong {
+                color: #fff;
+                font-size: 0.85em;
+            }
+
+            .offer-cosmic-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.75em;
+                line-height: 1.4;
+            }
+
+            @media (max-width: 380px) {
+                .offer-cosmic-preview {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* FAQ */
+            .offer-faq-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .offer-faq-item {
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: border-color 0.2s;
+            }
+
+            .offer-faq-item:hover {
+                border-color: rgba(205, 164, 94, 0.2);
+            }
+
+            .offer-faq-question {
+                padding: 14px 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                color: var(--primary-text-color);
+                font-weight: 600;
+                font-size: 0.9em;
+                transition: background 0.2s;
+            }
+
+            .offer-faq-question:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .offer-faq-arrow {
+                font-size: 0.7em;
+                opacity: 0.5;
+                transition: transform 0.3s ease;
+            }
+
+            .offer-faq-item.faq-open .offer-faq-arrow {
+                transform: rotate(180deg);
+            }
+
+            .offer-faq-answer {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease-out;
+            }
+
+            .offer-faq-item.faq-open .offer-faq-answer {
+                max-height: 300px;
+            }
+
+            .offer-faq-answer p {
+                padding: 0 16px 16px;
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.7;
+                margin: 0;
+            }
+
+            /* Offer CTA Trust Line */
+            .offer-trust-line {
+                text-align: center;
+                margin-top: 6px;
+            }
+
+            .offer-trust-line span {
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: rgba(255, 255, 255, 0.5);
+                font-weight: 600;
+            }
+
+            /* Shake Animation for form validation error */
+            @keyframes offer-shake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-6px); }
+                40% { transform: translateX(6px); }
+                60% { transform: translateX(-4px); }
+                80% { transform: translateX(4px); }
+            }
+
+            .offer-shake {
+                animation: offer-shake 0.5s ease-in-out;
+            }
         </style>
 
+        <!-- Urgency Text -->
+        <div id="offer-urgency-timer" style="display: none; text-align: center; margin-bottom: 12px; margin-top: -6px;">
+            <span style="font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(205,164,94,0.15); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(205,164,94,0.3); display: inline-block;">
+                Твоя знижка зафіксована: <span id="offer-timer-display" style="color: var(--accent-color); font-weight: 700; margin-left: 2px;">15:00</span>
+            </span>
+        </div>
+
         <!-- Кнопка розтягнута на всю ширину (w-full), ID збережено -->
-        <button id="upgrade-button" class="btn btn-primary w-full !text-lg !py-4 btn-pulse-glow shadow-2xl relative overflow-hidden">
+        <button id="upgrade-button"
+            class="btn btn-primary w-full !text-lg !py-4 btn-pulse-glow shadow-2xl relative overflow-hidden">
             <span class="btn-text flex items-center justify-center gap-2">
                 Отримати повний аналіз
                 <span class="font-bold tracking-widest flex gap-[1px]">
@@ -72,8 +795,8 @@
         </button>
 
         <!-- Додатковий мікро-текст довіри (Зменшено margin-top з mt-3 до mt-2) -->
-        <div class="mt-2 flex items-center justify-center opacity-70">
-             <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
+        <div class="mt-2 flex items-center justify-center opacity-70" id="footer-trust-text">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">
                 🔒 Твій результат збережено
             </span>
         </div>

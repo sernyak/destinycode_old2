@@ -9,15 +9,18 @@ export const oneUahConfig = {
     id: '1uah',
     type: 'internal_test',
     enabled: true,
+    skipMetaTracking: true,
 
     ui: {},       // Ідентичний головній
     aiContext: {}, // Ідентичний головній
 
-    // 🔥 Перевизначено і display, і charge на 1 грн
+    // 🔥 Відображаємо стандартні ціни, але списуємо 1 грн
     pricing: {
         display: {
-            FORECAST_UPSELL: 97,  // Показуємо 97 грн на UI
-            FORECAST_OLD: 570  // Стара ціна залишається для закресленого тексту
+            FULL_REPORT: 347,
+            FULL_REPORT_OLD: 997,
+            FORECAST_UPSELL: 199,
+            FORECAST_OLD: 572
         },
         charge: {
             FULL_REPORT: 1,

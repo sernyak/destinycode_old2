@@ -374,6 +374,21 @@
     border: 1px solid rgba(205, 164, 94, 0.3);
     border-radius: 1rem;
     padding: 1.5rem;
-    margin: 3rem 1rem 2rem;
+    margin: 3rem 0.5rem 2rem; /* Reduced horizontal margin to allow more width */
     box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    width: auto;
+    max-width: 100%;
+}
+
+/* Fix for date input placeholder/icon overlap in landing */
+.landing-bottom-form-wrapper .birth-date-input-wrapper {
+    padding-left: 45px !important; /* Space for the calendar icon */
+    padding-right: 40px !important; /* Space for the finger icon if it exists */
+}
+
+.landing-bottom-form-wrapper #date-placeholder-bottom {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 20px);
 }

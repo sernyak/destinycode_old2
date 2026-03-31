@@ -6,7 +6,7 @@
 
 import { initAstroLib } from './astro-lib-loader.js';
 
-export async function renderAstroBox(userData) {
+export async function renderAstroBox(userData, variant = null) {
     // 1. Переконуємось, що бібліотека є
     await initAstroLib();
 
@@ -39,7 +39,7 @@ export async function renderAstroBox(userData) {
         // Parsing logic from Monolith
         const dateParts = userData.date.split('-'); // YYYY-MM-DD
         const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]) - 1; 
+        const month = parseInt(dateParts[1]) - 1;
         const dateNum = parseInt(dateParts[2]);
 
         let hour = 12, minute = 0;
@@ -106,7 +106,7 @@ export async function renderAstroBox(userData) {
 
         // --- Chart Render Logic (Exact from Monolith applyGoldThemeToSVG) ---
         let chartPreviewHtml = '';
-        
+
         // Create invisible div for rendering
         const div = document.createElement('div');
         div.style.position = 'absolute';
@@ -118,7 +118,7 @@ export async function renderAstroBox(userData) {
         try {
             const renderer = new Renderer(horoscope);
             renderer.render(div);
-            
+
             // 🔥 APPLY GOLD THEME (Exact Logic)
             const svg = div.querySelector('svg');
             if (svg) {
@@ -140,22 +140,22 @@ export async function renderAstroBox(userData) {
                     text.style.fontFamily = "'Montserrat', sans-serif";
                     text.style.fontWeight = '500';
                 });
-                
+
                 chartPreviewHtml = `
                     <div class="astro-chart-preview">
                         ${div.innerHTML}
                     </div>
                 `;
             }
-        } catch(e) { console.warn("Chart Render Error:", e); }
-        
+        } catch (e) { console.warn("Chart Render Error:", e); }
+
         // Clean up
         document.body.removeChild(div);
 
         // --- Final HTML Return (Exact Structure) ---
         return `
             <div class="astro-data-box">
-                <div class="astro-data-title">Твій Космічний Відбиток</div>
+                <div class="astro-data-title">${variant && variant.productType === 'partner' ? 'Твій Астро-Код Кохання' : 'Твій Космічний Відбиток'}</div>
                 ${chartPreviewHtml} 
                 <div class="astro-data-grid">
                     ${displayList.join('')}

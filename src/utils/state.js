@@ -6,6 +6,7 @@
 class State {
     constructor() {
         this.storageKey = 'destinyUser';
+        this.trafficKey = 'destiny_traffic_source'; // 🛰️ Backup for Ads tracking
         this.data = this.load();
     }
 
@@ -43,6 +44,16 @@ class State {
     set(key, value) {
         this.data[key] = value;
         this.save();
+
+        // 🔥 CRITICAL BACKUP: Save traffic_type to LocalStorage
+        // This ensures the session survived even if SessionStorage is wiped during bank redirect.
+        if (key === 'traffic_type') {
+            try {
+                localStorage.setItem(this.trafficKey, value);
+            } catch (e) {
+                console.warn('LocalStorage backup failed');
+            }
+        }
     }
 
     /**

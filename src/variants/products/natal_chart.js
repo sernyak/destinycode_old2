@@ -1,6 +1,6 @@
 /**
- * 🌌 NATAL_CHART - Варіант для продажу базової послуги
- * Унікальний лендінг з акцентом на натальну карту та долю.
+ * 🌌 NATAL_CHART - Варіант для продажу базової послуги (через /natal_chart)
+ * Альтернативний лейаут: Заголовок -> Заклик -> Форма -> Список сфер
  */
 export const natalChartConfig = {
     id: 'natal_chart',
@@ -8,17 +8,33 @@ export const natalChartConfig = {
     enabled: true,
 
     ui: {
-        heroTitle: `НАТАЛЬНА КАРТА
-<br><span class="text-xl font-bold opacity-90">твоя інструкція до щасливого життя</span>`,
-        heroSubtitle: `Обери дату народження, щоб отримати повну розшифровку свого потенціалу та долі.
-<br><br>
-❤️ <span class="text-white">Кохання:</span> Твій ідеальний партнер та сценарії стосунків.
-<hr class="my-2 w-1/5 mx-auto border-white/20">
-💸 <span class="text-white">Фінанси:</span> Де сховані твої великі гроші та кар'єрний успіх.
-<hr class="my-2 w-1/5 mx-auto border-white/20">
-🔮 <span class="text-white">Призначення:</span> Твої кармічні задачі та істинний шлях душі.
-<hr class="my-2 w-1/5 mx-auto border-white/20">
-✨ <span class="text-white">Особистість:</span> Твої приховані таланти та суперсили.`
+        heroTitle: `<span style="display: block; font-size: 0.6em; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-color); margin-bottom: 5px;">ТВОЯ</span>
+НАТАЛЬНА КАРТА
+<div style="font-size: 9px; opacity: 1; margin-top: -15px; margin-bottom: -4px; font-weight: 300; letter-spacing: 0.3px; color: var(--accent-color);">Персональний розрахунок натальної карти за точними Ефемеридами</div>
+<span id="hero-subtitle-cta" class="relative font-medium opacity-90 border border-white/20 rounded-md px-2 py-1 inline-block cursor-pointer hover:bg-white/5 transition-colors" style="margin-bottom: -10px; white-space: nowrap; font-size: clamp(9px, 3.2vw, 16px); line-height: 1.2;">Інструкція по вирішенню проблем для щасливого життя</span>`,
+
+        // 1. Текст ПЕРЕД формою
+        heroSubtitle: `<span style="display: block; color: var(--accent-color); font-weight: 400; font-size: 1.1em; margin-bottom: 8px;">Отримай розшифровку своєї Натальної карти онлайн за декілька хвилин</span>Обери дату народження та дізнайся свої сильні сторони та приховані таланти у основних сферах життя: <span class="text-white font-medium">кохання, фінанси, карʼєра та самореалізація</span>.`,
+
+        // 2. Список ПІСЛЯ форми
+        heroFeatures: `<div class="mt-1 text-left" style="color: var(--secondary-text-color); font-size: 15px; line-height: 1.5; font-weight: 400;">
+<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
+    <span style="position: absolute; left: 0; top: 0;">✨</span>
+    <span class="text-white font-medium">Дізнайся свій астрологічний архетип</span> — і перестань грати чужу роль. Стань головною героїнею свого життя.
+</div>
+<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
+    <span style="position: absolute; left: 0; top: 0;">🎭</span>
+    <span class="text-white font-medium">Перестань відчувати себе 'невидимкою'</span> і зрозумій, яка ти насправді дивовижна!
+</div>
+<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
+    <span style="position: absolute; left: 0; top: 0;">🧲</span>
+    <span class="text-white font-medium">Розкрий свій секрет привабливості:</span> дізнайся, яка твоя природна магнетичність і чому ти створена притягувати погляди!
+</div>
+<div style="padding-left: 24px; position: relative;">
+    <span style="position: absolute; left: 0; top: 0;">🔓</span>
+    <span class="text-white font-medium">Знайди вирішення свого прихованого внутрішнього конфлікту</span> який заважає тобі отримати те, чого ти насправді достойна!
+</div>
+</div>`
     },
 
     aiContext: {},

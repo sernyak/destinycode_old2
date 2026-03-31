@@ -6,15 +6,37 @@ import { getZodiacSign } from '../../utils/zodiac.js';
 import { generateConstellationSVG, CONSTELLATIONS } from '../../utils/constellation-data.js';
 import { getVariantByUrl } from '../../variants/index.js';
 import { generateZodiacWheelSVG } from '../../components/zodiac-wheel/index.js';
+import { startOrbitAnimation } from './orbit-animation.js';
 import '../../components/zodiac-wheel/style.css';
 
 export async function init(router) {
     const app = document.getElementById('app');
     app.classList.add('funnel-container');
     app.innerHTML = html;
+    console.log('🌌 [Stage-2] Loading Module Init');
+
+    // 🔥 Variant Detection (Persistent)
+    const currentVariant = state.get('currentVariant') || getVariantByUrl();
+
+    // 🌠 JS-Driven 3D Orbit for ALL variants
+    let stopOrbitAnimation = null;
+    const zodiacLabelContainer = document.getElementById('zodiac-label-container');
+    const spinner = app.querySelector('.spinner');
+
+    if (spinner) {
+        // Hide the old spinner completely as we are orbiting the text now
+        spinner.style.display = 'none';
+    }
+
+    // (Moved startOrbitAnimation down to prevent innerHTML overwrite)
 
     // 🚀 START WARP SPEED
     document.body.classList.add('warp-mode');
+
+    const forecastLoadingDescriptor = document.getElementById('forecast-loading-descriptor');
+    if (forecastLoadingDescriptor && currentVariant && currentVariant.id === 'forecast') {
+        forecastLoadingDescriptor.style.display = 'block';
+    }
 
     const loadingTextEl = document.getElementById('loading-text');
     const loadingCursorEl = document.getElementById('loading-cursor');
@@ -34,16 +56,30 @@ export async function init(router) {
         const labelContainer = document.getElementById('zodiac-label-container');
 
         if (signData && labelContainer) {
-            const labelHTML = `<div class="constellation-label">${signData.symbol} ${signData.name}</div>`;
-            labelContainer.innerHTML = labelHTML;
+            // 🔥 Check for Partner Match variant early
+            if (currentVariant && (currentVariant.id === 'man' || currentVariant.id === 'man1uah')) {
+                // Partner Match: Show "Твій знак" label to avoid sharing confusion
+                const labelHTML = `
+                    <div class="constellation-label" style="display: flex; flex-direction: column; align-items: center; line-height: 1.2;">
+                        <span style="font-size: 0.5em; opacity: 0.7; font-weight: 500; margin-bottom: 5px; color: var(--secondary-text-color); letter-spacing: 2px;">ТВІЙ ЗНАК</span>
+                        <span>${signData.symbol} ${signData.name}</span>
+                    </div>
+                `;
+                labelContainer.innerHTML = labelHTML;
+            } else {
+                // Standard: Just the sign name
+                const labelHTML = `<div class="constellation-label">${signData.symbol} ${signData.name}</div>`;
+                labelContainer.innerHTML = labelHTML;
+            }
+
+            // 🌟 START ORBIT ANIMATION HERE (After text is set)
+            // ensuring we don't wipe it out with innerHTML later
+            if (labelContainer) {
+                stopOrbitAnimation = startOrbitAnimation(labelContainer);
+            }
         }
 
         // 🔥 DEV MODE: Zodiac Wheel
-        // Fix: Use state.get('currentVariant') because router changes URL to /loading
-        // Also fallback to getVariantByUrl just in case, or if we want to support it
-        const currentVariant = state.get('currentVariant') || getVariantByUrl();
-        console.log("🔍 DEBUG: state.currentVariant:", currentVariant);
-
         if (currentVariant && currentVariant.id === 'dev') {
             const wheelContainer = document.getElementById('zodiac-wheel-container');
             const spinner = app.querySelector('.spinner');
@@ -76,13 +112,14 @@ export async function init(router) {
             console.error("API Error:", err);
             return {
                 error: true,
-                title: "❌ Помилка Аналізу",
-                psychological_analysis: `<p>На жаль, сталася помилка під час обробки відповіді від ШІ.</p>`
+                title: "Зірки ще не готові...",
+                psychological_analysis: `<p>На жаль, зараз Всесвіт не зміг розкрити таємницю. Будь ласка, спробуй ще раз через хвилину ✨</p>`
             };
         });
 
     // 2. Анімація (Оптимізована: обривається, якщо API готовий)
-    const loadingSteps = [
+    // 🔥 VARIANT OVERRIDE: Check if variant has custom loading steps
+    const defaultLoadingSteps = [
         { text: "Аналізую положення планет...", pause: 1000 },
         { text: "З'єднуюсь з ефемеридами NASA...", pause: 1200 },
         { text: "Зчитую твій енергетичний код...", pause: 1200 },
@@ -90,6 +127,10 @@ export async function init(router) {
         { text: "Будую твою натальну карту...", pause: 1500 },
         { text: "Приготуйся дізнатись, наскільки ти дивовижна 💖", pause: 2000, final: true }
     ];
+
+    const loadingSteps = (currentVariant && currentVariant.ui && currentVariant.ui.loading && currentVariant.ui.loading.steps)
+        ? currentVariant.ui.loading.steps
+        : defaultLoadingSteps;
 
     const animationPromise = (async () => {
         for (let i = 0; i < loadingSteps.length; i++) {

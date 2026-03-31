@@ -4,7 +4,7 @@ import { renderAstroBox } from '../../utils/astro-renderer.js';
 import { processPayment } from '../../services/payment.service.js';
 import { API, DISPLAY_PRICES, PAYMENT_PRICES } from '../../config.js';
 import { getPrices } from '../../utils/pricing.js';
-import { generateFullReport } from '../../services/api.service.js';
+import { generateFullReport, fetchReportById } from '../../services/api.service.js';
 
 import { showModal } from '../../utils/modal.js';
 import { Logger } from '../../utils/logger.js';
@@ -53,6 +53,7 @@ export function init(router) {
         planets: state.get('planets') || []
     };
     const userEmail = state.get('email');
+    const currentVariant = state.get('currentVariant'); // 🔥 Get variant for adaptation
 
     // 🔥 CONSTANT FOR BACKUP STORAGE
     const REPORT_BACKUP_KEY = 'dc_full_report_backup_v2';
@@ -107,34 +108,153 @@ export function init(router) {
     });
 
     /**
-     * 🔥 ГЕНЕРАТОР HTML ЗВІТУ
+     * 🔥 ГЕНЕРАТОР HTML ЗВІТУ (ACCORDION)
      */
     function generateReportHtml(sections) {
         if (!sections) return '';
-        return sections.map(section => {
-            let rawText = section.analysis_text || "";
-            rawText = rawText.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fff;">$1</strong>');
+        return sections.map((section, index) => {
+            const isFirst = index === 0;
+            const isLast = index === sections.length - 1;
 
-            const formattedText = rawText.split('\n').map(l => `<p>${l}</p>`).join('');
+            let rawText = section.analysis_text || "";
+            rawText = rawText.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #fff; font-weight: 400;">$1</strong>');
+
+            let formattedText = rawText.includes('<ul') || rawText.includes('<ol') || rawText.includes('<br')
+                ? rawText.replace(/\n/g, '<br>')
+                : rawText.split('\n').map(l => `<p>${l}</p>`).join('');
+
+            const adviceHtml = section.practical_advice ? `
+                <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <strong style="display: block; color: #cda45e; margin-bottom: 6px; text-transform: uppercase; font-size: 0.75em; letter-spacing: 1px;">⚡️ Порада зірок:</strong>
+                    <p style="font-style: italic; font-size: 0.9em; color: var(--secondary-text-color); margin: 0;">${section.practical_advice}</p>
+                </div>
+            ` : '';
+
+            const nextBtnHtml = !isLast ? `
+                <button class="next-section-btn" data-target="${index + 1}" style="
+                    display: block;
+                    margin: 20px auto 0;
+                    padding: 10px 24px;
+                    background: transparent;
+                    border: 1px solid rgba(205, 164, 94, 0.3);
+                    border-radius: 20px;
+                    color: var(--accent-color);
+                    font-size: 0.85em;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                ">Читати далі 👇</button>
+            ` : '';
 
             return `
-                <div class="report-section mb-8 p-6 rounded-2xl relative overflow-hidden" 
-                     style="background-color: var(--card-bg-color); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                    
-                    <h2 class="mb-4 flex items-center gap-3" style="color: var(--accent-color); font-size: 1.5rem; font-weight: 700;">
-                        <span>${section.icon}</span> ${section.title}
-                    </h2>
-                    
-                    <div class="report-content-text text-left leading-relaxed text-gray-300 space-y-3">
-                        ${formattedText}
+                <div class="accordion-item ${isFirst ? 'accordion-open' : ''}" style="
+                    background-color: rgba(28, 28, 30, 0.6);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-left: 3px solid var(--accent-color);
+                    border-radius: 12px;
+                    margin-bottom: 12px;
+                    overflow: visible;
+                    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+                ">
+                    <!-- Header -->
+                    <div class="accordion-header" style="
+                        padding: 16px 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        cursor: pointer;
+                    " data-index="${index}">
+                        <h4 style="
+                            color: var(--accent-color);
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            font-size: 0.85em;
+                            letter-spacing: 1.5px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin: 0;
+                        ">
+                            <span style="font-size: 1.2em;">${section.icon}</span> ${section.title}
+                        </h4>
+                        <span class="accordion-icon" style="color: var(--secondary-text-color); font-size: 0.8em;">▼</span>
                     </div>
-                    
-                    <div class="report-advice mt-6 pt-4 border-t border-gray-700/50">
-                        <strong class="block text-[#cda45e] mb-2 uppercase text-xs tracking-wider">⚡️ Порада зірок:</strong>
-                        <p class="italic text-sm text-gray-400">${section.practical_advice}</p>
+
+                    <!-- Content -->
+                    <div class="accordion-content">
+                        <div style="padding: 0 20px 20px 20px; color: var(--secondary-text-color); line-height: 1.7; font-size: 0.95em;" class="accordion-text-content report-content-text">
+                            ${formattedText}
+                            ${adviceHtml}
+                            ${nextBtnHtml}
+                        </div>
                     </div>
-                </div>`;
+                </div>
+            `;
         }).join('');
+    }
+
+    /**
+     * 🔥 ACCORDION TOGGLE LOGIC
+     */
+    function attachAccordionListeners(containerEl) {
+        const headers = containerEl.querySelectorAll('.accordion-header');
+        const items = containerEl.querySelectorAll('.accordion-item');
+        const nextButtons = containerEl.querySelectorAll('.next-section-btn');
+
+        function toggleSection(index, keepOthersOpen = false) {
+            items.forEach((item, i) => {
+                if (i === index) {
+                    if (item.classList.contains('accordion-open')) {
+                        item.classList.remove('accordion-open');
+                        const content = item.querySelector('.accordion-content');
+                        if (content) content.style.maxHeight = null;
+                    } else {
+                        item.classList.add('accordion-open');
+                        const content = item.querySelector('.accordion-content');
+                        if (content) {
+                            // 1. Set precise height for smooth animation
+                            content.style.maxHeight = content.scrollHeight + 100 + "px";
+
+                            // 2. Release to CSS (8000px) after transition for resize safety
+                            setTimeout(() => {
+                                if (item.classList.contains('accordion-open')) {
+                                    content.style.maxHeight = null;
+                                }
+                            }, 820); // > 0.8s CSS transition
+                        }
+                        setTimeout(() => {
+                            const header = item.querySelector('.accordion-header');
+                            if (header) {
+                                header.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 300);
+                    }
+                } else {
+                    if (!keepOthersOpen) {
+                        item.classList.remove('accordion-open');
+                    }
+                }
+            });
+        }
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const index = parseInt(header.getAttribute('data-index'));
+                toggleSection(index, true);
+            });
+        });
+
+        nextButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetIndex = parseInt(btn.getAttribute('data-target'));
+                if (targetIndex < items.length) {
+                    toggleSection(targetIndex, true);
+                }
+            });
+        });
     }
 
     /**
@@ -151,6 +271,29 @@ export function init(router) {
             astroBox.onmouseleave = () => { astroBox.style.borderColor = 'rgba(205, 164, 94, 0.3)'; };
 
             astroBox.addEventListener('click', () => {
+                // 🔥 PARTNER VARIANT: Adapted popup
+                if (currentVariant && currentVariant.productType === 'partner') {
+                    const partnerDecryptionHtml = `
+                        <p class="mb-3">Ти бачиш <strong>точні координати</strong> Венери, Марсу та 7-го дому — формулу твого кохання.</p>
+                        
+                        <p class="mb-3 text-sm italic" style="color: #cda45e; border-left: 2px solid #cda45e; padding-left: 10px;">
+                            "Ці координати — унікальна карта твоїх бажань і потреб у стосунках."
+                        </p>
+
+                        <ul class="text-sm space-y-2 mb-4">
+                            <li><strong>Венера ♀:</strong> Як ти кохаєш і що приносить тобі задоволення.</li>
+                            <li><strong>Марс ♂:</strong> Типаж чоловіка, який запалює твій вогонь.</li>
+                            <li><strong>7-й Дім (DSC):</strong> Обставини зустрічі та сценарій партнерства.</li>
+                        </ul>
+
+                        <p class="mb-1">У <strong>цьому звіті</strong> ми розшифрували все:</p>
+                        <p class="text-white text-sm">✅ Де і коли ти зустрінеш свого партнера?<br>✅ Що притягне його саме до тебе?</p>
+                    `;
+                    showModal("🔑 Розшифровка Коду Кохання", partnerDecryptionHtml);
+                    return;
+                }
+
+                // DEFAULT: Main version popup
                 const decryptionHtml = `
                     <p class="mb-3">Ти бачиш <strong>точні координати</strong> планет в момент твого народження (градуси, хвилини, секунди).</p>
                     
@@ -167,7 +310,6 @@ export function init(router) {
                     <p class="mb-1">В <strong>цьому звіті</strong> ми переклали ці складні цифри на зрозумілу мову:</p>
                     <p class="text-white text-sm">✅ Як ці градуси впливають на твій дохід?<br>✅ Чому Венера в цьому положенні притягує саме таких чоловіків?</p>
                 `;
-
                 showModal("📡 Розшифровка Космічного Коду", decryptionHtml);
             });
         }
@@ -179,6 +321,7 @@ export function init(router) {
 
         if (!reportData || !reportData.sections) {
             const backup = localStorage.getItem(REPORT_BACKUP_KEY);
+            // ... (keep existing backup logic) ...
             if (backup) {
                 try {
                     reportData = JSON.parse(backup);
@@ -188,16 +331,13 @@ export function init(router) {
         }
 
         if (reportData && reportData.sections) {
+            // ... (keep success logic) ...
             localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(reportData));
-
             const reportContentHtml = generateReportHtml(reportData.sections);
-            const astroHtml = await renderAstroBox(userData);
-
+            const astroHtml = await renderAstroBox(userData, currentVariant);
             fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
-
-            // 🔥 ATTACH LISTENER AFTER RENDER
+            attachAccordionListeners(fullReportContentEl);
             attachAstroBoxListener();
-
             renderButtons();
             return;
         }
@@ -206,41 +346,159 @@ export function init(router) {
         fullReportContentEl.innerHTML = `
             <div class="text-center py-12 space-y-4">
                 <div class="spinner mx-auto" style="width: 3rem; height: 3rem;"></div>
-                <p class="text-gray-400 animate-pulse text-sm">Відновлення вашого звіту...</p>
+                <p class="text-gray-400 animate-pulse text-sm">Завантаження вашого звіту...</p>
             </div>
         `;
 
         try {
-            const recoveredData = await generateFullReport(userData, userEmail);
-            if (recoveredData && !recoveredData.error && recoveredData.sections) {
+            const reportId = urlParams.get('id');
+            let recoveredData;
+
+            if (reportId) {
+                // Якщо маємо унікальне посилання, завантажуємо з бекенду
+                recoveredData = await fetchReportById(reportId);
+            } else {
+                // Інакше стандартне відновлення (email + userData)
+                recoveredData = await generateFullReport(userData, userEmail);
+            }
+
+            // Перевірка формату від getReportById
+            if (recoveredData && !recoveredData.error && recoveredData.status === 'ready' && recoveredData.reportData && recoveredData.reportData.sections) {
+                state.set('fullReport', recoveredData.reportData);
+                localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(recoveredData.reportData));
+
+                const reportContentHtml = generateReportHtml(recoveredData.reportData.sections);
+                // Для унікального лінка беремо дані з бази, бо в локалстореджі може їх не бути
+                const finalUserData = recoveredData.userData || userData;
+                const finalVariant = recoveredData.variant || currentVariant;
+                
+                const astroHtml = await renderAstroBox(finalUserData, finalVariant);
+                fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
+                attachAccordionListeners(fullReportContentEl);
+                attachAstroBoxListener();
+                renderButtons();
+            } 
+            // Перевірка старого формату (generateFullReport)
+            else if (recoveredData && !recoveredData.error && recoveredData.sections) {
                 state.set('fullReport', recoveredData);
                 localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(recoveredData));
 
                 const reportContentHtml = generateReportHtml(recoveredData.sections);
-                const astroHtml = await renderAstroBox(userData);
+                const astroHtml = await renderAstroBox(userData, currentVariant);
                 fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
-
-                // 🔥 ATTACH LISTENER AFTER RENDER
+                attachAccordionListeners(fullReportContentEl);
                 attachAstroBoxListener();
-
                 renderButtons();
+            } 
+            else if (recoveredData && recoveredData.status === 'processing') {
+                throw new Error("Report is processing");
             } else {
                 throw new Error("Invalid recovery data");
             }
         } catch (e) {
-            fullReportContentEl.innerHTML = `<div class="text-center p-6"><p class="text-red-400">Не вдалося завантажити звіт. Будь ласка, оновіть сторінку.</p></div>`;
+            // 🔥 FALLBACK: Якщо API повернуло помилку, але ми знаємо, що процес був запущений
+            console.error("Recovery failed:", e);
+
+            // Замість червоної помилки показуємо статус "Надіслано на пошту"
+            // Це набагато кращий UX, оскільки бекенд міг відправити лист, але не встиг повернути JSON
+            fullReportContentEl.innerHTML = `
+                <div class="text-center p-8 rounded-xl border border-gray-700 bg-gray-800/50">
+                    <div class="text-5xl mb-4">📨</div>
+                    <h3 class="text-xl font-bold text-[#cda45e] mb-2">Звіт вже у дорозі!</h3>
+                    <p class="text-gray-300 mb-4">
+                        Через велике навантаження генерація займає трохи більше часу. 
+                        Твій Прогноз генерується і буде автоматично відправлений на <strong>${userEmail}</strong>.
+                    </p>
+                    ${state.get('planets') ? await renderAstroBox(userData, currentVariant) : ''}
+                </div>
+            `;
+
+            // Кнопки все одно рендеримо (там є Feedback і Upsell)
+            renderButtons();
         }
     }
 
     function renderButtons() {
         reportActionsContainer.innerHTML = '';
 
+        // --- DESCRIPTOR BLOCK ---
+        const descriptorBox = document.createElement('div');
+        descriptorBox.className = 'mb-6 p-4 rounded-xl border border-[rgba(205,164,94,0.3)] bg-[rgba(20,20,22,0.6)] text-center text-sm leading-relaxed';
+        descriptorBox.innerHTML = `
+            <p class="text-white font-bold mb-2 text-base">Як зберегти цей звіт?</p>
+            <p class="text-[#cda45e] mb-2">✅ Копія звіту (текст + PDF) вже відправлена на твою пошту.</p>
+            <p class="text-gray-300">Нижче ти можеш відправити текст звіту собі в Telegram, завантажити PDF або <strong>скопіювати персональне посилання</strong> на цю сторінку (рекомендуємо зберегти його).</p>
+        `;
+        reportActionsContainer.appendChild(descriptorBox);
+
+        // --- BUTTONS WRAPPER ---
+        const buttonsWrapper = document.createElement('div');
+        buttonsWrapper.className = 'flex flex-col gap-3 w-full';
+        
+        const invoiceId = state.get('currentInvoiceId') || new URLSearchParams(window.location.search).get('id');
+
+        // --- TELEGRAM BUTTON ---
+        if (invoiceId) {
+            const tgBtn = document.createElement('a');
+            tgBtn.href = `https://t.me/DestinyCodeReportsBot?start=${invoiceId}`;
+            tgBtn.target = '_blank';
+            tgBtn.rel = 'noopener noreferrer';
+            tgBtn.className = 'btn btn-secondary';
+            tgBtn.style.cssText = `
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+                background: linear-gradient(135deg, #2AABEE, #229ED9);
+                color: #fff; text-decoration: none; border: none;
+            `;
+            tgBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+                <span class="btn-text">Надіслати Звіт в Telegram</span>
+            `;
+            buttonsWrapper.appendChild(tgBtn);
+        }
+
+        // --- COPY LINK BUTTON ---
+        if (invoiceId) {
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn btn-secondary';
+            copyBtn.style.cssText = `
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+                background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+                color: #fff;
+            `;
+            copyBtn.innerHTML = `
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span class="btn-text">Скопіювати посилання</span>
+            `;
+            copyBtn.onclick = () => {
+                const reportUrl = `${window.location.origin}/report?id=${invoiceId}`;
+                navigator.clipboard.writeText(reportUrl).then(() => {
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<span class="btn-text text-green-400 font-bold">✅ Скопійовано!</span>';
+                    showToast("Посилання збережено в буфер обміну");
+                    setTimeout(() => copyBtn.innerHTML = originalHtml, 2500);
+                }).catch(err => {
+                    console.error("Copy failed", err);
+                    showToast("Не вдалося скопіювати посилання");
+                });
+            };
+            buttonsWrapper.appendChild(copyBtn);
+        }
+
+        // --- PDF BUTTON ---
         const downloadBtn = document.createElement('button');
         downloadBtn.className = 'btn btn-secondary';
         downloadBtn.innerHTML = '<span class="btn-text">Завантажити PDF (Звіт)</span><span class="btn-spinner"></span>';
         downloadBtn.onclick = () => handleDownloadPDF(downloadBtn);
-        downloadBtn.onclick = () => handleDownloadPDF(downloadBtn);
-        reportActionsContainer.appendChild(downloadBtn);
+        buttonsWrapper.appendChild(downloadBtn);
+
+
+
+        reportActionsContainer.appendChild(buttonsWrapper);
 
         // --- FEEDBACK SYSTEM INTEGRATION ---
         renderFeedbackSystem();
@@ -258,27 +516,17 @@ export function init(router) {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <span class="text-sm font-bold text-green-400 tracking-wide">
-                        Твій Прогноз на 2026 рік відправлено на пошту
+                        ${currentVariant?.productType === 'forecast' ? 'Портрет Партнера відправлено на пошту' : 'Твій Прогноз на рік відправлено на пошту'}
                     </span>
                 </div>
             `;
 
             reportActionsContainer.appendChild(successContainer);
 
-            const tryAgainBtn = document.createElement('button');
-            tryAgainBtn.className = 'btn btn-skip';
-            tryAgainBtn.style.marginTop = '15px';
-            tryAgainBtn.innerText = 'Почати заново (Нова карта)';
-            tryAgainBtn.onclick = () => {
-                if (confirm("Очистити дані та почати новий розрахунок?")) {
-                    state.clear();
-                    localStorage.removeItem(REPORT_BACKUP_KEY);
-                    window.location.href = "/";
-                }
-            };
-            reportActionsContainer.appendChild(tryAgainBtn);
-
         } else {
+            const isForecastVariant = currentVariant?.productType === 'forecast';
+            const upsellLabel = isForecastVariant ? 'Портрет Ідеального Партнера' : 'Прогноз на рік';
+
             const getForecastBtn = document.createElement('button');
             getForecastBtn.className = 'btn btn-violet';
             getForecastBtn.style.marginTop = '10px';
@@ -286,17 +534,59 @@ export function init(router) {
             // 🔥 UPDATE: Кнопка з дворядковим текстом
             getForecastBtn.innerHTML = `
                 <span class="btn-text flex flex-col items-center justify-center leading-tight">
-                    <span class="text-[16px] font-bold">Отримати Прогноз на рік за ${currentPrices.display.FORECAST_UPSELL} грн.</span>
+                    <span class="text-[16px] font-bold">Отримати ${upsellLabel} за ${currentPrices.display.FORECAST_UPSELL} грн.</span>
                     <span class="text-[10px] opacity-80 font-normal mt-1 lowercase">буде відправлено на пошту</span>
                 </span>
             `;
 
             getForecastBtn.onclick = () => {
-                if (ltvUpsellBtn) ltvUpsellBtn.querySelector('.btn-text').innerText = `Так, отримати Прогноз за ${currentPrices.display.FORECAST_UPSELL} грн.`;
+                const btnLabel = isForecastVariant ? `Так, отримати Портрет Партнера за ${currentPrices.display.FORECAST_UPSELL} грн.` : `Так, отримати Прогноз за ${currentPrices.display.FORECAST_UPSELL} грн.`;
+                if (ltvUpsellBtn) ltvUpsellBtn.querySelector('.btn-text').innerText = btnLabel;
                 lateUpsellModal.style.display = 'flex';
             };
             reportActionsContainer.appendChild(getForecastBtn);
         }
+
+        // --- ALWAYS SHOW RESTART BUTTON ---
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'btn btn-skip';
+        restartBtn.style.marginTop = '20px';
+        restartBtn.innerText = 'Розрахувати ще одну натальну карту';
+        restartBtn.onclick = () => {
+            if (confirm("Очистити дані та почати новий розрахунок?")) {
+                state.clear();
+                localStorage.removeItem(REPORT_BACKUP_KEY);
+                window.location.href = "/";
+            }
+        };
+        reportActionsContainer.appendChild(restartBtn);
+    }
+
+    /**
+     * 🔥 CLEAN HTML GENERATOR FOR PDF (No UI elements)
+     * Matches backend fulfillment.service.js logic
+     */
+    function generateCleanReportHtml(sections) {
+        if (!sections || !Array.isArray(sections)) return '';
+        return sections.map((section, index) => {
+            // 🔥 Page Break Logic: First section flows, subsequent force new page
+            const pageBreakStyle = index === 0 ? '' : 'page-break-before: always;';
+
+            return `
+            <div class="report-section" style="margin-bottom: 35px; ${pageBreakStyle}">
+                <h2 style="color: #cda45e; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(205, 164, 94, 0.3); padding-bottom: 10px; page-break-before: avoid;">
+                    <span style="margin-right: 8px;">${section.icon || '✨'}</span> ${section.title}
+                </h2>
+                <div class="report-content-text" style="font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 1.8; color: #e0e0e0; margin-bottom: 12px; text-align: justify;">
+                    ${(section.analysis_text || "").replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong style="color: #ffffff;">$1</strong>')}
+                </div>
+                ${section.practical_advice ? `
+                <div class="report-advice" style="background-color: #161b22; border: 1px solid rgba(205, 164, 94, 0.2); border-left: 4px solid #cda45e; padding: 20px; margin-top: 20px; border-radius: 0 8px 8px 0;">
+                    <span style="color: #cda45e; display: block; margin-bottom: 8px; text-transform: uppercase; font-size: 11px; letter-spacing: 2px; font-weight: 700;">⚡️ KOSMIC KEY:</span>
+                    <p style="margin: 0; color: #cccccc; font-style: italic; font-size: 13px;">${section.practical_advice}</p>
+                </div>` : ''}
+            </div>`;
+        }).join('');
     }
 
     async function handleDownloadPDF(btn) {
@@ -338,7 +628,8 @@ export function init(router) {
         btn.disabled = true;
 
         try {
-            const htmlContent = generateReportHtml(currentData.sections);
+            // 🔥 USE CLEAN GENERATOR
+            const htmlContent = generateCleanReportHtml(currentData.sections);
 
             const safeUserData = { ...userData };
             if (!safeUserData.planets || safeUserData.planets.length === 0) {
@@ -348,9 +639,17 @@ export function init(router) {
                 }
             }
 
+            // 🔥 FIX: Визначаємо правильний тип звіту на основі варіанту
+            let reportType = 'main';
+            if (currentVariant?.productType === 'forecast') {
+                reportType = 'upsell';
+            } else if (currentVariant?.productType === 'partner') {
+                reportType = 'partner';
+            }
+
             const payload = {
                 reportHtml: htmlContent,
-                reportType: 'main',
+                reportType: reportType,
                 userData: safeUserData
             };
 
@@ -416,8 +715,10 @@ export function init(router) {
             }
 
             try {
+                const isForecastVariant = currentVariant?.productType === 'forecast';
+                const paymentName = isForecastVariant ? 'Астро-Портрет Партнера (Promo)' : 'Астро-Прогноз на рік (Promo)';
                 await processPayment(
-                    { name: "Астро-Прогноз на 2026 (Promo)", price: currentPrices.charge.FORECAST_UPSELL },
+                    { name: paymentName, price: currentPrices.charge.FORECAST_UPSELL },
                     { email: userEmail },
                     userData,
                     { returnQueryParams: 'upsell_source=stage8' }
@@ -452,6 +753,20 @@ export function init(router) {
         buttonsRow.appendChild(btnDislike);
         buttonsRow.appendChild(btnLike);
         container.appendChild(buttonsRow);
+
+        // --- NEW: Universal Review Button (Below icons) ---
+        const reviewBtn = document.createElement('button');
+        reviewBtn.className = 'btn w-full';
+        reviewBtn.style.cssText = `
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: rgba(205, 164, 94, 0.1);
+            border: 1px solid rgba(205, 164, 94, 0.3);
+            color: #cda45e; font-size: 0.85em; padding: 12px; border-radius: 12px;
+            font-weight: 600; cursor: pointer; margin-top: 15px; margin-bottom: 10px;
+        `;
+        reviewBtn.innerHTML = `<span>✨ Залишити відгук</span>`;
+        reviewBtn.onclick = () => openFeedbackModal('premium_review_button');
+        container.appendChild(reviewBtn);
 
         // 2. Conditional "Write Feedback" Link (Upsell Only)
         if (state.get('hasPaidUpsell')) {
@@ -491,7 +806,7 @@ export function init(router) {
         return btn;
     }
 
-    function openFeedbackModal() {
+    function openFeedbackModal(forcedSource = null) {
         const overlay = document.createElement('div');
         overlay.className = 'feedback-modal-overlay';
 
@@ -526,7 +841,7 @@ export function init(router) {
 
             try {
                 // Check upsell status for context, or default to premium_feedback
-                const context = state.get('hasPaidUpsell') ? 'premium_upsell' : 'premium_feedback';
+                const context = forcedSource || (state.get('hasPaidUpsell') ? 'premium_upsell' : 'premium_feedback');
                 await feedbackService.send({ type: 'text', value: textarea.value, source: context });
             } catch (e) {
                 console.error("Feedback send error", e);

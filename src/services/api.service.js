@@ -1,6 +1,6 @@
 import { calculateNatalChart } from './astro.service.js';
 import { state } from '../utils/state.js';
-import { API, SYSTEM } from '../config.js';
+import { API, API_BASE, SYSTEM } from '../config.js';
 
 import { request } from './core.js';
 import { Logger } from '../utils/logger.js';
@@ -16,9 +16,12 @@ let cachedReportData = null;
 // ======================================================
 
 export function warmUpBackend() {
-    Logger.log("🔥 Warming up PDF backend...");
+    Logger.log("🔥 Warming up Backend (PDF & Payments)...");
     if (API && API.PDF) {
         request(API.PDF, { warmup: true }).catch(() => { });
+    }
+    if (API && API.endpoints && API.endpoints.PAYMENT_INIT) {
+        request(API.endpoints.PAYMENT_INIT, { warmup: true }).catch(() => { });
     }
 }
 
@@ -137,32 +140,89 @@ async function requestAI(action, data) {
 
 export async function getFreeAnalysis(date) {
     warmUpBackend();
-    try {
-        let astroTechnicalData = `Дата народження: ${date}`;
+
+    const MAX_RETRIES = 2;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-            // Розраховуємо базові дані (без часу та міста, по дефолту на 12:00)
-            const astroResult = await calculateNatalChart({ date });
-            if (astroResult && astroResult.planets) {
-                astroTechnicalData = `Дата: ${date}\n== Технічні Астрологічні Дані ==\n${astroResult.planets.join('\n')}`;
+            // 🧑‍🤝‍🧑 Product Type Detection
+            const variant = state.get('currentVariant');
+            const productType = variant?.productType || variant?.aiContext?.productType;
+            const isPartner = productType === 'partner';
+            const isForecast = productType === 'forecast';
+            const isNatalChild = variant?.id === 'natal_child';
+            const action = isPartner ? 'partner_free_analysis' : isForecast ? 'forecast_free_analysis' : isNatalChild ? 'child_free_analysis' : 'free_analysis';
+
+            let astroTechnicalData = `Дата народження: ${date}`;
+            try {
+                const astroResult = await calculateNatalChart({ date });
+                if (astroResult && astroResult.planets) {
+                    astroTechnicalData = `Дата: ${date}\n== Технічні Астрологічні Дані ==\n${astroResult.planets.join('\n')}`;
+
+                    // 🔥 FIX: Зберігаємо планети в state ВІДРАЗУ (ще до оплати)
+                    // Щоб вони були доступні в stage-5-paywall і передавались на бекенд
+                    state.set('planets', astroResult.planets);
+                    if (astroResult.aspects && astroResult.aspects.length > 0) {
+                        state.set('aspects', astroResult.aspects);
+                    }
+
+                    // 🔥 NEW: Доми + Фаза Місяця
+                    if (astroResult.houses && astroResult.houses.length > 0) {
+                        astroTechnicalData += `\n\n== Куспіди Домів (Placidus) ==\n${astroResult.houses.join('\n')}`;
+                    }
+                    if (astroResult.configurations && astroResult.configurations.length > 0) {
+                        astroTechnicalData += `\n\n== Планетарні Конфігурації ==\n${astroResult.configurations.join('\n')}`;
+                    }
+                    if (astroResult.moonPhase) {
+                        astroTechnicalData += `\n\n== Фаза Місяця при народженні ==\n${astroResult.moonPhase}`;
+                    }
+                }
+            } catch (e) { console.warn("Free astro calc skipped", e); }
+
+            // 🔥 Detect sunSign for prompt placeholder replacement
+            const { getZodiacSign } = await import('../utils/zodiac.js');
+            const zodiacInfo = getZodiacSign(date);
+            const sunSign = zodiacInfo?.name || '';
+
+            Logger.log(`📡 Requesting ${action} for productType: ${productType || 'default'} (Attempt ${attempt}/${MAX_RETRIES})`);
+            const reqData = { date, sunSign, userQuery: astroTechnicalData };
+            if (isNatalChild) {
+                reqData.childGender = localStorage.getItem('childGender') || 'male';
             }
-        } catch (e) { console.warn("Free astro calc skipped", e); }
+            const rawJsonText = await requestAI(action, reqData);
+            const parsedData = parseAIResponse(rawJsonText);
+            return parsedData;
 
-        const rawJsonText = await requestAI('free_analysis', { date, userQuery: astroTechnicalData });
-        const parsedData = parseAIResponse(rawJsonText);
-        return parsedData;
+        } catch (e) {
+            console.error(`Free Analysis Error (Attempt ${attempt}/${MAX_RETRIES}):`, e);
 
-    } catch (e) {
-        console.error("Free Analysis Error:", e);
-        return {
-            title: "Помилка З'єднання",
-            psychological_analysis: `<p>На жаль, сервер не зміг обробити відповідь ШІ. Спробуйте ще раз.</p><p style="color:rgba(255,255,255,0.3); font-size:0.7em;">Details: ${e.message}</p>`
-        };
+            // If we have retries left and it's a parsing error — retry after a short delay
+            if (attempt < MAX_RETRIES && e.message?.includes('Invalid JSON')) {
+                Logger.log(`🔄 Retrying free analysis... (attempt ${attempt + 1})`);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                continue;
+            }
+
+            // Final fallback — user-friendly, no technical details
+            return {
+                title: "Зірки ще не готові...",
+                psychological_analysis: `<p>На жаль, зараз Всесвіт не зміг розкрити таємницю. Будь ласка, спробуй ще раз через хвилину — зірки вже вибудовуються у потрібний порядок ✨</p>`
+            };
+        }
     }
 }
 
 export async function startBackgroundGeneration(userData) {
     if (backgroundGenerationPromise) return backgroundGenerationPromise;
     Logger.log("🚀 Starting background generation (Secure)...");
+
+    // 🧑‍🤝‍🧑 Product Type Detection
+    const variant = state.get('currentVariant');
+    const productType = variant?.productType || variant?.aiContext?.productType;
+    const isPartner = productType === 'partner';
+    const isForecast = productType === 'forecast';
+    const isNatalChild = variant?.id === 'natal_child';
+    const action = isPartner ? 'partner_full_report' : isForecast ? 'forecast_full_report' : isNatalChild ? 'child_full_report' : 'full_report';
 
     let astroTechnicalData = "";
     try {
@@ -176,13 +236,27 @@ export async function startBackgroundGeneration(userData) {
                 astroTechnicalData += `\n\n== Аспекти Натальної Карти ==\n${astroResult.aspects.join('\n')}`;
                 state.set('aspects', astroResult.aspects);
             }
+
+            // 🔥 NEW: ДОМИ — Куспіди 12 домів (ДЕ працює кожна енергія)
+            if (astroResult.houses && astroResult.houses.length > 0) {
+                astroTechnicalData += `\n\n== Куспіди Домів (Placidus) ==\n${astroResult.houses.join('\n')}`;
+            }
+
+            // 🔥 NEW: Планетарні конфігурації (Стеліуми)
+            if (astroResult.configurations && astroResult.configurations.length > 0) {
+                astroTechnicalData += `\n\n== Планетарні Конфігурації ==\n${astroResult.configurations.join('\n')}`;
+            }
+
+            // 🔥 NEW: Фаза Місяця при народженні
+            if (astroResult.moonPhase) {
+                astroTechnicalData += `\n\n== Фаза Місяця при народженні ==\n${astroResult.moonPhase}`;
+            }
         }
     } catch (e) { console.warn("Local calc skipped", e); }
 
     const userQuery = `Дата: ${userData.date}\nЧас: ${userData.time}\nМісто: ${userData.city}\n${astroTechnicalData}`;
 
     // 🔥 VARIANT CONTEXT INJECTION
-    const variant = state.get('currentVariant');
     let finalQuery = userQuery;
 
     if (variant && variant.aiContext && variant.aiContext.additionalPrompt) {
@@ -192,7 +266,12 @@ export async function startBackgroundGeneration(userData) {
 
     const enrichedUserData = state.get('planets') ? { ...userData, planets: state.get('planets'), aspects: state.get('aspects') } : userData;
 
-    backgroundGenerationPromise = requestAI('full_report', { userQuery: finalQuery })
+    Logger.log(`📡 Requesting ${action} for productType: ${productType || 'default'}`);
+    const reqData = { userQuery: finalQuery };
+    if (isNatalChild) {
+        reqData.childGender = localStorage.getItem('childGender') || 'male';
+    }
+    backgroundGenerationPromise = requestAI(action, reqData)
         .then(rawJson => {
             const data = parseAIResponse(rawJson);
             cachedReportData = { data, enrichedUserData };
@@ -229,11 +308,20 @@ export async function generateFullReport(userData, email) {
             Logger.log("📧 Preparing Main Report Email (Frontend Trigger)...");
             const formattedHtml = formatReportToHtml(reportData.sections);
 
+            // 🔥 VARIANT CONTEXT FOR EMAIL
+            const variant = state.get('currentVariant');
+            const productType = variant?.productType || variant?.aiContext?.productType;
+            const isPartner = productType === 'partner';
+            const isForecast = productType === 'forecast';
+
+            const reportTitle = isPartner ? "Твій Астро-Портрет Ідеального Партнера" : isForecast ? "Твій Персональний Прогноз на Рік" : "Твій Повний Аналіз";
+            const reportType = isPartner ? 'partner' : isForecast ? 'upsell' : 'main';
+
             request(API.EMAIL, {
                 userEmail: email,
                 reportHtml: formattedHtml,
-                reportTitle: "Твій Повний Аналіз",
-                reportType: 'main',
+                reportTitle: reportTitle,
+                reportType: reportType,
                 userData: finalUserData
             }).catch(e => console.error("Email Error:", e));
         }
@@ -271,10 +359,47 @@ export async function generateForecast(userData, email) {
         // 🔥 Email Logic REMOVED.
         Logger.log("✅ Forecast HTML generated. Email буде відправлено backend'ом.");
 
-        return forecastHtml;
-
     } catch (e) {
         console.error("Generate Forecast Error:", e);
         return null;
+    }
+}
+
+/**
+ * 🔥 FETCH REPORT BY ID
+ * Отримує уже згенерований звіт з бекенду за його ID
+ */
+export async function fetchReportById(reportId) {
+    try {
+        Logger.log(`🔄 Fetching report by ID: ${reportId}`);
+        
+        // Використовуємо API_BASE (cloudfunctions.net), бо нова функція задеплоєна туди
+        const endpointUrl = `${API_BASE}/getReportById?id=${reportId}`;
+        
+        const response = await fetch(endpointUrl);
+        
+        if (response.status === 202) {
+            // Звіт ще генерується
+            return { status: 'processing' };
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.status === 'ready' && data.reportData) {
+            // Форматуємо дані під існуючу структуру, яку очікує UI:
+            // { data: reportData, enrichedUserData: userData } або повертаємо як є
+            // У `generateFullReport` ми повертаємо reportData
+            return data;
+        }
+        
+        throw new Error('Invalid report data received');
+        
+    } catch (e) {
+        console.error("Fetch Report By ID Error:", e);
+        return { error: true, message: e.message };
     }
 }

@@ -1,7 +1,8 @@
 <section id="premium-result-step" class="funnel-step active space-y-6">
-    
+
     <!-- 1. Контейнер звіту (Точна копія стилів #full-report-content з моноліту) -->
-    <div id="full-report-content" class="text-left p-5 rounded-xl space-y-4" style="background-color: var(--card-bg-color); border: 1px solid var(--border-color); display: block;">
+    <div id="full-report-content" class="text-left p-5 rounded-xl space-y-4"
+        style="background-color: var(--card-bg-color); border: 1px solid var(--border-color); display: block;">
         <!-- Сюди JS вставить згенерований HTML звіту -->
         <div class="text-center py-10">
             <div class="spinner mx-auto"></div>
@@ -10,7 +11,8 @@
     </div>
 
     <!-- 2. Контейнер дій (Кнопки) -->
-    <div id="report-actions-container" style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+    <div id="report-actions-container"
+        style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
         <!-- Кнопки будуть згенеровані через JS -->
     </div>
 
@@ -19,21 +21,26 @@
     <div id="late-upsell-modal" class="modal-overlay">
         <div class="modal-content" style="width: 480px; max-width: 95%;">
             <div style="text-align: right; margin-bottom: 10px;">
-                <button type="button" id="close-late-upsell" style="background:none; border:none; color: #6b7280; font-size: 1.5rem;">&times;</button>
+                <button type="button" id="close-late-upsell"
+                    style="background:none; border:none; color: #6b7280; font-size: 1.5rem;">&times;</button>
             </div>
             <div class="text-left relative overflow-hidden">
                 <h3 class="font-bold text-lg text-white mb-2" style="color: var(--accent-secondary);">
                     Додай до свого замовлення
                 </h3>
                 <p class="text-sm mt-2 mb-6 leading-relaxed" style="color: var(--secondary-text-color);">
-                    Хочеш повний <strong>Астрологічний Прогноз</strong> на найближчий рік? Дізнатися про свої фінансові піки, періоди удачі та успіхи у стосунках?<br><br>
-                    <!-- 🔥 UPDATE: Оновлено стару ціну на 570 грн -->
-                    <span style="color: var(--primary-text-color);">Лише зараз: <strong>97 грн.</strong> замість <span style="text-decoration: line-through; opacity: 0.7;">570 грн</span> (знижка 83%)</span>
+                    Хочеш повний <strong>Астрологічний Прогноз</strong> на найближчий рік? Дізнатися про свої фінансові
+                    піки, періоди удачі та успіхи у стосунках?<br><br>
+                    <!-- 🔥 UPDATE: Оновлено ціни апселу -->
+                    <span style="color: var(--primary-text-color);">Лише зараз: <strong>199 грн.</strong> замість <span
+                            style="text-decoration: line-through; opacity: 0.7;">572 грн</span> (знижка 65%)</span>
                 </p>
-                
+
                 <!-- 🔥 КЛЮЧОВА ЗМІНА: id="ltv-upsell-btn" для коректного трекінгу -->
                 <button id="ltv-upsell-btn" class="btn btn-violet w-full">
-                    <span class="btn-text">Так, додати Прогноз всього за 97 грн.</span>
+                    <span class="btn-text">Так, додати Прогноз всього за 199 грн. <span
+                            style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">572
+                            грн.</span></span>
                     <span class="btn-spinner"></span>
                 </button>
             </div>

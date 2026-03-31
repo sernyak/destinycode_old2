@@ -23,6 +23,8 @@ export async function processPayment(product, user, userData, options = {}) {
 
             // 🔥 CLOUD BACKUP: Відправляємо дані на бекенд для відновлення сесії
             userData: userData,
+            variant: options.variant || null, // 🔥 SAVE VARIANT TO BACKEND
+            trafficSource: state.get('traffic_type'), // 🔥 Критерій Ads vs Bio
 
             origin: window.location.origin,
             returnQueryParams: options.returnQueryParams || ""
@@ -33,19 +35,13 @@ export async function processPayment(product, user, userData, options = {}) {
         if (response && response.pageUrl) {
             state.set('pendingInvoiceId', response.invoiceId);
 
-            Logger.log("🚀 Redirecting to Monobank (Deep Link Mode)...");
-
-            // 🔥 FIX: HIDDEN LINK CLICK TECHNIQUE
-            // Замість window.location.replace, ми створюємо посилання і клікаємо його.
-            // Це змушує мобільний браузер агресивніше перевіряти наявність встановленого додатку (Deep Link),
-            // і уникає спроби рендерингу "ламаної" веб-сторінки Монобанку.
-
+            // 🔥 FIX: Deep Link Mode (Hidden Link Click Technique)
+            // Використовуємо цей метод, щоб Safari/Chrome коректно відкривали застосунок Монобанку
+            // та ініціалізували Apple Pay без блокувань.
             const link = document.createElement('a');
             link.href = response.pageUrl;
-            link.target = '_top'; // Force top-level navigation
+            link.target = '_top';
             link.rel = 'noopener noreferrer';
-
-            // Додаємо в DOM, клікаємо, прибираємо (для максимальної сумісності з Safari)
             document.body.appendChild(link);
             link.click();
             setTimeout(() => {

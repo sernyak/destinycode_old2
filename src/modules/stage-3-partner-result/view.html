@@ -1,0 +1,178 @@
+<!-- 🔥 PARTNER MATCH: Combined Result + Premium Data Screen -->
+<section id="partner-result-step" class="funnel-step active space-y-6" style="padding-bottom: 160px;">
+
+    <!-- SECTION 1: Free Result -->
+    <h2 class="text-2xl font-bold text-center text-white" id="result-title">Твоя Любовна Карта</h2>
+
+    <!-- Основна картка з результатом -->
+    <div class="space-y-3" style="background-color: transparent; border: none; padding: 0;">
+        <h3 class="text-xl font-bold" style="color: var(--accent-color);" id="free-report-title">
+            <!-- Заголовок заповнюється через JS -->
+        </h3>
+        <div id="free-report-text" class="text-left leading-relaxed space-y-4"
+            style="color: var(--secondary-text-color);">
+            <i>(Тут з'явиться твій персональний аналіз...)</i>
+        </div>
+    </div>
+
+
+
+    <!-- SECTION 3: Time & City Divider -->
+    <div class="relative py-4">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-700"></div>
+        </div>
+        <div class="relative flex justify-center">
+            <span class="px-3 text-sm text-gray-500" style="background-color: var(--bg-color);">УТОЧНИ ДАНІ</span>
+        </div>
+    </div>
+
+    <!-- SECTION 4: Title & Description -->
+    <div class="space-y-2 text-center">
+        <h2 class="text-2xl font-bold text-white tracking-tight">
+            Отримай повну інструкцію<br>по пошуку свого<br><span style="color: var(--accent-color);">ІДЕАЛЬНОГО
+                ПАРТНЕРА</span>
+        </h2>
+        <p class="text-sm" style="color: var(--secondary-text-color);">
+            Введи час свого народження для точного розрахунку всіх деталей
+        </p>
+    </div>
+
+    <!-- SECTION 5: Time & City Form (No Card Wrapper) -->
+    <div id="premium-form-container" class="w-full space-y-5 mt-4">
+        <!-- Time Input -->
+        <div>
+            <label for="birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                style="color: var(--accent-color);">Час народження</label>
+
+            <div
+                class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
+                <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2"
+                    style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+
+                <span id="time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери
+                    час</span>
+                <input type="time" id="birth-time" name="birth-time"
+                    class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+            </div>
+
+            <p id="time-error-message" class="error-text" style="display: none;">
+                Будь ласка, обери час народження.
+            </p>
+        </div>
+
+        <!-- City Input -->
+        <div>
+            <label for="birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                style="color: var(--accent-color);">Місто народження</label>
+
+            <input type="text" id="birth-city" name="birth-city" placeholder="Наприклад, Київ"
+                class="input-field text-center hover:border-[#cda45e] transition-colors w-full"
+                style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;">
+
+            <style>
+                #birth-city {
+                    color: #ffffff !important;
+                    -webkit-text-fill-color: #ffffff !important;
+                    caret-color: var(--accent-color);
+                }
+
+                #birth-city:-webkit-autofill,
+                #birth-city:-webkit-autofill:hover,
+                #birth-city:-webkit-autofill:focus,
+                #birth-city:-webkit-autofill:active {
+                    -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
+                    -webkit-text-fill-color: #ffffff !important;
+                    transition: background-color 5000s ease-in-out 0s;
+                }
+
+                #birth-city::placeholder {
+                    color: var(--secondary-text-color);
+                    opacity: 0.7;
+                    transition: opacity 0.2s ease;
+                    -webkit-text-fill-color: var(--secondary-text-color) !important;
+                }
+
+                #birth-city:focus::placeholder {
+                    opacity: 0;
+                    color: transparent;
+                    -webkit-text-fill-color: transparent !important;
+                }
+            </style>
+
+            <p id="city-error-message" class="error-text">Текст помилки...</p>
+            <p id="city-info-message" class="info-text"></p>
+        </div>
+
+        <!-- Skip Button (під формою) -->
+        <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs mt-1 w-full">
+            Я не знаю точного часу
+        </button>
+    </div>
+
+    <!-- Mars & Venus Decorative Symbols -->
+    <div class="flex items-center justify-center gap-3 py-4 mt-2" style="color: var(--accent-color); opacity: 0.35;">
+        <span style="font-size: 1.6em; line-height: 1;">♂</span>
+        <span style="font-size: 0.6em; letter-spacing: 3px; color: var(--secondary-text-color);">✦</span>
+        <span style="font-size: 1.6em; line-height: 1;">♀</span>
+    </div>
+
+    <!-- SECTION 4: Sticky Footer -->
+    <div class="sticky-paywall-footer"
+        style="padding-top: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom));">
+
+        <!-- Кнопка -->
+        <button id="continue-button"
+            class="btn btn-primary w-full !text-lg !py-4 btn-pulse-glow shadow-2xl relative overflow-hidden">
+            <span class="btn-text flex items-center justify-center gap-2">
+                Дізнатися всі подробиці
+                <span class="font-bold tracking-widest flex gap-[1px]">
+                    <span class="runway-arrow">&gt;</span>
+                    <span class="runway-arrow">&gt;</span>
+                    <span class="runway-arrow">&gt;</span>
+                </span>
+            </span>
+            <span class="btn-spinner"></span>
+        </button>
+
+
+
+        <!-- Локальні стилі для анімації стрілочок -->
+        <style>
+            @keyframes runway-lights {
+                0% {
+                    opacity: 0.3;
+                }
+
+                50% {
+                    opacity: 1;
+                }
+
+                100% {
+                    opacity: 0.3;
+                }
+            }
+
+            .runway-arrow {
+                animation: runway-lights 1.2s infinite ease-in-out both;
+                display: inline-block;
+                color: rgba(0, 0, 0, 0.75);
+            }
+
+            .runway-arrow:nth-child(1) {
+                animation-delay: 0s;
+            }
+
+            .runway-arrow:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .runway-arrow:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+        </style>
+    </div>
+</section>

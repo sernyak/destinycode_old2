@@ -458,6 +458,82 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     }
 }
 
+/* ═══════════════════════════════════════════
+   🌠 JS-DRIVEN 3D ORBIT VARIANT (/1uah only)
+   Styles for the comet head and trail segments.
+   Positioning is handled by orbit-animation.js
+   ═══════════════════════════════════════════ */
+
+/* The Spinner Container acts as the scene */
+/* The Spinner Container acts as the scene */
+.spinner {
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+/* 🌌 NEW ORBIT CENTER: The Zodiac Label */
+#zodiac-label-container {
+    position: relative;
+    transform-style: preserve-3d;
+    z-index: 10;
+    /* Base Z-index for the text content */
+}
+
+/* Ensure the text itself is above the background trail */
+#zodiac-label-container>* {
+    position: relative;
+    z-index: 50;
+}
+
+/* Hide the default spinner ring & pseudo-element when JS orbit is active */
+.spinner.js-orbit-active {
+    border: none !important;
+    background: transparent !important;
+    animation: none !important;
+}
+
+.spinner.js-orbit-active::before,
+.spinner.js-orbit-active::after {
+    display: none !important;
+}
+
+/* ☄️ COMET HEAD */
+.comet-head {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    margin: -4px;
+    /* Center on coordinate */
+    background: #ffffff;
+    border-radius: 50%;
+    top: 0;
+    left: 0;
+    /* Intense Glow */
+    box-shadow:
+        0 0 10px 2px rgba(255, 255, 255, 1),
+        0 0 20px 5px rgba(255, 255, 255, 0.5),
+        0 0 35px 8px rgba(79, 172, 254, 0.4);
+    /* Blue-ish outer glow */
+    pointer-events: none;
+    will-change: transform, z-index;
+}
+
+/* ☄️ TRAIL SEGMENTS */
+.trail-segment {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    margin: -3px;
+    /* Center on coordinate */
+    border-radius: 50%;
+    top: 0;
+    left: 0;
+    /* Gradient trail or solid white fading out */
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
 #report-typing-container {
     font-size: 1.25rem;
     color: var(--secondary-text-color);
@@ -796,6 +872,8 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
 .sticky-paywall-footer>* {
     pointer-events: auto;
 }
+
+/* Partner Report Highlights */
 
 .btn-pulse-glow {
     animation: btn-glow 3s infinite ease-in-out;
@@ -1299,4 +1377,47 @@ input:-webkit-autofill:active {
     to {
         opacity: 1;
     }
+}
+
+/* ================================================================= */
+/* 🪗 ACCORDION STYLES (For Partner Free Report) */
+/* ================================================================= */
+
+.accordion-header {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.5s cubic-bezier(0, 1, 0, 1), opacity 0.5s ease-in-out;
+}
+
+.accordion-open .accordion-content {
+    max-height: 8000px;
+    /* Arbitrary large height */
+    opacity: 1;
+    transition: max-height 0.8s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease;
+}
+
+.accordion-open .accordion-icon {
+    transform: rotate(180deg);
+}
+
+/* Next Button inside Accordion */
+.next-section-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
 }

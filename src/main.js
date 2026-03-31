@@ -7,6 +7,7 @@
  */
 
 import './styles/main.css';
+import './styles/landing.css';
 import { state } from './utils/state.js';
 import { router } from './utils/router.js';
 import { haptics } from './utils/haptics.js';
@@ -24,20 +25,73 @@ import { init as initPaywall } from './modules/stage-5-paywall/index.js';
 import { init as initSuccess } from './modules/stage-6-success/index.js';
 import { init as initGeneration } from './modules/stage-7-generation/index.js';
 import { init as initPremiumResult } from './modules/stage-8-premium-result/index.js';
+import { init as initPartnerResult } from './modules/stage-3-partner-result/index.js';
 
 /**
  * 📊 Virtual Pageviews (з підтримкою Advanced Matching)
  */
 function trackPageView(route) {
-    if (window.dataLayer) {
-        const pageViewId = 'pv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-        window.dataLayer.push({
-            event: 'virtual_pageview',
-            page_path: route,
-            page_title: document.title,
-            event_id: pageViewId,
-            email: state.get('email') || '' // Передаємо для Meta matching
-        });
+    const pageViewId = 'pv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    const payload = {
+        page_path: route,
+        page_title: document.title,
+        event_id: pageViewId,
+        email: state.get('email') || ''
+    };
+
+    if (window.DC_Analytics?.pushFilteredEvent) {
+        window.DC_Analytics.pushFilteredEvent('virtual_pageview', payload);
+    } else if (window.dataLayer) {
+        window.dataLayer.push({ event: 'virtual_pageview', ...payload });
+    }
+}
+
+/**
+ * 🕵️‍♂️ Traffic Source Detection (Ads vs Bio)
+ */
+function detectTrafficSource() {
+    // 🔍 1. Перевіряємо поточну сесію (sessionStorage)
+    if (state.get('traffic_type')) return;
+
+    // 🔍 2. Перевіряємо LocalStorage (Backup для виживання після редиректів)
+    try {
+        const backupTraffic = localStorage.getItem('destiny_traffic_source');
+        if (backupTraffic) {
+            Logger.log(`🛰️ [Source] Restored traffic_type from LocalStorage: ${backupTraffic}`);
+            state.set('traffic_type', backupTraffic);
+            return;
+        }
+    } catch (e) {
+        console.warn('LocalStorage access failed');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const hasFbclid = params.has('fbclid');
+    const utmMedium = params.get('utm_medium')?.toLowerCase() || '';
+    const utmSource = params.get('utm_source')?.toLowerCase() || '';
+    const referrer = document.referrer.toLowerCase();
+    const isFromInstagram = referrer.includes('instagram.com') || referrer.includes('l.instagram.com');
+
+    // 🎯 Критерії платного трафіку:
+    // 1. Наявність fbclid (стандарт Meta Ads)
+    // 2. UTM medium = cpc/ads/ad
+    const isPaid = hasFbclid || ['cpc', 'ads', 'ad', 'social_paid'].includes(utmMedium);
+
+    // 🍃 Критерії органіки/біо:
+    // 1. Прийшов з Instagram, але БЕЗ fbclid
+    // 2. UTM source містить 'bio'
+    const isBio = (!hasFbclid && isFromInstagram) || utmSource.includes('bio') || utmMedium.includes('bio');
+
+    if (isPaid && !isBio) {
+        state.set('traffic_type', 'paid');
+        Logger.log("🎯 [Source] Traffic identified as PAID (Meta Ads)");
+    } else if (isBio) {
+        state.set('traffic_type', 'organic');
+        Logger.log("🍃 [Source] Traffic identified as ORGANIC (Instagram Bio)");
+    } else {
+        // Рандомний трафік або прямий захід — не рахуємо як рекламу для Meta Ads
+        state.set('traffic_type', 'organic');
+        Logger.log("🌐 [Source] Traffic identified as ORGANIC (Direct/Other)");
     }
 }
 
@@ -75,8 +129,7 @@ function setupGlobalClickTracking() {
                 gtmEventName = 'click_paywall_benefit_astro_imprint';
             }
 
-            window.dataLayer.push({
-                event: gtmEventName,
+            window.DC_Analytics.pushFilteredEvent(gtmEventName, {
                 event_id: clickId,
                 element_id: elementId,
                 email: state.get('email') || '', // Для розширеного співпадіння
@@ -85,7 +138,7 @@ function setupGlobalClickTracking() {
 
             // eCommerce Logic: Begin Checkout (Основний звіт)
             if (elementId === 'final-checkout-button' || elementId === 'popup-checkout-btn') {
-                window.DC_Analytics.trackBeginCheckout(149, 'Natal Chart Full Report');
+                window.DC_Analytics.trackBeginCheckout(347, 'Natal Chart Full Report');
             }
 
             // eCommerce Logic: Begin Checkout (Апсел)
@@ -93,8 +146,8 @@ function setupGlobalClickTracking() {
                 const isFromReport = window.location.pathname.includes('report') || window.location.pathname.includes('premium-result');
                 const source = isFromReport ? 'Report' : 'Success';
 
-                window.DC_Analytics.trackBeginCheckout(97, `Forecast Upsell (${source})`);
-                state.set('last_checkout_value', 97);
+                window.DC_Analytics.trackBeginCheckout(199, `Forecast Upsell (${source})`);
+                state.set('last_checkout_value', 199);
                 state.set('upsell_origin', source);
             }
         }
@@ -139,6 +192,41 @@ function setupGlobalClickTracking() {
 window.DC_Analytics = {
     generateEventId: (prefix = 'evt') => `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 
+    pushFilteredEvent: (eventName, payload) => {
+        const currentVariant = state.get('currentVariant');
+        const isKnownTestVariant = ['1uah', 'man1uah'].includes(currentVariant?.id);
+        const skipTracking = currentVariant?.skipMetaTracking || isKnownTestVariant;
+        const trafficType = state.get('traffic_type');
+
+        // 🔥 AUDIT EVENT (Для нашої внутрішньої аналітики в GTM/GA4)
+        if (window.dataLayer && eventName !== 'purchase') {
+            window.dataLayer.push({
+                event: `${eventName}_total`,
+                traffic_source: trafficType,
+                ...payload
+            });
+        }
+
+        // 🔥 FILTER FOR META (Блокуємо відправку в Pixel)
+        if (trafficType !== 'paid') {
+            Logger.log(`🍃 [Analytics] Skip Meta tracking for Organic traffic: ${eventName}`);
+            return;
+        }
+
+        if (skipTracking) {
+            Logger.log(`🚫 [Analytics] Skip Meta tracking for test variant: ${eventName}`);
+            return;
+        }
+
+        if (window.dataLayer) {
+            window.dataLayer.push({
+                event: eventName,
+                ...payload
+            });
+            Logger.log(`✅ [Analytics] (PAID) Fired: ${eventName}`);
+        }
+    },
+
     trackBeginCheckout: (value, itemName) => {
         const eventId = window.DC_Analytics.generateEventId('bc');
 
@@ -147,8 +235,7 @@ window.DC_Analytics = {
         if (itemName.includes('(Success)')) gtmEvent = 'begin_checkout_upsell_success';
         if (itemName.includes('(Report)')) gtmEvent = 'begin_checkout_upsell_report';
 
-        window.dataLayer.push({
-            event: gtmEvent,
+        window.DC_Analytics.pushFilteredEvent(gtmEvent, {
             event_id: eventId,
             item_name: itemName,
             email: state.get('email') || '',
@@ -162,6 +249,35 @@ window.DC_Analytics = {
     },
 
     trackPurchase: (value, transactionId, itemName) => {
+        const currentVariant = state.get('currentVariant');
+        const isKnownTestVariant = ['1uah', 'man1uah'].includes(currentVariant?.id);
+        const skipTracking = currentVariant?.skipMetaTracking || isKnownTestVariant;
+        const trafficType = state.get('traffic_type');
+
+        // 🔥 AUDIT EVENT: Завжди відправляємо подію для внутрішньої аналітики (GTM/GA4)
+        // Це допоможе власнику побачити ВСІ покупки в GTM Debugger, незалежно від Meta Ads
+        window.dataLayer.push({
+            event: 'purchase_total',
+            traffic_source: trafficType,
+            item_name: itemName,
+            value: value,
+            transaction_id: transactionId
+        });
+
+        // 🔥 ФІЛЬТР ДЖЕРЕЛА: Тільки платний трафік потрапляє в Meta Ads
+        if (trafficType !== 'paid') {
+            Logger.log(`🍃 [Analytics] Skip Meta tracking for Organic traffic: ${itemName} (Current traffic_type: ${trafficType})`);
+            return;
+        }
+
+        // 🔥 АВТОМАТИЧНИЙ ЗАХИСТ: 
+        // 1. Не трекаємо оплати <= 1 грн (універсальне правило для всіх майбутніх тестів)
+        // 2. Не трекаємо явні тестові варіанти або ті, де стоїть skipMetaTracking
+        if (value <= 1 || skipTracking) {
+            Logger.log(`🚫 [Analytics] Skip Meta tracking for test/promo variant: ${itemName} (Value: ${value} UAH, ID: ${currentVariant?.id || 'unknown'})`);
+            return;
+        }
+
         // Розділяємо імена для візуальної зручності в GTM Preview Sidebar
         let gtmPurchaseEvent = 'purchase_main';
         if (itemName.includes('(Success)')) gtmPurchaseEvent = 'purchase_upsell_success';
@@ -201,6 +317,7 @@ async function bootstrap() {
     document.body.addEventListener('click', unlockHaptics);
     document.body.addEventListener('touchstart', unlockHaptics);
 
+    detectTrafficSource();
     setupGlobalClickTracking();
     router.init({
         onRoute: async (route) => {
@@ -212,30 +329,31 @@ async function bootstrap() {
 
                 case '/loading':
                     // Verified Lead (S1 -> Loading)
-                    if (window.dataLayer) {
-                        window.dataLayer.push({
-                            event: 'lead_confirmed',
-                            event_id: 'ld_' + Date.now(),
-                            email: state.get('email') || ''
-                        });
-                    }
+                    window.DC_Analytics.pushFilteredEvent('lead_confirmed', {
+                        event_id: 'ld_' + Date.now(),
+                        email: state.get('email') || ''
+                    });
                     initLoading(router);
                     break;
 
-                case '/result': initResult(router); break;
+                case '/result':
+                    // 🔥 Partner Match: використовуємо комбінований модуль
+                    if (['man', 'man1uah'].includes(state.get('currentVariant')?.id)) {
+                        initPartnerResult(router);
+                    } else {
+                        initResult(router);
+                    }
+                    break;
                 case '/premium': initPremiumData(router); break;
 
                 case '/paywall':
                     if (!state.get('userData')) return router.navigate('/');
 
                     // Verified Premium Data (S4 -> Paywall)
-                    if (window.dataLayer) {
-                        window.dataLayer.push({
-                            event: 'premium_data_confirmed',
-                            event_id: 'pdc_' + Date.now(),
-                            email: state.get('email') || ''
-                        });
-                    }
+                    window.DC_Analytics.pushFilteredEvent('premium_data_confirmed', {
+                        event_id: 'pdc_' + Date.now(),
+                        email: state.get('email') || ''
+                    });
                     initPaywall(router);
                     break;
 
@@ -251,7 +369,9 @@ async function bootstrap() {
 
                 case '/report':
                 case '/premium-result':
-                    if (!state.get('isPaid')) return router.navigate('/paywall');
+                    // 🔥 Якщо є ?id= параметр — це унікальне посилання на звіт.
+                    // Оплата перевіряється на бекенді (getReportById).
+                    if (!params.get('id') && !state.get('isPaid')) return router.navigate('/paywall');
                     warmUpBackend();
                     initPremiumResult(router);
                     break;

@@ -16,7 +16,7 @@ export const natalChartLandofferConfig = {
 <span id="hero-subtitle-cta" class="relative font-medium opacity-90 border border-white/20 rounded-md px-2 py-1 inline-block cursor-pointer hover:bg-white/5 transition-colors" style="margin-bottom: -10px; white-space: nowrap; font-size: clamp(9px, 3.2vw, 16px); line-height: 1.2;">Інструкція по вирішенню проблем для щасливого життя</span>`,
 
         // 1. Текст ПЕРЕД формою
-        heroSubtitle: `<span style="display: block; color: var(--accent-color); font-weight: 400; font-size: 1.1em; margin-bottom: 8px;">Отримай розшифровку своєї Натальної карти онлайн за декілька хвилин</span>Обери дату народження та дізнайся свої сильні сторони та приховані таланти у основних сферах життя: <span class="text-white font-medium">кохання, фінанси, карʼєра та самореалізація</span>.`,
+        heroSubtitle: `<span style="display: block; color: var(--accent-color); font-weight: 400; font-size: 1.1em; margin-bottom: 8px;">Отримай розшифровку своєї Натальної карти онлайн за декілька хвилин</span>Обери дату народження та дізнайся свої сильні сторони і моменти на які варто звернути увагу в основних сферах життя: <span class="text-white font-medium">кохання, фінанси, кар'єра та самореалізація</span>.`,
 
         // 2. Список ПІСЛЯ форми (ВИДАЛЕНО для чистоти першого екрану)
         heroFeatures: ``

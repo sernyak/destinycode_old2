@@ -47,9 +47,9 @@ export const natalChartLandofferConfig = {
         pain: {
             title: "Розшифровка Натальної для тебе якщо:",
             items: [
-                "Ти краща за інших, але тебе не цінять чи не помічають",
-                "Відчуваєш тривогу навіть коли все добре",
-                "Не розумієш навіщо «все це»",
+                "Ти краща за інших, але тебе <span class='text-white font-medium'>не цінять чи не помічають</span>",
+                "Відчуваєш <span class='text-white font-medium'>тривогу</span> навіть коли все добре",
+                "Не розумієш навіщо <span class='text-white font-medium'>«все це»</span>",
                 "Працюєш постійно, але <span class='text-white font-medium'>немає фінансового прориву</span>",
                 "У стосунках сценарій повторюється і ти <span class='text-white font-medium'>відчуваєш себе недооціненою</span>",
                 "Розумієш, що маєш потенціал, але <span class='text-white font-medium'>не знаєш, у якому напрямку його реалізувати</span>",

@@ -125,6 +125,15 @@ export function init(router) {
                 }
             }
 
+            // 📊 VARIANT TRACKING (Fires immediately on load if configured)
+            if (variant.tracking?.customPixelEvent && window.DC_Analytics?.pushFilteredEvent) {
+                window.DC_Analytics.pushFilteredEvent(variant.tracking.customPixelEvent, {
+                    event_id: 'vc_' + Date.now(),
+                    variant_id: variant.id,
+                    page_path: window.location.pathname
+                });
+            }
+
         } // End of if (variant && variant.ui)
 
         // 🔢 LIVE COUNTER (For various variants + Default)
@@ -337,6 +346,7 @@ export function init(router) {
                 const mainFormHTML = tempWrapper.querySelector('#birth-form').outerHTML
                     .replace('id="birth-form"', 'id="birth-form-bottom"')
                     .replace('id="birth-date"', 'id="birth-date-bottom"')
+                    .replace('id="submit-btn"', 'id="submit-btn-bottom"')
                     .replace('id="error-message"', 'id="error-message-bottom"')
                     .replace('id="date-placeholder"', 'id="date-placeholder-bottom"');
                 

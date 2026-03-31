@@ -18,25 +18,8 @@ export const natalChartLandofferConfig = {
         // 1. Текст ПЕРЕД формою
         heroSubtitle: `<span style="display: block; color: var(--accent-color); font-weight: 400; font-size: 1.1em; margin-bottom: 8px;">Отримай розшифровку своєї Натальної карти онлайн за декілька хвилин</span>Обери дату народження та дізнайся свої сильні сторони та приховані таланти у основних сферах життя: <span class="text-white font-medium">кохання, фінанси, карʼєра та самореалізація</span>.`,
 
-        // 2. Список ПІСЛЯ форми
-        heroFeatures: `<div class="mt-1 text-left" style="color: var(--secondary-text-color); font-size: 15px; line-height: 1.5; font-weight: 400;">
-<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
-    <span style="position: absolute; left: 0; top: 0;">✨</span>
-    <span class="text-white font-medium">Дізнайся свій астрологічний архетип</span> — і перестань грати чужу роль. Стань головною героїнею свого життя.
-</div>
-<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
-    <span style="position: absolute; left: 0; top: 0;">🎭</span>
-    <span class="text-white font-medium">Перестань відчувати себе 'невидимкою'</span> і зрозумій, яка ти насправді дивовижна!
-</div>
-<div style="margin-bottom: 12px; padding-left: 24px; position: relative;">
-    <span style="position: absolute; left: 0; top: 0;">🧲</span>
-    <span class="text-white font-medium">Розкрий свій секрет привабливості:</span> дізнайся, яка твоя природна магнетичність і чому ти створена притягувати погляди!
-</div>
-<div style="padding-left: 24px; position: relative;">
-    <span style="position: absolute; left: 0; top: 0;">🔓</span>
-    <span class="text-white font-medium">Знайди вирішення свого прихованого внутрішнього конфлікту</span> який заважає тобі отримати те, чого ти насправді достойна!
-</div>
-</div>`
+        // 2. Список ПІСЛЯ форми (ВИДАЛЕНО для чистоти першого екрану)
+        heroFeatures: ``
     },
 
     landingSections: {
@@ -86,8 +69,8 @@ export const natalChartLandofferConfig = {
             items: [
                 { title: "Що тебе стримує", desc: "Твій прихований внутрішній конфлікт, який тебе стримує. Як його вирішити?" },
                 { title: "Фінанси та Кар'єра", desc: "Де твої гроші? Який спосіб заробітку підходить саме тобі і що блокує твій фінансовий потік." },
-                { title: "Стосунки", desc: "Який партнер потрібен саме тобі? Ваша ймовірна зустріч. Як перестати притягувати «не тих» чоловіків?" },
-                { title: "Призначення", desc: "У чому твоя справжня місія? Які таланти ти ігноруєш, хоча вони можуть принести тобі визнання." },
+                { title: "Стосунки", desc: "Який партнер потрібен саме тобі? Розкрий свою природну магнетичність! Ваша ймовірна зустріч. Як перестати притягувати «не тих» чоловіків?" },
+                { title: "Призначення", desc: "У чому твоя справжня місія? Дізнайся свій справжній архетип — і перестань грати чужу роль." },
                 { title: "Енергія та Ресурс", desc: "Що тебе надихає, а що краде мотивацію. Як швидко відновлюватися." }
             ]
         },

@@ -1601,7 +1601,7 @@ This typically indicates that your device does not have a healthy Internet conne
                         <span class="runway-arrow">&gt;</span>
                         <span class="runway-arrow">&gt;</span>
                     </span>
-                `)}}const m=F?.id==="natal_chart_price"||F?.id==="natal_chart_offer"||F?.id==="natal_chart_offer1uah",p=F?.id==="natal_chart_offer"||F?.id==="natal_chart_offer1uah";if(m){let R=function(){!w||!E||(w.value?(E.innerText=w.value,E.style.color="var(--primary-text-color)",x&&x.classList.remove("input-error"),D&&(D.style.display="none")):(E.innerText="Обери час",E.style.color="var(--secondary-text-color)"))};if(l&&(l.style.display="none"),u&&(u.style.display="none"),h&&(h.style.display="block"),f&&(f.style.display="block"),p){const k=Xt();Fn(),e&&(e.innerText="Твій Персональний Розбір"),h&&(h.innerHTML=`
+                `)}}const m=["natal_chart_price","natal_chart_offer","natal_chart_offer1uah","natal_chart_landoffer"].includes(F?.id),p=["natal_chart_offer","natal_chart_offer1uah","natal_chart_landoffer"].includes(F?.id);if(m){let R=function(){!w||!E||(w.value?(E.innerText=w.value,E.style.color="var(--primary-text-color)",x&&x.classList.remove("input-error"),D&&(D.style.display="none")):(E.innerText="Обери час",E.style.color="var(--secondary-text-color)"))};if(l&&(l.style.display="none"),u&&(u.style.display="none"),h&&(h.style.display="block"),f&&(f.style.display="block"),p){const k=Xt();Fn(),e&&(e.innerText="Твій Персональний Розбір"),h&&(h.innerHTML=`
                     <h2 class="text-2xl font-bold text-white tracking-tight">
                         Уточни дані для<br><span style="color: var(--accent-color);">ПОВНОЇ РОЗШИФРОВКИ</span>
                     </h2>

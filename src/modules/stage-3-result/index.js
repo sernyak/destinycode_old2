@@ -447,8 +447,8 @@ export function init(router) {
     }
 
     // 🔥 Variant: natal_chart_price / natal_chart_offer Form Logic
-    const isNatalChartPrice = currentVariant?.id === 'natal_chart_price' || currentVariant?.id === 'natal_chart_offer' || currentVariant?.id === 'natal_chart_offer1uah';
-    const isNatalChartOffer = currentVariant?.id === 'natal_chart_offer' || currentVariant?.id === 'natal_chart_offer1uah';
+    const isNatalChartPrice = ['natal_chart_price', 'natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer'].includes(currentVariant?.id);
+    const isNatalChartOffer = ['natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer'].includes(currentVariant?.id);
 
     if (isNatalChartPrice) {
         // Toggle UI

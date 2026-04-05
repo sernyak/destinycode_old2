@@ -41,6 +41,14 @@
             </ul>
         </div>
 
+        <!-- 🔥 NEW: Personalized Hook Section -->
+        <div id="personalized-hook-container" class="mt-6 mb-4" style="display: none;">
+            <div class="offer-quote" style="background: rgba(205, 164, 94, 0.05); border-left: 3px solid var(--accent-color);">
+                <span class="offer-quote-mark">💡</span>
+                <p id="personalized-hook-text" style="color: var(--primary-text-color); font-size: 0.95rem; margin: 0; line-height: 1.6;"></p>
+            </div>
+        </div>
+
         <!-- SECTION 3.5: Divider before form (For natal_chart_offer) -->
         <div id="offer-form-divider" class="relative py-5" style="display: none;">
             <div class="absolute inset-0 flex items-center" aria-hidden="true">
@@ -54,7 +62,7 @@
         <!-- SECTION 4: Title & Description (For natal_chart_price) -->
         <div id="premium-form-title-container" class="space-y-2 text-center" style="display: none;">
             <h2 class="text-2xl font-bold text-white tracking-tight">
-                Отримай повну розшифровку своєї Натальної карти
+                Отримай повну розшифровку твоєї <span class="text-[#cda45e]">Натальної карти</span>
             </h2>
             <p class="text-sm" style="color: var(--secondary-text-color);">
                 Введи час і місце народження - і отримай свій персональний звіт одразу після оплати
@@ -133,22 +141,47 @@
                 <p id="city-info-message" class="info-text" style="display: none;"></p>
             </div>
 
+            <!-- Validation Error Messages -->
+            <div id="offer-validation-error" style="display: none;"
+                class="bg-red-500/10 border border-red-500/20 rounded-md p-3 text-red-500 text-sm text-center">
+            </div>
+
+            <div id="city-suggestions" class="suggestions-list" style="display: none;"></div>
+
             <!-- Skip Button (під формою) -->
             <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs mt-1 w-full" style="padding: 12px; height: auto;">
                 Розрахувати без точного часу (точність 95%)
             </button>
         </div>
 
+        <!-- 🔥 NEW: Comparison Table Section -->
+        <div id="offer-comparison-block" class="offer-comparison-container" style="display: none; width: 100%; overflow: hidden;">
+            <h3 id="comparison-table-title" class="text-xl font-bold text-center text-white mb-6">Що ти отримаєш у повній Розшифровці</h3>
+            <!-- Wrapper for table to allow internal horizontal scroll if needed without breaking page -->
+            <div style="width: 100%; overflow-x: auto; padding-bottom: 15px;">
+                <div id="comparison-table-content" style="min-width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- 🔥 NEW: Visual Preview Mockup Section -->
+        <div id="offer-preview-block" class="offer-mockup-section" style="display: none; width: 100%; overflow: hidden;">
+            <div class="offer-mockup-image-wrapper flex w-full justify-center" style="max-width: 100%;">
+                <img src="" id="offer-mockup-img" class="offer-mockup-image" style="max-width: 100%;" alt="Preview">
+            </div>
+            <p class="offer-mockup-caption">Повна версія звіту та Гайд доступні відразу після оплати</p>
+        </div>
+
         <!-- ═══════════════════════════════════════════════════════════════════ -->
         <!-- 🔥 OFFER LANDING PAGE BLOCKS (Only for natal_chart_offer variant) -->
         <!-- ═══════════════════════════════════════════════════════════════════ -->
 
+
         <!-- BLOCK 2: TRANSFORMATION — What She Gets -->
         <div id="offer-block-transformation" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card">
-                <h3 class="offer-section-title">Що ти дізнаєшся з <span>повного звіту</span></h3>
+                <h3 class="offer-section-title">Структура твоєї <span>Натальної карти</span></h3>
                 <div class="offer-section-body">
-                    <p>Повна розшифровка Натальної Карти — це <strong>персональна інструкція</strong>, яка покаже тобі:</p>
+                    <p>Повна розшифровка Натальної Карти — це твоя <strong>інструкція до самої себе</strong>, яка покаже тобі:</p>
                     <div class="offer-feature-grid">
                         <div class="offer-feature-item">
                             <span class="offer-feature-icon">✨</span>
@@ -221,7 +254,7 @@
                         <div class="offer-delivery-item">
                             <span class="offer-delivery-icon">🔗</span>
                             <div>
-                                <strong>Довічне посилання</strong>
+                                <strong>Персональне посилання</strong>
                                 <span>Унікальний URL, за яким звіт доступний назавжди</span>
                             </div>
                         </div>
@@ -233,7 +266,7 @@
         <!-- BLOCK 4: HOW IT WORKS — 4 Pillars (from Knowledge Base) -->
         <div id="offer-block-science" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card" style="background: rgba(205, 164, 94, 0.03); border: 1px solid rgba(205, 164, 94, 0.15);">
-                <h3 class="offer-section-title">Чому <span>це працює?</span></h3>
+                <h3 class="offer-section-title">Чому <span>Натальній карті можна вірити</span></h3>
                 <div class="offer-section-body">
                     <p>Розшифровка Натальної карти від Destiny Code — це <strong>не гороскоп із журналу</strong>. Ми не ділимо 8 мільярдів людей на 12 груп. Це точний персональний розрахунок, і ось чому йому можна довіряти:</p>
                     <div class="offer-science-grid">
@@ -262,7 +295,7 @@
                             <span class="offer-science-num">04</span>
                             <div>
                                 <strong>Прогноз Погоди, а Не Вирок</strong>
-                                <span>Натальна карта — це не "доля", яку неможливо змінити. Це як прогноз погоди: ти не можеш зупинити дощ, але можеш взяти парасольку. Знаючи свою карту, ти бачиш, де підстелити соломку, а де тиснути на газ.</span>
+                                <span>Натальна карта — це не вирок, а інструкція. Знаючи свої «налаштування», ти бачиш, де варто «підкласти соломки», а де впевнено тиснути на газ.</span>
                             </div>
                         </div>
                     </div>
@@ -279,43 +312,65 @@
             <div id="offer-astro-data-container" class="interactive-astro-box"></div>
         </div>
 
+        <!-- BLOCK 5.3: TRANSFORMATION (Before/After) — Imported from Screen 1 -->
+        <div id="offer-block-transformation-s3" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title" id="s3-transformation-title"></h3>
+                <div class="offer-section-body">
+                    <div class="landing-transformation-box">
+                        <div class="landing-transformation-item before">
+                            <div class="landing-transformation-badge">Раніше:</div>
+                            <p id="s3-transformation-before"></p>
+                        </div>
+                        <div class="landing-transformation-arrow">⬇️</div>
+                        <div class="landing-transformation-item after">
+                            <div class="landing-transformation-badge">З Натальною картою:</div>
+                            <p id="s3-transformation-after"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 5.4: AUDIENCE (For Whom / Not For Whom) — Imported from Screen 1 -->
+        <div id="offer-block-audience-s3" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title" id="s3-audience-title"></h3>
+                <div class="offer-section-body">
+                    <div class="landing-audience-grid">
+                        <div class="landing-audience-card positive">
+                            <h4 class="landing-audience-subtitle">✅ Для тих, хто:</h4>
+                            <ul class="landing-audience-list" id="s3-audience-for-list"></ul>
+                        </div>
+                        <div class="landing-audience-card negative">
+                            <h4 class="landing-audience-subtitle" id="s3-audience-not-subtitle">❌ Кому НЕ варто:</h4>
+                            <ul class="landing-audience-list" id="s3-audience-not-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- BLOCK 5.5: REVIEWS (SOCIAL PROOF) -->
         <div id="offer-block-reviews" class="offer-landing-block" style="display: none;">
-            <div class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
+            <div id="reviews-container" class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
                 <h3 class="offer-section-title" style="margin-bottom: 24px;">Що кажуть <span>інші дівчата</span></h3>
-                <div style="display: flex; flex-direction: column; gap: 14px;">
-                    <!-- Review 1 -->
-                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-color), #8a6a3b); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">О</div>
-                            <div>
-                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Олена, 28 років</div>
-                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
-                            </div>
-                        </div>
-                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Взагалі в астрологію не вірила, але після того як я прочитала свою Розшифровку за даними народження трохи офігіла. Стільки співпадінь з реальними фактами про мене і мій характер, точно навмання вгадати ніхто не міг. Дуже цікаво і корисно. А про 'Магніт для чоловіків' — в саме серденько."</p>
+                <div id="reviews-list" style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Динамічні відгуки завантажуються тут -->
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 5: GUARANTEE -->
+        <div id="offer-block-guarantee" class="offer-landing-block" style="display: none;">
+            <div class="offer-guarantee-container">
+                <div class="offer-guarantee-card">
+                    <div class="offer-guarantee-badge">
+                        <span class="guarantee-icon">🛡️</span>
                     </div>
-                    <!-- Review 2 -->
-                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4A90E2, #2C3E50); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">Е</div>
-                            <div>
-                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Ельвіра, 42 роки</div>
-                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
-                            </div>
-                        </div>
-                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Астрологією цікавлюсь давно. Зробила дану розшифровку чисто з цікавості. Розбір якісний. Краще ніж очікувала. І зручно що можна зберегти посилання."</p>
-                    </div>
-                    <!-- Review 3 -->
-                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #9b59b6, #8e44ad); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 15px;">М</div>
-                            <div>
-                                <div style="color: #fff; font-weight: 600; font-size: 0.95em;">Мар'яна, 36 років</div>
-                                <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
-                            </div>
-                        </div>
-                        <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">"Давно хотіла розібратися у своїх сильних сторонах для роботи. Розшифровка допомогла розставити пріоритети та зрозуміти, куди рухатися далі. Дуже влучно про внутрішні конфлікти!"</p>
+                    <div class="offer-guarantee-content">
+                        <h3 class="guarantee-title">100% Впевненість у якості</h3>
+                        <p class="guarantee-text">Ми на 100% впевнені у глибині та точності нашої Розшифровки. Якщо протягом 24 годин ти вирішиш, що звіт тобі не підійшов — ми повернемо кошти без зайвих питань.</p>
                     </div>
                 </div>
             </div>
@@ -325,52 +380,8 @@
         <div id="offer-block-faq" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card" style="border-top: 1px solid rgba(255,255,255,0.1);">
                 <h3 class="offer-section-title">Часті <span>запитання</span></h3>
-                <div class="offer-faq-list">
-                    <div class="offer-faq-item">
-                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
-                            <span>Це ворожіння чи магія?</span>
-                            <span class="offer-faq-arrow">▼</span>
-                        </div>
-                        <div class="offer-faq-answer">
-                            <p>Ні. Destiny Code використовує математичні алгоритми на базі Швейцарських Ефемерид — астрономічних баз даних, аналогічних NASA JPL. Це чиста астрономія та геометрія, переведена в код. Жодної магії, карт Таро чи інтуїтивних "відчуттів".</p>
-                        </div>
-                    </div>
-                    <div class="offer-faq-item">
-                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
-                            <span>Чому результат відрізняється від інших сервісів?</span>
-                            <span class="offer-faq-arrow">▼</span>
-                        </div>
-                        <div class="offer-faq-answer">
-                            <p>Більшість сервісів використовують спрощені алгоритми або Сидеричний зодіак (Джйотіш). Ми працюємо за стандартом Тропічного Зодіаку та системою Плацидус із точністю до секунди дуги — це золотий стандарт класичної Західної астрології.</p>
-                        </div>
-                    </div>
-                    <div class="offer-faq-item">
-                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
-                            <span>Що я отримаю після оплати?</span>
-                            <span class="offer-faq-arrow">▼</span>
-                        </div>
-                        <div class="offer-faq-answer">
-                            <p>Одразу після оплати ти отримаєш повний персональний звіт на екрані. Протягом декількох хвилин він також прийде на email (текст + PDF) та через Telegram-бот. Плюс — довічне посилання для повторного доступу.</p>
-                        </div>
-                    </div>
-                    <div class="offer-faq-item">
-                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
-                            <span>Що якщо я не знаю точного часу народження?</span>
-                            <span class="offer-faq-arrow">▼</span>
-                        </div>
-                        <div class="offer-faq-answer">
-                            <p>Ти можеш натиснути "Розрахувати без точного часу" біля форми. Система адаптує алгоритм на розрахунок за датою та містом. Точність результату все одно складатиме близько 95% для Сонця, Венери та базових кармічних вузлів.</p>
-                        </div>
-                    </div>
-                    <div class="offer-faq-item">
-                        <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
-                            <span>Це одноразовий платіж?</span>
-                            <span class="offer-faq-arrow">▼</span>
-                        </div>
-                        <div class="offer-faq-answer">
-                            <p>Так, абсолютно. 347 грн — це одноразовий платіж. Жодних підписок, прихованих списань чи автоматичних продовжень. Ти платиш один раз і отримуєш довічний доступ до свого звіту.</p>
-                        </div>
-                    </div>
+                <div id="faq-list" class="offer-faq-list">
+                    <!-- Динамічний FAQ завантажується тут -->
                 </div>
             </div>
         </div>

@@ -331,7 +331,25 @@ export function init(router) {
         }
 
         if (reportData && reportData.sections) {
-            // ... (keep success logic) ...
+            // 🔥 PROFESSIONAL: Dynamic Bonus Injection
+            // Pulls bonuses from currentVariant.marketing.bonuses for full scalability
+            const bonuses = currentVariant?.marketing?.bonuses;
+
+            if (bonuses && Array.isArray(bonuses)) {
+                bonuses.forEach(bonus => {
+                    const hasBonus = reportData.sections.some(s => s.id === bonus.id || s.title.includes(bonus.title.replace('🎁 ', '')));
+                    if (!hasBonus) {
+                        reportData.sections.push({
+                            id: bonus.id,
+                            title: bonus.title,
+                            icon: bonus.icon,
+                            analysis_text: bonus.text,
+                            practical_advice: bonus.advice
+                        });
+                    }
+                });
+            }
+
             localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(reportData));
             const reportContentHtml = generateReportHtml(reportData.sections);
             const astroHtml = await renderAstroBox(userData, currentVariant);

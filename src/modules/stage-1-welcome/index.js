@@ -243,26 +243,6 @@ export function init(router) {
                     `;
                 }
 
-                // --- Transformation Section ---
-                if (sections.transformation) {
-                    landingHTML += `
-                        <div class="landing-section">
-                            <h3 class="landing-title">${sections.transformation.title}</h3>
-                            <div class="landing-transformation-box">
-                                <div class="landing-transformation-item before">
-                                    <div class="landing-transformation-badge">Раніше:</div>
-                                    <p>${sections.transformation.before}</p>
-                                </div>
-                                <div class="landing-transformation-arrow">⬇️</div>
-                                <div class="landing-transformation-item after">
-                                    <div class="landing-transformation-badge">З Натальною картою:</div>
-                                    <p>${sections.transformation.after}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-
                 // --- Features Section ---
                 if (sections.features) {
                     landingHTML += `
@@ -279,68 +259,9 @@ export function init(router) {
                         </div>
                     `;
                 }
-
-                // --- Audience Section ---
-                if (sections.audience) {
-                    landingHTML += `
-                        <div class="landing-section">
-                            <h3 class="landing-title">${sections.audience.title}</h3>
-                            <div class="landing-audience-grid">
-                                <div class="landing-audience-card positive">
-                                    <h4 class="landing-audience-subtitle">✅ Для тих, хто:</h4>
-                                    <ul class="landing-audience-list">
-                                        ${sections.audience.for_who.map(item => `<li>${item}</li>`).join('')}
-                                    </ul>
-                                </div>
-                                <div class="landing-audience-card negative">
-                                    <h4 class="landing-audience-subtitle">❌ Кому НЕ слід купувати:</h4>
-                                    <ul class="landing-audience-list">
-                                        ${sections.audience.not_for_who.map(item => `<li>${item}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
                 
-                // --- Testimonials Section ---
-                if (sections.testimonials) {
-                    landingHTML += `
-                        <div class="landing-section">
-                            <h3 class="landing-title">Відгуки</h3>
-                            <div class="landing-testimonials-list">
-                                ${sections.testimonials.map(item => `
-                                    <div class="landing-testimonial-card">
-                                        <div class="landing-testimonial-quote">"</div>
-                                        <p class="landing-testimonial-text">${item.text}</p>
-                                        <p class="landing-testimonial-author">${item.name}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // --- FAQ Section ---
-                if (sections.faq) {
-                    landingHTML += `
-                        <div class="landing-section pb-20">
-                            <h3 class="landing-title">Популярні запитання</h3>
-                            <div class="landing-faq-list">
-                                ${sections.faq.map((item, i) => `
-                                    <div class="landing-faq-item" id="faq-item-${i}">
-                                        <div class="landing-faq-question" onclick="this.parentElement.classList.toggle('active')">
-                                            <span>${item.q}</span>
-                                        </div>
-                                        <div class="landing-faq-answer">
-                                            ${item.a}
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
+                // --- Transformation, Audience, Testimonials and FAQ blocks have been moved exclusively to Stage 3 (Result) ---
+                // This keeps the landing page focused and reduces friction before the micro-conversion.
 
                 // Inject Sticky CTA (hidden initially) and bottom form
                 const mainFormHTML = tempWrapper.querySelector('#birth-form').outerHTML
@@ -353,14 +274,14 @@ export function init(router) {
                 const stickyCTA = `
                     <div class="landing-sticky-cta-container" id="landing-sticky-cta">
                         <button class="btn btn-primary shadow-2xl" onclick="document.querySelector('.funnel-container').scrollTo({top: 0, behavior: 'smooth'})">
-                            <span class="btn-text">ОТРИМАТИ НАТАЛЬНУ КАРТУ</span>
+                            <span class="btn-text">${variant?.ui?.buttonText?.toUpperCase() || 'ОТРИМАТИ НАТАЛЬНУ КАРТУ'}</span>
                         </button>
                     </div>
                 `;
                 
                 const bottomForm = `
                     <div class="landing-bottom-form-wrapper" id="bottom-form-wrapper" style="scroll-margin-top: 20px;">
-                        <h3 class="landing-title text-center text-xl mb-4 !mt-0">Готова змінити життя?</h3>
+                        <h3 class="landing-title text-center text-xl mb-4 !mt-0">${variant?.ui?.bottomFormTitle || 'Готова змінити життя?'}</h3>
                         ${mainFormHTML}
                     </div>
                 `;

@@ -465,17 +465,7 @@ export function init(router) {
             // Title override
             if (resultTitleEl) resultTitleEl.innerText = 'Твій Персональний Розбір';
 
-            // Form title override
-            if (premiumFormTitleContainer) {
-                premiumFormTitleContainer.innerHTML = `
-                    <h2 class="text-2xl font-bold text-white tracking-tight">
-                        Уточни дані для<br><span style="color: var(--accent-color);">ПОВНОЇ РОЗШИФРОВКИ</span>
-                    </h2>
-                    <p class="text-sm" style="color: var(--secondary-text-color);">
-                        Введи час і місто народження — і отримай персональний звіт одразу після оплати
-                    </p>
-                `;
-            }
+            // Form title override removed to allow HTML default (Отримай повну розшифровку своєї Натальної карти)
 
             // Button text with pricing
             const btnTextSpan = upgradeButton.querySelector('.btn-text');
@@ -587,7 +577,7 @@ export function init(router) {
                         <div style="margin-top: 20px; padding: 16px; background: rgba(205, 164, 94, 0.08); border: 1px solid rgba(205, 164, 94, 0.15); border-radius: 10px;">
                             <p style="color: var(--accent-color); font-weight: 700; font-size: 0.95em; margin-bottom: 8px;">Але це лише верхівка айсберга...</p>
                             <p style="color: var(--secondary-text-color); font-size: 0.88em; line-height: 1.6; margin: 0;">
-                                У <strong style="color: #fff;">Повній Розшифровці</strong> ти дізнаєшся про свій Код Кохання, Грошовий Потік, Кармічні Уроки та унікальну Місію — те, що безкоштовний аналіз навіть не торкнувся.
+                                Важливо знати свої <strong style="color: #fff;">«налаштування»</strong> повністю, щоб використовувати сильні сторони на повну і знати, де варто <strong style="color: #fff;">«підкласти соломки»</strong>. Відповіді на твої запитання вже закладені в твоїй карті.
                             </p>
                         </div>
                     `;
@@ -601,6 +591,233 @@ export function init(router) {
                     }
                 }
             }, 100);
+
+            // 🔥 PROFESSIONAL: Dynamic Marketing Features (Hook, Table, Mockup)
+            // Pulls content from currentVariant.marketing for full scalability
+            const marketing = currentVariant?.marketing;
+            
+            if (marketing) {
+                const prices = getPrices();
+                const discountPct = Math.round(((prices.display.FULL_REPORT_OLD - prices.display.FULL_REPORT) / prices.display.FULL_REPORT_OLD) * 100);
+
+                // 1. Personalized Hook (Scalable Template)
+                const hookContainer = document.getElementById('personalized-hook-container');
+                const hookTextEl = document.getElementById('personalized-hook-text');
+                
+                if (marketing.hook && hookContainer && hookTextEl) {
+                    // Extract archetype more robustly (from FREE report content block)
+                    let archetype = 'твого архетипу';
+                    
+                    const archetypeBlockText = reportData?.content_blocks?.archetype || '';
+                    const titleText = reportData?.title || '';
+                    
+                    // ШІ формує це так: "За енергетикою ти — **Мудрець**."
+                    const archetypeBlockMatch = archetypeBlockText.match(/\*\*(.*?)\*\*/);
+                    
+                    if (archetypeBlockMatch && archetypeBlockMatch[1]) {
+                        archetype = archetypeBlockMatch[1].trim();
+                        // Відсікаємо крапку чи кому, якщо ШІ випадково включив їх у болд
+                        archetype = archetype.replace(/[.,!]$/, '').trim();
+                    } else {
+                        // Фолбек (старий метод, що міг захопити знак зодіаку)
+                        const titleMatch = titleText.match(/(?:Архетип|Архетип:\s*|:)\s*([^<\n,]+)/i);
+                        if (titleMatch && titleMatch[1]) {
+                            archetype = titleMatch[1].trim();
+                        } else if (reportData.archetype) {
+                            archetype = reportData.archetype;
+                        }
+                    }
+                    
+                    // Replace {archetype} placeholder in template
+                    const template = marketing.hook.template || "";
+                    hookTextEl.innerHTML = template.replace(/{archetype}/g, `<span style="color:var(--accent-color); font-weight:700;">${archetype}</span>`);
+                    hookContainer.style.display = 'block';
+                }
+
+                // 2. Comparison Table (Data-Driven)
+                const comparisonBlock = document.getElementById('offer-comparison-block');
+                const comparisonContent = document.getElementById('comparison-table-content');
+                
+                if (marketing.comparison && comparisonBlock && comparisonContent) {
+                    const { title, headers, rows } = marketing.comparison;
+                    
+                    const titleEl = document.getElementById('comparison-table-title');
+                    if (titleEl && title) titleEl.innerText = title;
+
+                    const rowsHtml = rows.map(row => {
+                        const renderIcon = (val) => {
+                            if (val === 'check') return '<span class="offer-comparison-icon check">✅</span>';
+                            if (val === 'cross') return '<span class="offer-comparison-icon cross">❌</span>';
+                            if (val === 'discount') return `<span class="offer-comparison-icon bonus">🎁</span><div class="bonus-tag">ЗНИЖКА ${discountPct}%</div>`;
+                            if (val === 'bonus') return `<span class="offer-comparison-icon bonus">🎁</span><div class="bonus-tag">БЕЗКОШТОВНО</div>`;
+                            return val;
+                        };
+
+                        return `
+                            <tr>
+                                <td>${row.label}</td>
+                                <td>${renderIcon(row.free)}</td>
+                                <td class="highlight-col">${renderIcon(row.premium)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    comparisonContent.innerHTML = `
+                        <table class="offer-comparison-table shadow-xl">
+                            <thead>
+                                <tr>
+                                    <th>${headers[0] || 'Функція'}</th>
+                                    <th style="opacity: 0.6;">${headers[1] || 'Free'}</th>
+                                    <th class="highlight-col premium-header">${headers[2] || 'Premium'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    `;
+                    comparisonBlock.style.display = 'block';
+                }
+
+                // 3. Mockup Image / Carousel (Dynamic)
+                const previewBlock = document.getElementById('offer-preview-block');
+                
+                if (marketing.mockup && previewBlock) {
+                    // Title Injection
+                    if (marketing.mockup.title) {
+                        let existingTitle = previewBlock.querySelector('.offer-mockup-title');
+                        if (!existingTitle) {
+                            const titleEl = document.createElement('h3');
+                            titleEl.className = 'offer-mockup-title text-xl font-semibold mb-4 text-[#cda45e]';
+                            titleEl.innerText = marketing.mockup.title;
+                            previewBlock.insertBefore(titleEl, previewBlock.firstChild);
+                        } else {
+                            existingTitle.innerText = marketing.mockup.title;
+                        }
+                    }
+
+                    // Handle Carousel vs Single Image
+                    const wrapper = previewBlock.querySelector('.offer-mockup-image-wrapper');
+                    if (wrapper) {
+                        if (marketing.mockup.images && marketing.mockup.images.length > 0) {
+                            const imagesHTML = marketing.mockup.images.map(src => `
+                                <div class="snap-center shrink-0 w-full flex justify-center">
+                                    <img src="${src}" class="w-full rounded-md shadow-[0_0_15px_rgba(205,164,94,0.15)] border border-white/10" alt="PDF Preview">
+                                </div>
+                            `).join('');
+                            
+                            const dotsHTML = marketing.mockup.images.map((_, i) => `<div class="mockup-dot ${i === 0 ? 'active' : ''}"></div>`).join('');
+                            
+                            wrapper.innerHTML = `
+                                <div id="mockup-carousel-scroll" class="flex overflow-x-auto snap-x snap-mandatory gap-0 pb-4 pt-1 w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
+                                    <style>
+                                        #mockup-carousel-scroll::-webkit-scrollbar { display: none; }
+                                        .mockup-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s; margin: 0 4px; display: inline-block; }
+                                        .mockup-dot.active { background: var(--accent-color); transform: scale(1.3); }
+                                    </style>
+                                    ${imagesHTML}
+                                </div>
+                                <div class="flex justify-center mt-1 mb-4" id="mockup-dots-container">
+                                    ${dotsHTML}
+                                </div>
+                            `;
+                            
+                            // Scroll event for active dot
+                            setTimeout(() => {
+                                const scrollContainer = document.getElementById('mockup-carousel-scroll');
+                                const dots = document.querySelectorAll('#mockup-dots-container .mockup-dot');
+                                if (scrollContainer && dots.length > 0) {
+                                    scrollContainer.addEventListener('scroll', () => {
+                                        const index = Math.round(scrollContainer.scrollLeft / scrollContainer.clientWidth);
+                                        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+                                    });
+                                }
+                            }, 50);
+                        } else if (marketing.mockup.imagePath) {
+                            const imgEl = previewBlock.querySelector('#offer-mockup-img');
+                            if (imgEl) imgEl.src = marketing.mockup.imagePath;
+                        }
+                    }
+
+                    const captionEl = previewBlock.querySelector('.offer-mockup-caption');
+                    if (captionEl && marketing.mockup.caption) captionEl.innerText = marketing.mockup.caption;
+                    previewBlock.style.display = 'block';
+                }
+
+                // 3.5. Transformation Block (Before/After) — from landingSections
+                const sections = currentVariant.landingSections;
+                if (sections?.transformation) {
+                    const transBlock = document.getElementById('offer-block-transformation-s3');
+                    const transTitle = document.getElementById('s3-transformation-title');
+                    const transBefore = document.getElementById('s3-transformation-before');
+                    const transAfter = document.getElementById('s3-transformation-after');
+                    
+                    if (transBlock && transTitle && transBefore && transAfter) {
+                        transTitle.innerHTML = sections.transformation.title;
+                        transBefore.textContent = sections.transformation.before;
+                        transAfter.textContent = sections.transformation.after;
+                        transBlock.style.display = 'block';
+                    }
+                }
+
+                // 3.6. Audience Block (For Whom / Not For Whom) — from landingSections
+                if (sections?.audience) {
+                    const audBlock = document.getElementById('offer-block-audience-s3');
+                    const audTitle = document.getElementById('s3-audience-title');
+                    const audForList = document.getElementById('s3-audience-for-list');
+                    const audNotList = document.getElementById('s3-audience-not-list');
+                    const audNotSubtitle = document.getElementById('s3-audience-not-subtitle');
+                    
+                    if (audBlock && audTitle && audForList && audNotList) {
+                        audTitle.textContent = sections.audience.title;
+                        audForList.innerHTML = sections.audience.for_who.map(item => `<li>${item}</li>`).join('');
+                        audNotList.innerHTML = sections.audience.not_for_who.map(item => `<li>${item}</li>`).join('');
+                        if (audNotSubtitle && sections.audience.negativeSubtitle) {
+                            audNotSubtitle.textContent = sections.audience.negativeSubtitle;
+                        }
+                        audBlock.style.display = 'block';
+                    }
+                }
+
+                // 4. Dynamic Reviews (Combined 1st + 3rd screen)
+                const reviewsList = document.getElementById('reviews-list');
+                const testimonials = currentVariant.landingSections?.testimonials || [];
+                
+                if (reviewsList && testimonials.length > 0) {
+                    reviewsList.innerHTML = testimonials.map(rev => `
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <img src="${rev.avatar}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(205, 164, 94, 0.3);">
+                                <div>
+                                    <div style="color: #fff; font-weight: 600; font-size: 0.95em;">${rev.name}</div>
+                                    <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
+                                </div>
+                            </div>
+                            <p class="review-text" style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">
+                                "${rev.text}"
+                            </p>
+                        </div>
+                    `).join('');
+                }
+
+                // 5. Dynamic FAQ
+                const faqList = document.getElementById('faq-list');
+                const faqData = currentVariant.landingSections?.faq || [];
+                
+                if (faqList && faqData.length > 0) {
+                    faqList.innerHTML = faqData.map((item, idx) => `
+                        <div class="offer-faq-item">
+                            <div class="offer-faq-question" onclick="this.parentElement.classList.toggle('faq-open')">
+                                <span>${item.q}</span>
+                                <span class="offer-faq-arrow">▼</span>
+                            </div>
+                            <div class="offer-faq-answer">
+                                <p>${item.a}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
         } else {
             // Standard natal_chart_price button text
             const btnTextSpan = upgradeButton.querySelector('.btn-text');

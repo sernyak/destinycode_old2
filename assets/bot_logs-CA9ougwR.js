@@ -1,0 +1,28 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";import{initializeApp as L}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";import{getAuth as E,signInAnonymously as S,onAuthStateChanged as $}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";import{getFirestore as A}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";const B={projectId:"destinycode-982fa",appId:"1:168629222416:web:3283f6a4051f57a85c9e95",storageBucket:"destinycode-982fa.firebasestorage.app",apiKey:"AIzaSyA20BvSogSuHTni09Y54HwmlpG7UKXuxk8",authDomain:"destinycode-982fa.firebaseapp.com",messagingSenderId:"168629222416",measurementId:"G-ZKS4RCNFGX"},f=L(B),v=E(f);A(f,"destiny-code-db");const M="https://europe-west1-destinycode-982fa.cloudfunctions.net",h="1536",y="dc_admin_auth",k=document.getElementById("login-screen"),T=document.getElementById("admin-content"),u=document.getElementById("password-input");document.getElementById("login-btn").addEventListener("click",b);u.addEventListener("keydown",e=>{e.key==="Enter"&&b()});async function b(){const e=u.value,t=document.getElementById("login-btn");if(e===h)try{t.disabled=!0,t.innerText="Вхід...",await S(v),sessionStorage.setItem(y,"true"),w()}catch(n){alert("Помилка авторизації Firebase: "+n.message),console.error(n)}finally{t.disabled=!1,t.innerText="Увійти"}else alert("Wrong password"),u.value=""}function w(){k.classList.add("hidden"),T.classList.remove("hidden"),p()}$(v,e=>{e&&sessionStorage.getItem(y)==="true"&&w()});window.switchView=e=>{p()};window.refreshData=()=>{p()};async function p(){const e=document.getElementById("logs-container"),t=document.getElementById("error-container");e.innerHTML='<div class="text-center py-20 text-slate-500 animate-pulse">Завантаження даних...</div>',t.classList.add("hidden"),t.innerHTML="";try{const n=await fetch(`${M}/getBotLogs?type=summaries`,{method:"GET",headers:{"x-admin-key":h}});if(!n.ok)throw new Error(`Server Error: ${n.status} ${n.statusText}`);const c=(await n.json()).logs||[];if(c.sort((s,l)=>l.timestamp-s.timestamp),c.length===0){e.innerHTML='<div class="text-center py-20 text-slate-600">Архів пустий 🍃</div>';return}e.innerHTML="",c.forEach(s=>{const l=s.timestamp?new Date(s.timestamp).toLocaleString("uk-UA"):"Unknown Date",r=s.history||[],m=x(s.summary||""),I=s.username&&s.username!=="unknown"?s.username:"User "+(s.userId||"???"),o=document.createElement("div");o.className="card rounded-xl p-5 border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition cursor-pointer mb-4",r.length>0&&(o.onclick=a=>H(o,a));let i=`
+                            <div class="flex justify-between items-start mb-3 pointer-events-none">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <div class="font-bold text-indigo-400 text-lg">@${I}</div>
+                                        <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full">Archive</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500">ID: ${s.userId} • Msgs: ${s.messagesCount||r.length}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-400">${l}</div>
+                                    <div class="text-xs text-slate-600 mt-1">${C(s.timestamp)}</div>
+                                </div>
+                            </div>
+                        `;m&&m!=="No summary generated"?i+=`
+                                <div class="mb-3 p-3 bg-indigo-900/10 rounded-lg border border-indigo-500/20 text-sm text-indigo-200/90 leading-relaxed pointer-events-none">
+                                    ${m}
+                                </div>
+                            `:i+='<div class="text-xs text-slate-600 italic mb-2">Підсумок відсутній.</div>',r.length>0&&(i+=`
+                                <div class="history-content hidden mt-4 border-t border-slate-700 pt-4 space-y-3">
+                            `,r.forEach(a=>{const g=a.role==="user";i+=`
+                                    <div class="${g?"text-right":"text-left"}">
+                                        <div class="text-xs text-slate-500 mb-1">${g?"👤 Ви:":"🤖 Анна:"}</div>
+                                        <div class="inline-block max-w-[85%] px-4 py-2 rounded-2xl ${g?"bg-indigo-600 text-white ml-auto":"bg-slate-700 text-slate-200 mr-auto"} text-sm whitespace-pre-wrap text-left">${x(a.text)}</div>
+                                    </div>
+                                `}),i+=`</div>
+                                <div class="text-center mt-3 text-xs text-slate-500 pointer-events-none expand-hint">🔽 Розгорнути переписку</div>
+            `),o.innerHTML=i,e.appendChild(o)})}catch(n){console.error(n),t.innerHTML=`⚠️ <b>Connection Error:</b><br>${n.message}`,t.classList.remove("hidden"),e.innerHTML=""}}function C(e){if(!e)return"";const t=Math.floor((Date.now()-e)/1e3);return t<60?"щойно":t<3600?Math.floor(t/60)+" хв тому":t<86400?Math.floor(t/3600)+" год тому":Math.floor(t/86400)+" дн тому"}function H(e,t){const n=e.querySelector(".history-content");if(!n)return;const d=e.querySelector(".expand-hint");n.classList.contains("hidden")?(n.classList.remove("hidden"),d.textContent="🔼 Згорнути",e.classList.add("ring-1","ring-indigo-500")):(n.classList.add("hidden"),d.textContent="🔽 Розгорнути переписку",e.classList.remove("ring-1","ring-indigo-500"))}function x(e){return e?e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"):""}

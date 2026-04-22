@@ -1,0 +1,17 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";import{_ as a}from"./preload-helper-BXl3LOEh.js";import{initializeApp as I}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";import{getAuth as b,onAuthStateChanged as E,signInAnonymously as _}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";const h={projectId:"destinycode-982fa",appId:"1:168629222416:web:3283f6a4051f57a85c9e95",storageBucket:"destinycode-982fa.firebasestorage.app",apiKey:"AIzaSyA20BvSogSuHTni09Y54HwmlpG7UKXuxk8",authDomain:"destinycode-982fa.firebaseapp.com",messagingSenderId:"168629222416",measurementId:"G-ZKS4RCNFGX"},S=I(h),r=b(S),A="1536",c="dc_admin_auth",x=document.getElementById("login-screen"),L=document.getElementById("admin-content"),d=document.getElementById("password-input"),s=document.getElementById("login-btn"),v=document.getElementById("login-error");E(r,n=>{n&&sessionStorage.getItem(c)==="true"&&g()});s.addEventListener("click",l);d.addEventListener("keydown",n=>{n.key==="Enter"&&l()});async function l(){if(d.value===A)try{s.disabled=!0,s.innerText="Вхід...",await _(r),sessionStorage.setItem(c,"true"),g()}catch(n){alert("Помилка авторизації Firebase: "+n.message),console.error(n)}finally{s.disabled=!1,s.innerText="Увійти"}else v.classList.remove("hidden"),d.classList.add("border-red-500")}function g(){x.classList.add("hidden"),L.classList.remove("hidden"),R()}async function R(){const{VARIANTS:n}=await a(async()=>{const{VARIANTS:e}=await import("./index-3ih_YSI2.js");return{VARIANTS:e}},[]),{DISPLAY_PRICES:u}=await a(async()=>{const{DISPLAY_PRICES:e}=await import("./config-BqzeW2gq.js");return{DISPLAY_PRICES:e}},[]),m=document.getElementById("variants-grid");function p(e){return e.enabled===!1?{label:"Чорновик",class:"badge-draft"}:{label:"Активний",class:"badge-active"}}function f(e){return e.pricing&&e.pricing.display&&e.pricing.display.FULL_REPORT?e.pricing.display.FULL_REPORT+" грн":u.FULL_REPORT+" грн (стандартна)"}function y(e){const t=[];return e.ui&&Object.keys(e.ui).some(i=>e.ui[i])&&t.push("🎨 UI"),e.aiContext&&e.aiContext.additionalPrompt&&t.push("🤖 ШІ"),e.pricing&&t.push("💰 Ціна"),e.ui&&e.ui.backgroundColor&&t.push("🌈 Фон"),t.length>0?t.join(", "):"Немає (ідентичний головній)"}Object.entries(n).forEach(([e,t])=>{const i=p(t),o=document.createElement("div");o.className="card rounded-xl p-5 flex items-center justify-between",o.innerHTML=`
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-xl font-bold text-white">/${e}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${i.class}">${i.label}</span>
+                        </div>
+                        <div class="text-sm text-slate-400 space-y-1">
+                            <div><strong>Тип:</strong> ${t.type||"N/A"}</div>
+                            <div><strong>Ціна:</strong> ${f(t)}</div>
+                            <div><strong>Оверрайди:</strong> ${y(t)}</div>
+                            <div><strong>Трекінг:</strong> ${t.tracking?.campaignName||"N/A"}</div>
+                        </div>
+                    </div>
+                    <a href="/${e}" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition">
+                        Відкрити →
+                    </a>
+                `,m.appendChild(o)})}

@@ -15,9 +15,14 @@ export async function init(router) {
     const cursorEl = document.getElementById('report-cursor');
 
     const variantInfo = state.get('currentVariant') || {};
-    const forecastGenDescriptor = document.getElementById('forecast-generation-descriptor');
-    if (forecastGenDescriptor && variantInfo.id === 'forecast') {
-        forecastGenDescriptor.style.display = 'block';
+    
+    // 🔥 Якщо це прогноз (як головний продукт або апсел), змінюємо заголовок
+    if (variantInfo.productType === 'forecast' || variantInfo.id === 'forecast') {
+        const mainTitle = document.getElementById('generation-main-title');
+        if (mainTitle) {
+            mainTitle.innerText = 'ГЕНЕРАЦІЯ ПРОГНОЗУ';
+            mainTitle.style.textTransform = 'uppercase';
+        }
     }
 
     // ☄️ 3D Comet Orbit around "Підготовка звіту!" heading

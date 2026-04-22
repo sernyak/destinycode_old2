@@ -303,6 +303,94 @@ window.DC_Analytics = {
  * 🚀 BOOTSTRAP
  */
 async function bootstrap() {
+    // 🔥 CROSS-TAB UPSELL RESTORE & ROUTING
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('restore_upsell') === '1') {
+        Logger.log("🔄 Restoring Cross-Tab State for Upsell Window...");
+        
+        // 1. Відновлюємо дані сесії з LocalStorage
+        const crossTabStateStr = localStorage.getItem('dc_cross_tab_state');
+        if (crossTabStateStr) {
+            try {
+                const crossTabState = JSON.parse(crossTabStateStr);
+                for (const key in crossTabState) {
+                    // Зберігаємо усі старі дані (дати, планети, токени)
+                    state.set(key, crossTabState[key]);
+                }
+            } catch (e) {
+                console.error("Error parsing cross-tab state", e);
+            }
+        }
+
+        // 2. Встановлюємо флаги оплати
+        state.set('hasPaidUpsell', true);
+        state.set('isPaid', true); 
+        
+        // 3. 🔥 CHAIN-UPSELL: Визначаємо тип апселу з URL параметра
+        const upsellType = urlParams.get('upsell_type') || 'forecast';
+        Logger.log(`🔥 Upsell Type detected: ${upsellType}`);
+
+        if (upsellType === 'partner') {
+            // 💑 PARTNER: Генерація Портрету Ідеального Партнера
+            state.set('currentVariant', { 
+                id: 'partner_upsell', 
+                productType: 'partner', 
+                skipMetaTracking: true,
+                ui: {
+                    generation: {
+                        steps: [
+                            { text: "✨ Аналізую твій 7-й дім (Дім Стосунків)...", pause: 1500 },
+                            { text: "❤️‍🔥 Сканую положення Венери та Марса...", pause: 1500 },
+                            { text: "⚡️ Розраховую аспекти пристрасті та сумісності...", pause: 1500 },
+                            { text: "🗝 Визначаю ключ до серця твого ідеального партнера...", pause: 1500 },
+                            { text: "📍 Шукаю місце та обставини вашої зустрічі...", pause: 1500 },
+                            { text: "💍 Фіналізація Астро-Портрета Ідеального Партнера...", pause: 1500 },
+                            {
+                                text: "🌹 З твоїм звітом все гаразд, просто Всесвіт перевіряє ще одну деталь про твого суженого. Звіт вже летить тобі на пошту, і зараз відкриється тут.",
+                                pause: 0,
+                                isDelayMessage: true
+                            }
+                        ]
+                    }
+                }
+            });
+        } else {
+            // 🔮 FORECAST: Генерація Прогнозу на рік (default)
+            state.set('currentVariant', { 
+                id: 'forecast', 
+                productType: 'forecast', 
+                skipMetaTracking: true,
+                ui: {
+                    generation: {
+                        steps: [
+                            { text: "✨ Аналізую твої планетарні транзити на цей рік...", pause: 1500 },
+                            { text: "❤️‍🔥 Розраховую сприятливі періоди для кохання...", pause: 1500 },
+                            { text: "💰 Шукаю фінансові вікна можливостей...", pause: 1500 },
+                            { text: "🔮 Формую детальний прогноз...", pause: 1500 },
+                            { text: "⚡️ Фіналізація космічного календаря...", pause: 1500 },
+                            {
+                                text: "🌞 З твоїм прогнозом все гаразд, треба трохи більше часу ніж зазвичай. Звіт вже летить тобі на пошту, і зараз відкриється тут.",
+                                pause: 0,
+                                isDelayMessage: true
+                            }
+                        ]
+                    }
+                }
+            });
+        }
+        // 4. Очищаємо URL та переходимо на генерацію
+        urlParams.delete('restore_upsell');
+        urlParams.delete('upsell_source');
+        urlParams.delete('upsell_type');
+        urlParams.delete('orderRef'); // Очищаємо також token монобанку щоб не було конфліктів
+        const paramString = urlParams.toString();
+        
+        // 🔥 FIX: Замість early return, міняємо URL на /generation.
+        // Головний роутер унизу файлу сам прочитає цей URL і запустить initGeneration()
+        const newUrl = '/generation' + (paramString ? '?' + paramString : '');
+        window.history.replaceState({}, document.title, newUrl);
+    }
+
     // 🔥 GLOBAL: Ініціалізуємо космічний фон глобально, незалежно від роуту
     if (!window.starryBgInstance) {
         window.starryBgInstance = new StarryBackground();

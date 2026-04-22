@@ -69,11 +69,11 @@ export const API = {
 // Ціни для відображення на UI (закреслені старі ціни)
 export const DISPLAY_PRICES = {
     FULL_REPORT: 347,      // Актуальна ціна на кнопці
-    FULL_REPORT_OLD: 997,  // Закреслена ціна
+    FULL_REPORT_OLD: 1499,  // Закреслена ціна
 
     FORECAST_UPSELL: 199,   // Актуальна ціна апселу
-    // 🔥 UPDATED: Перераховано пропорційно (997/347 ≈ 2.873 → 199 × 2.873 ≈ 572)
-    FORECAST_OLD: 572
+    FORECAST_UPSELL_OLD: 1499,
+    FORECAST_OLD: 1499
 };
 
 // Реальні суми до списання (залежно від режиму)

@@ -1,0 +1,249 @@
+landingHTML += `\n<div id="offer-block-science" class="offer-landing-block" >
+            <div class="offer-section-card" style="background: rgba(205, 164, 94, 0.03); border: 1px solid rgba(205, 164, 94, 0.15);">
+                <h3 class="offer-section-title">Чому Натальній карті <span>можна вірити</span></h3>
+                <div class="offer-section-body">
+                    <p>Розшифровка Натальної карти від Destiny Code — це <strong>не гороскоп із журналу</strong>. Ми не ділимо 8 мільярдів людей на 12 груп. Це точний персональний розрахунок, і ось чому йому можна довіряти:</p>
+                    <div class="offer-science-grid">
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">01</span>
+                            <div>
+                                <strong>Фізика та Біоритми</strong>
+                                <span>Місяць рухає мільярди тонн води у Світовому океані. Організм людини складається з води на 70-80%. Науково доведено, що у дні повні змінюється гормональний фон і якість сну. Космічні ритми — це реальна фізика, а не містика.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">02</span>
+                            <div>
+                                <strong>Математична Точність</strong>
+                                <span>Швейцарські Ефемериди (NASA JPL), сферична геометрія, система Плацидус. За 4 хвилини Земля зсувається на 1 градус — навіть близнюки з різницею у 10 хвилин мають різні долі. Кількість комбінацій перевищує число людей на планеті.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">03</span>
+                            <div>
+                                <strong>Тисячолітня Статистика</strong>
+                                <span>Кеплер, Галілей, Карл Юнг — тисячоліттями найкращі уми спостерігали за рухом планет і фіксували закономірності. Юнг називав астрологію "психологією давнини". Ми перетворили цю базу даних у точний алгоритм.</span>
+                            </div>
+                        </div>
+                        <div class="offer-science-item">
+                            <span class="offer-science-num">04</span>
+                            <div>
+                                <strong>Прогноз Погоди, а Не Вирок</strong>
+                                <span>Натальна карта — це не вирок, а інструкція. Знаючи свої «налаштування», ти бачиш, де варто «підкласти соломки», а де впевнено тиснути на газ.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="offer-quote" style="margin-top: 16px;">
+                        <span class="offer-quote-mark">🧭</span>
+                        Натальна карта — це як GPS-навігатор. Ти сама тримаєш кермо і натискаєш на педалі. Але їхати вночі без фар — значить постійно ризикувати.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+<div id="offer-block-transformation" class="offer-landing-block" >
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Структура твоєї <span>Натальної карти</span></h3>
+                <div class="offer-section-body">
+                    <p>Повна розшифровка Натальної Карти — це твоя <strong>інструкція до самої себе</strong>, яка покаже тобі:</p>
+                    <div class="offer-feature-grid">
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">✨</span>
+                            <div>
+                                <strong>Свідоме і Підсвідоме: Твоє Ядро</strong>
+                                <span>Твій справжній архетип та вирішення внутрішнього конфлікту, що саботує твої успіхи</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">❤️‍🔥</span>
+                            <div>
+                                <strong>Стосунки та Кохання</strong>
+                                <span>Твій типаж ідеального партнера та як перестати притягувати «не тих» чоловіків</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">💰</span>
+                            <div>
+                                <strong>Гроші та Реалізація</strong>
+                                <span>Де лежить твій фінансовий потенціал і як нарешті пробити "прозору стелю"</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">🗝️</span>
+                            <div>
+                                <strong>Призначення та Кармічні Уроки</strong>
+                                <span>Твоя справжня місія у цьому житті, таланти та унікальний шлях твоєї душі</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Future Forecast highlight -->
+                    <div class="offer-feature-item" style="margin-top: 14px; background: rgba(205, 164, 94, 0.06); border-color: rgba(205, 164, 94, 0.15);">
+                        <span class="offer-feature-icon">⚡️</span>
+                        <div>
+                            <strong>Блок Майбутнього (Огляд на 6 місяців)</strong>
+                            <span>Головні події, вікна можливостей та ключові астрологічні транзити, які чекають на тебе</span>
+                        </div>
+                    </div>
+                    <!-- Planet & Nodes coordinates highlight -->
+                    <div class="offer-feature-item" style="margin-top: 10px; background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08);">
+                        <span class="offer-feature-icon">📡</span>
+                        <div>
+                            <strong>Точні Координати Планет та Вузлів</strong>
+                            <span>Карта з градусами і секундами для кожної планети та кармічних вузлів.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+<div id="offer-block-delivery" class="offer-landing-block" >
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Як ти отримаєш <span>свій звіт</span></h3>
+                <div class="offer-section-body">
+                    <div class="offer-delivery-list">
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🌐</span>
+                            <div>
+                                <strong>На сайті</strong>
+                                <span>Твій повний звіт буде доступний на екрані у зручному для читання вигляді</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">📧</span>
+                            <div>
+                                <strong>На Email</strong>
+                                <span>Повний текст + PDF-документ у зручному форматі</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">💬</span>
+                            <div>
+                                <strong>У Telegram</strong>
+                                <span>Бот надішле тобі повний розбір у чат</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🔗</span>
+                            <div>
+                                <strong>Персональне посилання</strong>
+                                <span>Унікальний URL, за яким звіт доступний назавжди</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+<div id="offer-block-reviews" class="offer-landing-block" >
+            <div id="reviews-container" class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
+                <h3 class="offer-section-title" style="margin-bottom: 24px;">Що кажуть ті, хто вже отримав повний <span>Розрахунок</span></h3>
+                <div id="reviews-list" style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Динамічні відгуки завантажуються тут -->
+                </div>
+            </div>
+        </div>
+
+        
+<div id="offer-block-guarantee" class="offer-landing-block" >
+            <div class="offer-guarantee-container">
+                <div class="offer-guarantee-card">
+                    <div class="offer-guarantee-badge">
+                        <span class="guarantee-icon">🛡️</span>
+                    </div>
+                    <div class="offer-guarantee-content">
+                        <h3 class="guarantee-title">100% Впевненість у якості</h3>
+                        <p class="guarantee-text">Ми на 100% впевнені у глибині та точності нашої Розшифровки. Якщо протягом 24 годин ти вирішиш, що звіт тобі не підійшов — ми повернемо кошти без зайвих питань.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+<div id="premium-form-container" class="w-full space-y-5 mt-4" >
+            <!-- Time Input -->
+            <div>
+                <label for="birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                    style="color: var(--accent-color);">Час народження</label>
+
+                <div
+                    class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
+                    <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2"
+                        style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+
+                    <span id="time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери
+                        час</span>
+                    <input type="time" id="birth-time" name="birth-time"
+                        class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+                </div>
+
+                <p id="time-error-message" class="error-text" >
+                    Будь ласка, обери час народження.
+                </p>
+                <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-align: center; margin-top: 8px; line-height: 1.3; font-weight: 300;">
+                    Якщо не знаєш точного часу &mdash; не страшно, наші алгоритми адаптують розрахунок за датою та містом
+                </p>
+            </div>
+
+            <!-- City Input -->
+            <div>
+                <label for="birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2"
+                    style="color: var(--accent-color);">Місце народження</label>
+
+                <input type="text" id="birth-city" name="birth-city" placeholder="Наприклад, Київ"
+                    class="input-field text-center hover:border-[#cda45e] transition-colors w-full"
+                    style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;">
+
+                <style>
+                    #birth-city {
+                        color: #ffffff !important;
+                        -webkit-text-fill-color: #ffffff !important;
+                        caret-color: var(--accent-color);
+                    }
+
+                    #birth-city:-webkit-autofill,
+                    #birth-city:-webkit-autofill:hover,
+                    #birth-city:-webkit-autofill:focus,
+                    #birth-city:-webkit-autofill:active {
+                        -webkit-box-shadow: 0 0 0 30px var(--card-bg-color) inset !important;
+                        -webkit-text-fill-color: #ffffff !important;
+                        transition: background-color 5000s ease-in-out 0s;
+                    }
+
+                    #birth-city::placeholder {
+                        color: var(--secondary-text-color);
+                        opacity: 0.7;
+                        transition: opacity 0.2s ease;
+                        -webkit-text-fill-color: var(--secondary-text-color) !important;
+                    }
+
+                    #birth-city:focus::placeholder {
+                        opacity: 0;
+                        color: transparent;
+                        -webkit-text-fill-color: transparent !important;
+                    }
+                </style>
+
+                <p id="city-error-message" class="error-text" >Текст помилки...</p>
+                <p id="city-info-message" class="info-text" ></p>
+            </div>
+
+            <!-- Validation Error Messages -->
+            <div id="offer-validation-error" 
+                class="bg-red-500/10 border border-red-500/20 rounded-md p-3 text-red-500 text-sm text-center">
+            </div>
+
+            <div id="city-suggestions" class="suggestions-list" ></div>
+
+            <!-- Skip Button (під формою) -->
+            <button type="button" id="skip-button" class="btn btn-skip opacity-80 text-xs mt-1 w-full" style="padding: 12px; height: auto;">
+                Розрахувати без точного часу (точність 95%)
+            </button>
+        </div>
+
+        `;\n

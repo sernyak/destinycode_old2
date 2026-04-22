@@ -59,7 +59,7 @@
             <p id="error-message" class="error-text">
                 Будь ласка, обери дату народження.
             </p>
-            <button type="submit" id="birth-form-btn" class="btn btn-primary w-full !text-lg h-14">
+            <button type="submit" id="birth-form-btn" class="btn btn-primary w-full !text-base sm:!text-lg h-14" style="padding-left: 8px; padding-right: 8px;">
                 <span class="btn-text">Дізнатися негайно</span>
                 <span class="btn-spinner"></span>
             </button>
@@ -174,3 +174,361 @@
     <p>3. Суб'єктивне несприйняття тексту звіту не є підставою для повернення коштів, оскільки послуга вважається
         наданою належним чином.</p>
 </div>
+<style>
+/* 🔥 OFFER LANDING BLOCKS STYLES                */
+            /* ═══════════════════════════════════════════════ */
+
+            .offer-landing-block {
+                margin-top: 36px;
+            }
+
+            .offer-section-card {
+                background: rgba(28, 28, 30, 0.5);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-top: 1px solid rgba(205, 164, 94, 0.2);
+                border-radius: 16px;
+                padding: 24px 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .offer-section-icon {
+                display: none; /* Removed for more premium look */
+            }
+
+            .offer-section-title {
+                color: #fff;
+                font-weight: 700;
+                font-size: 1.25em;
+                line-height: 1.4;
+                text-align: center;
+                margin-bottom: 20px;
+                letter-spacing: 0.2px;
+                text-transform: none;
+            }
+
+            .offer-section-title span {
+                color: var(--accent-color);
+            }
+
+            .offer-section-body {
+                color: var(--secondary-text-color);
+                font-size: 0.95em;
+                line-height: 1.7;
+                text-align: left;
+            }
+
+            .offer-section-body p {
+                margin-bottom: 12px;
+            }
+
+            .offer-section-body strong {
+                color: var(--primary-text-color);
+                font-weight: 600;
+            }
+
+            .offer-section-body em {
+                color: var(--accent-color);
+                font-style: italic;
+            }
+
+            /* Quote Block */
+            .offer-quote {
+                background: rgba(205, 164, 94, 0.08);
+                border-left: 3px solid var(--accent-color);
+                border-radius: 0 8px 8px 0;
+                padding: 14px 16px;
+                margin-top: 16px;
+                font-size: 0.95em;
+                color: var(--primary-text-color);
+                font-style: italic;
+                line-height: 1.6;
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .offer-quote-mark {
+                font-size: 1.3em;
+                flex-shrink: 0;
+                font-style: normal;
+            }
+
+            /* Feature Grid (4 modules) */
+            .offer-feature-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                margin-top: 16px;
+            }
+
+            .offer-feature-item {
+                display: flex;
+                gap: 14px;
+                align-items: flex-start;
+                padding: 14px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                transition: border-color 0.2s;
+            }
+
+            .offer-feature-item:hover {
+                border-color: rgba(205, 164, 94, 0.3);
+            }
+
+            .offer-feature-icon {
+                font-size: 1.5em;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+
+            .offer-feature-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-feature-item strong {
+                color: #fff;
+                font-size: 0.95em;
+            }
+
+            .offer-feature-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.5;
+            }
+
+            /* Delivery List (Grid) */
+            .offer-delivery-list {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .offer-delivery-item {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+                text-align: center;
+                padding: 14px 10px;
+                background: rgba(255, 255, 255, 0.04);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .offer-delivery-icon {
+                font-size: 1.6em;
+                margin-bottom: 2px;
+            }
+
+            .offer-delivery-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-delivery-item strong {
+                color: #fff;
+                font-size: 0.85em;
+                line-height: 1.2;
+            }
+
+            .offer-delivery-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.75em;
+                line-height: 1.4;
+            }
+
+            /* Science Grid */
+            .offer-science-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-top: 16px;
+            }
+
+            .offer-science-item {
+                display: flex;
+                gap: 14px;
+                align-items: flex-start;
+            }
+
+            .offer-science-num {
+                font-size: 1.5em;
+                font-weight: 800;
+                color: var(--accent-color);
+                opacity: 0.4;
+                flex-shrink: 0;
+                min-width: 32px;
+                text-align: center;
+                line-height: 1;
+                margin-top: 2px;
+            }
+
+            .offer-science-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .offer-science-item strong {
+                color: #fff;
+                font-size: 0.95em;
+            }
+
+            .offer-science-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.5;
+            }
+
+            /* Cosmic Imprint Preview */
+            .offer-cosmic-preview {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 16px;
+            }
+
+            .offer-cosmic-item {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                padding: 10px 12px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                transition: border-color 0.2s, background 0.2s;
+            }
+
+            .offer-cosmic-item:hover {
+                border-color: rgba(205, 164, 94, 0.2);
+                background: rgba(205, 164, 94, 0.04);
+            }
+
+            .offer-cosmic-planet {
+                font-size: 1.4em;
+                flex-shrink: 0;
+            }
+
+            .offer-cosmic-item div {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .offer-cosmic-item strong {
+                color: #fff;
+                font-size: 0.85em;
+            }
+
+            .offer-cosmic-item span {
+                color: var(--secondary-text-color);
+                font-size: 0.75em;
+                line-height: 1.4;
+            }
+
+            @media (max-width: 380px) {
+                .offer-cosmic-preview {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* FAQ */
+            .offer-faq-list {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .offer-faq-item {
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: border-color 0.2s;
+            }
+
+            .offer-faq-item:hover {
+                border-color: rgba(205, 164, 94, 0.2);
+            }
+
+            .offer-faq-question {
+                padding: 14px 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                color: var(--primary-text-color);
+                font-weight: 600;
+                font-size: 0.9em;
+                transition: background 0.2s;
+            }
+
+            .offer-faq-question:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .offer-faq-arrow {
+                font-size: 0.7em;
+                opacity: 0.5;
+                transition: transform 0.3s ease;
+            }
+
+            .offer-faq-item.faq-open .offer-faq-arrow {
+                transform: rotate(180deg);
+            }
+
+            .offer-faq-answer {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease-out;
+            }
+
+            .offer-faq-item.faq-open .offer-faq-answer {
+                max-height: 300px;
+            }
+
+            .offer-faq-answer p {
+                padding: 0 16px 16px;
+                color: var(--secondary-text-color);
+                font-size: 0.85em;
+                line-height: 1.7;
+                margin: 0;
+            }
+
+            /* Offer CTA Trust Line */
+            .offer-trust-line {
+                text-align: center;
+                margin-top: 6px;
+            }
+
+            .offer-trust-line span {
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: rgba(255, 255, 255, 0.5);
+                font-weight: 600;
+            }
+
+            /* Shake Animation for form validation error */
+            @keyframes offer-shake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-6px); }
+                40% { transform: translateX(6px); }
+                60% { transform: translateX(-4px); }
+                80% { transform: translateX(4px); }
+            }
+
+            .offer-shake {
+                animation: offer-shake 0.5s ease-in-out;
+            }
+        
+        
+        
+</style>

@@ -21,7 +21,8 @@ export const natalChartOffer1UahConfig = {
             FULL_REPORT: 347,      // Закликаємо до оригінальної ціни
             FULL_REPORT_OLD: 997,  // Закреслена ціна
             FORECAST_UPSELL: 199,  // Показуємо реальну ціну апселу
-            FORECAST_OLD: 572      // Стара ціна апселу
+            FORECAST_UPSELL_OLD: 1499,
+            FORECAST_OLD: 1499      // Стара ціна апселу
         },
         charge: {
             FULL_REPORT: 1,        // Фактичне списання 1 грн

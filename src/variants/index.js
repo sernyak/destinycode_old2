@@ -15,6 +15,8 @@ import { natalChartOfferConfig } from './products/natal_chart_offer.js';
 import { natalChartOffer1UahConfig } from './promos/natal_chart_offer_1uah.js';
 import { partnerPromo1UahConfig } from './promos/man1uah.js';
 import { natalChartLandofferConfig } from './products/natal_chart_landoffer.js';
+import { natalChartSaleConfig } from './products/natal_chart_sale.js';
+
 
 /**
  * 🌍 VARIANT REGISTRY
@@ -40,11 +42,14 @@ export const VARIANTS = {
     'natal_chart_price': natalChartPriceConfig, // 🌌 Natal Chart with combined result+form
     'natal_chart_offer': natalChartOfferConfig, // 🎁 Exact copy of natal_chart_price
     'natal_chart_landoffer': natalChartLandofferConfig, // 🎁 Landoffer logic based on natal_chart_offer
+    'natal_chart_sale': natalChartSaleConfig, // 🔥 Direct sale landing (all blocks on screen 1)
+
 
     // System / Development
     'dev': devConfig, // 🔥 DISABLED by default (draft)
     'zodiak': zodiakConfig, // 🌟 Test variant for constellation animation
 };
+
 
 /**
  * Returns the variant configuration based on the current URL path.
@@ -55,8 +60,16 @@ export const VARIANTS = {
  * - /unknown  -> returns undefined (or null logic handled by caller)
  */
 export function getVariantByUrl() {
+    // 1. First check query parameter for easier local testing (e.g., ?variant=natal_chart_landoffer)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramVariant = urlParams.get('variant');
+    
+    // 2. Then check the pathname
     const path = window.location.pathname.replace(/^\/|\/$/g, '');
-    const variant = VARIANTS[path];
+    
+    // Resolve variant name
+    const activeVariantName = paramVariant || path;
+    const variant = VARIANTS[activeVariantName];
 
     // 🔥 Only return variant if it exists AND is enabled (default: true)
     if (variant && variant.enabled !== false) {

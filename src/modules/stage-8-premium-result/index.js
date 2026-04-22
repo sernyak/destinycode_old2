@@ -59,6 +59,54 @@ export function init(router) {
     const REPORT_BACKUP_KEY = 'dc_full_report_backup_v2';
 
     // ============================================================
+    // 🔥 CHAIN-UPSELL: Визначаємо який апсел показувати далі
+    // ============================================================
+    // Якщо ми зараз на forecast — наступний апсел = partner
+    // Якщо ми зараз на partner — апселів більше немає
+    // Якщо ми на main (звичайний звіт) — перший апсел = forecast
+    const upsellModalDescription = document.getElementById('upsell-modal-description');
+
+    function getNextUpsellType() {
+        const productType = currentVariant?.productType;
+        if (productType === 'forecast') return 'partner';
+        if (productType === 'partner') return null; // Більше нічого не продаємо
+        return 'forecast'; // Default: пропонуємо прогноз
+    }
+
+    function populateUpsellModal(upsellType) {
+        if (!upsellModalDescription || !ltvUpsellBtn) return;
+        const price = currentPrices.display.FORECAST_UPSELL || 199;
+        const oldPrice = currentPrices.display.FORECAST_UPSELL_OLD || currentPrices.display.FORECAST_OLD || 1499;
+
+        if (upsellType === 'partner') {
+            upsellModalDescription.innerHTML = `
+                Хочеш дізнатися <strong>Портрет свого Ідеального Партнера</strong>?
+                Який чоловік підходить саме тобі, де його шукати та як завоювати його серце?<br><br>
+                <span style="color: var(--primary-text-color);">Лише зараз: <strong>${price} грн.</strong> замість <span
+                    style="text-decoration: line-through; opacity: 0.7;">${oldPrice} грн</span> (знижка 87%)</span>
+            `;
+            ltvUpsellBtn.querySelector('.btn-text').innerHTML = `Так, отримати Портрет Партнера за ${price} грн. <span
+                style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">${oldPrice} грн.</span>`;
+        } else {
+            // Default: forecast
+            upsellModalDescription.innerHTML = `
+                Хочеш повний <strong>Астрологічний Прогноз</strong> на найближчий рік? Дізнатися про свої фінансові
+                піки, періоди удачі та успіхи у стосунках?<br><br>
+                <span style="color: var(--primary-text-color);">Лише зараз: <strong>${price} грн.</strong> замість <span
+                    style="text-decoration: line-through; opacity: 0.7;">${oldPrice} грн</span> (знижка 87%)</span>
+            `;
+            ltvUpsellBtn.querySelector('.btn-text').innerHTML = `Так, додати Прогноз за ${price} грн. <span
+                style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">${oldPrice} грн.</span>`;
+        }
+    }
+
+    // Ініціалізуємо модалку під правильний тип
+    const nextUpsellType = getNextUpsellType();
+    if (nextUpsellType) {
+        populateUpsellModal(nextUpsellType);
+    }
+
+    // ============================================================
     // 🚀 ЛОГІКА "ЗАЛІЗНОГО КЕШУ" ТА ВІДНОВЛЕННЯ СЕСІЇ
     // ============================================================
 
@@ -196,12 +244,167 @@ export function init(router) {
     }
 
     /**
+     * 🔥 ГЕНЕРАТОР ВЕБ-ОНЛІ БЛОКУ З ТОЧНИМИ КООРДИНАТАМИ
+     * Цей блок гарантовано збігатиметься з PDF, оскільки використовує той самий масив.
+     */
+    function generateExactCoordinatesAccordionHTML(planetsArray, index) {
+        if (!planetsArray || !Array.isArray(planetsArray) || planetsArray.length === 0) return '';
+
+        const itemsHtml = planetsArray.map((p, idx) => {
+            const parts = p.split(':');
+            const name = parts[0]?.trim();
+            const value = parts[1]?.trim() || '';
+            
+            return `
+                <div class="astro-data-item planet-copy-item" data-copy-val="${name}: ${value}" style="cursor: pointer; position: relative;">
+                    <div class="astro-label-row">
+                        <span class="astro-planet-name" style="font-size: 11px;">${name}:</span>
+                    </div>
+                    <div class="astro-coords-row" style="font-size: 11px; margin-top: 2px;">${value}</div>
+                    <span class="copy-hint" style="
+                        position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+                        font-size: 9px; color: #a8ffb5; opacity: 0; transition: opacity 0.3s;
+                        background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; pointer-events: none;
+                    ">Копія</span>
+                </div>
+            `;
+        }).join('');
+
+        const allText = planetsArray.join('\n');
+
+        return `
+            <div class="accordion-item exact-coords-container" style="
+                background-color: rgba(28, 28, 30, 0.6);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-left: 3px solid var(--accent-color);
+                border-radius: 12px;
+                margin-bottom: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            ">
+                <!-- Header -->
+                <div class="accordion-header" style="
+                    padding: 16px 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    cursor: pointer;
+                " data-index="${index}">
+                    <h4 style="
+                        color: var(--accent-color);
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        font-size: 0.85em;
+                        letter-spacing: 1.5px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin: 0;
+                    ">
+                        <span style="font-size: 1.2em;">🪐</span> Точні координати планет
+                    </h4>
+                    <span class="accordion-icon" style="color: var(--secondary-text-color); font-size: 0.8em;">▼</span>
+                </div>
+
+                <!-- Content -->
+                <div class="accordion-content">
+                    <div style="padding: 0 20px 20px 20px;" class="accordion-text-content">
+                        <p style="color: rgba(255,255,255,0.6); line-height: 1.5; margin-bottom: 15px; font-size: 0.8em; text-align: center;">
+                            Натисніть на об'єкт або кнопку нижче, щоб скопіювати дані.
+                        </p>
+                        
+                        <div class="astro-data-box" style="margin-top: 0; box-shadow: none; padding: 15px;">
+                            <div class="astro-data-grid" id="exact-astro-grid" style="user-select: all; cursor: pointer;">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+
+                        <button class="copy-all-planets-btn" data-copy-val="${allText.replace(/"/g, '&quot;')}" style="
+                            width: 100%;
+                            margin-top: 15px;
+                            padding: 12px;
+                            border: 1px solid rgba(205, 164, 94, 0.4);
+                            background: rgba(205, 164, 94, 0.05);
+                            color: #cda45e;
+                            border-radius: 8px;
+                            font-family: 'Montserrat', sans-serif;
+                            font-size: 0.85em;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        ">
+                            📋 Скопіювати координати планет
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * 🔥 ACCORDION TOGGLE LOGIC
      */
     function attachAccordionListeners(containerEl) {
         const headers = containerEl.querySelectorAll('.accordion-header');
         const items = containerEl.querySelectorAll('.accordion-item');
         const nextButtons = containerEl.querySelectorAll('.next-section-btn');
+
+        // 🔥 CLIPBOARD & COPY LOGIC
+        const planetItems = containerEl.querySelectorAll('.planet-copy-item');
+        planetItems.forEach(el => {
+            el.addEventListener('click', () => {
+                const text = el.getAttribute('data-copy-val');
+                if (text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        const hint = el.querySelector('.copy-hint');
+                        if (hint) {
+                            hint.style.opacity = '1';
+                            setTimeout(() => hint.style.opacity = '0', 1500);
+                        }
+                    });
+                }
+            });
+        });
+
+        const copyAllBtn = containerEl.querySelector('.copy-all-planets-btn');
+        if (copyAllBtn) {
+            copyAllBtn.addEventListener('click', () => {
+                const text = copyAllBtn.getAttribute('data-copy-val');
+                if (text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        const originalText = copyAllBtn.innerHTML;
+                        copyAllBtn.innerHTML = '✅ Скопійовано!';
+                        copyAllBtn.style.backgroundColor = '#2c402e';
+                        copyAllBtn.style.borderColor = '#4caf50';
+                        copyAllBtn.style.color = '#a8ffb5';
+                        setTimeout(() => {
+                            copyAllBtn.innerHTML = originalText;
+                            copyAllBtn.style.backgroundColor = '';
+                            copyAllBtn.style.borderColor = '';
+                            copyAllBtn.style.color = '';
+                        }, 2000);
+                    });
+                }
+            });
+        }
+
+        // Long-press logic for the grid
+        const grid = containerEl.querySelector('#exact-astro-grid');
+        if (grid && copyAllBtn) {
+            let pressTimer;
+            const copyAllAction = () => {
+                const text = copyAllBtn.getAttribute('data-copy-val');
+                if (text) navigator.clipboard.writeText(text);
+            };
+            grid.addEventListener('touchstart', () => { pressTimer = setTimeout(copyAllAction, 800); });
+            grid.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+            grid.addEventListener('mousedown', () => { pressTimer = setTimeout(copyAllAction, 800); });
+            grid.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
+        }
 
         function toggleSection(index, keepOthersOpen = false) {
             items.forEach((item, i) => {
@@ -333,7 +536,19 @@ export function init(router) {
         if (reportData && reportData.sections) {
             // 🔥 PROFESSIONAL: Dynamic Bonus Injection
             // Pulls bonuses from currentVariant.marketing.bonuses for full scalability
-            const bonuses = currentVariant?.marketing?.bonuses;
+            const bonuses = currentVariant?.marketing?.bonuses ? [...currentVariant.marketing.bonuses] : [];
+
+            // 🔥 GLOBAL PROMOTION: Attach Lunar Guide to ALL variants automatically
+            const hasLunarGuideDef = bonuses.some(b => b.id === 'lunar_guide');
+            if (!hasLunarGuideDef) {
+                bonuses.push({
+                    id: 'lunar_guide',
+                    title: "🎁 Бонус: Гайд по циклам Місяця",
+                    icon: "🌙",
+                    text: `Цей гайд допоможе тобі синхронізувати своє життя з природними ритмами Місяця. Кожні 28 днів він проходить 8 фаз:\n\n**1. Новий Місяць (Молодик)**\nЧас для планування. Енергія на мінімумі. Найкраще — писати списки бажань та медитувати.\n\n**2. Молодий Місяць**\nЧас для перших кроків. Енергія зростає. Добре заявляти про себе.\n\n**3. Перша чверть**\nЧас для рішучих дій. Подолання перешкод.\n\n**4. Випуклий Місяць**\nЧас для вдосконалення та деталізації планів.\n\n**5. Повня**\nПік енергії та емоцій. Час для завершення та святкування.\n\n**6. Спадаючий Місяць**\nЧас для аналізу. Добре ділитися знаннями та очищувати простір.\n\n**7. Остання чверть**\nЧас для очищення та завершення справ.\n\n**8. Старий Місяць**\nЧас для відпочинку та накопичення сил перед новим циклом.\n\n*Використовуючи ці фази, ти перестанеш боротися з течією і почнеш використовувати силу космосу собі на користь.*`,
+                    advice: "Перевіряй фазу Місяця щоранку — це твій персональний GPS енергії."
+                });
+            }
 
             if (bonuses && Array.isArray(bonuses)) {
                 bonuses.forEach(bonus => {
@@ -351,11 +566,16 @@ export function init(router) {
             }
 
             localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(reportData));
-            const reportContentHtml = generateReportHtml(reportData.sections);
-            const astroHtml = await renderAstroBox(userData, currentVariant);
-            fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
+            let reportContentHtml = generateReportHtml(reportData.sections);
+
+            // 🔥 ВАЖЛИВО: Генеруємо веб-акордеон з точними координатами без запису в sections
+            const planetsArray = userData.planets || state.get('planets');
+            if (planetsArray && Array.isArray(planetsArray) && planetsArray.length > 0) {
+                reportContentHtml += generateExactCoordinatesAccordionHTML(planetsArray, reportData.sections.length);
+            }
+
+            fullReportContentEl.innerHTML = reportContentHtml;
             attachAccordionListeners(fullReportContentEl);
-            attachAstroBoxListener();
             renderButtons();
             return;
         }
@@ -385,13 +605,17 @@ export function init(router) {
                 state.set('fullReport', recoveredData.reportData);
                 localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(recoveredData.reportData));
 
-                const reportContentHtml = generateReportHtml(recoveredData.reportData.sections);
+                let reportContentHtml = generateReportHtml(recoveredData.reportData.sections);
                 // Для унікального лінка беремо дані з бази, бо в локалстореджі може їх не бути
                 const finalUserData = recoveredData.userData || userData;
-                const finalVariant = recoveredData.variant || currentVariant;
                 
-                const astroHtml = await renderAstroBox(finalUserData, finalVariant);
-                fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
+                // 🔥 ВАЖЛИВО: Генеруємо веб-акордеон з точними координатами без запису в sections (отже, без потрапляння в PDF)
+                const planetsArray = finalUserData.planets || state.get('planets');
+                if (planetsArray && Array.isArray(planetsArray) && planetsArray.length > 0) {
+                    reportContentHtml += generateExactCoordinatesAccordionHTML(planetsArray, recoveredData.reportData.sections.length);
+                }
+
+                fullReportContentEl.innerHTML = reportContentHtml;
                 attachAccordionListeners(fullReportContentEl);
                 attachAstroBoxListener();
                 renderButtons();
@@ -401,9 +625,15 @@ export function init(router) {
                 state.set('fullReport', recoveredData);
                 localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(recoveredData));
 
-                const reportContentHtml = generateReportHtml(recoveredData.sections);
-                const astroHtml = await renderAstroBox(userData, currentVariant);
-                fullReportContentEl.innerHTML = reportContentHtml + astroHtml;
+                let reportContentHtml = generateReportHtml(recoveredData.sections);
+                
+                // 🔥 ВАЖЛИВО: Генеруємо веб-акордеон з точними координатами без запису в sections
+                const planetsArray = userData.planets || state.get('planets');
+                if (planetsArray && Array.isArray(planetsArray) && planetsArray.length > 0) {
+                    reportContentHtml += generateExactCoordinatesAccordionHTML(planetsArray, recoveredData.sections.length);
+                }
+
+                fullReportContentEl.innerHTML = reportContentHtml;
                 attachAccordionListeners(fullReportContentEl);
                 attachAstroBoxListener();
                 renderButtons();
@@ -522,11 +752,21 @@ export function init(router) {
         renderFeedbackSystem();
         // ------------------------------------
 
-        if (state.get('hasPaidUpsell')) {
+        // ============================================================
+        // 🔥 CHAIN-UPSELL LOGIC: Динамічне відображення кнопок
+        // ============================================================
+        const nextUpsell = getNextUpsellType();
+
+        if (state.get('hasPaidUpsell') && !nextUpsell) {
+            // 🏁 ФІНАЛЬНИЙ СТАН: Всі апселі куплені — тільки плашка успіху
             const successContainer = document.createElement('div');
             successContainer.className = 'mt-4 mb-2 p-4 rounded-lg border text-center animate-fadeIn';
             successContainer.style.backgroundColor = 'rgba(20, 83, 45, 0.2)';
             successContainer.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+
+            const successLabel = currentVariant?.productType === 'partner'
+                ? 'Портрет Ідеального Партнера відправлено на пошту'
+                : 'Твій Прогноз на рік відправлено на пошту';
 
             successContainer.innerHTML = `
                 <div class="flex items-center justify-center gap-2">
@@ -534,22 +774,61 @@ export function init(router) {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <span class="text-sm font-bold text-green-400 tracking-wide">
-                        ${currentVariant?.productType === 'forecast' ? 'Портрет Партнера відправлено на пошту' : 'Твій Прогноз на рік відправлено на пошту'}
+                        ${successLabel}
                     </span>
                 </div>
             `;
-
             reportActionsContainer.appendChild(successContainer);
 
+        } else if (state.get('hasPaidUpsell') && nextUpsell) {
+            // 🔄 CHAIN STATE: Купив попередній апсел, але є наступний
+            // Спершу показуємо плашку успіху поточної покупки
+            const successContainer = document.createElement('div');
+            successContainer.className = 'mt-4 mb-2 p-4 rounded-lg border text-center animate-fadeIn';
+            successContainer.style.backgroundColor = 'rgba(20, 83, 45, 0.2)';
+            successContainer.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+
+            const currentSuccessLabel = currentVariant?.productType === 'forecast'
+                ? 'Твій Прогноз на рік відправлено на пошту'
+                : 'Портрет Ідеального Партнера відправлено на пошту';
+
+            successContainer.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="text-sm font-bold text-green-400 tracking-wide">
+                        ${currentSuccessLabel}
+                    </span>
+                </div>
+            `;
+            reportActionsContainer.appendChild(successContainer);
+
+            // Потім кнопку наступного апселу
+            const nextUpsellLabel = nextUpsell === 'partner' ? 'Портрет Ідеального Партнера' : 'Прогноз на рік';
+            const upsellBtn = document.createElement('button');
+            upsellBtn.className = 'btn btn-violet';
+            upsellBtn.style.marginTop = '10px';
+            upsellBtn.innerHTML = `
+                <span class="btn-text flex flex-col items-center justify-center leading-tight">
+                    <span class="text-[16px] font-bold">Отримати ${nextUpsellLabel} за ${currentPrices.display.FORECAST_UPSELL} грн.</span>
+                    <span class="text-[10px] opacity-80 font-normal mt-1 lowercase">буде відправлено на пошту</span>
+                </span>
+            `;
+            upsellBtn.onclick = () => {
+                populateUpsellModal(nextUpsell);
+                lateUpsellModal.style.display = 'flex';
+            };
+            reportActionsContainer.appendChild(upsellBtn);
+
         } else {
-            const isForecastVariant = currentVariant?.productType === 'forecast';
-            const upsellLabel = isForecastVariant ? 'Портрет Ідеального Партнера' : 'Прогноз на рік';
+            // 🟡 ПОЧАТКОВИЙ СТАН: Жодного апселу не куплено — показуємо перший
+            const upsellLabel = nextUpsell === 'partner' ? 'Портрет Ідеального Партнера' : 'Прогноз на рік';
 
             const getForecastBtn = document.createElement('button');
             getForecastBtn.className = 'btn btn-violet';
             getForecastBtn.style.marginTop = '10px';
 
-            // 🔥 UPDATE: Кнопка з дворядковим текстом
             getForecastBtn.innerHTML = `
                 <span class="btn-text flex flex-col items-center justify-center leading-tight">
                     <span class="text-[16px] font-bold">Отримати ${upsellLabel} за ${currentPrices.display.FORECAST_UPSELL} грн.</span>
@@ -558,8 +837,7 @@ export function init(router) {
             `;
 
             getForecastBtn.onclick = () => {
-                const btnLabel = isForecastVariant ? `Так, отримати Портрет Партнера за ${currentPrices.display.FORECAST_UPSELL} грн.` : `Так, отримати Прогноз за ${currentPrices.display.FORECAST_UPSELL} грн.`;
-                if (ltvUpsellBtn) ltvUpsellBtn.querySelector('.btn-text').innerText = btnLabel;
+                populateUpsellModal(nextUpsell || 'forecast');
                 lateUpsellModal.style.display = 'flex';
             };
             reportActionsContainer.appendChild(getForecastBtn);
@@ -719,12 +997,36 @@ export function init(router) {
         }
     }
 
-    // 🔥 СЛУХАЧ КЛІКУ: ОНОВЛЕНО ID ltv-upsell-btn
+    // 🔥 СЛУХАЧ КЛІКУ: MULTI-WINDOW UPSELL FLOW (v2.0)
+    // Оплата відкривається в новій вкладці, основний звіт залишається відкритим.
     if (ltvUpsellBtn) {
         ltvUpsellBtn.addEventListener('click', async () => {
             const btn = ltvUpsellBtn;
             btn.classList.add('loading');
             btn.disabled = true;
+
+            // 🔥 ВІДКРИВАЄМО НОВЕ ВІКНО ВІДРАЗУ З ЛОАДЕРОМ (щоб не було просто чорного екрану)
+            const paymentWindow = window.open('', '_blank');
+            if (paymentWindow) {
+                paymentWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Завантаження сторінки оплати...</title>
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <style>
+                                body { background-color: #0f1115; color: #cda45e; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; }
+                                .loader { border: 3px solid rgba(205, 164, 94, 0.3); border-top: 3px solid #cda45e; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+                                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="loader"></div>
+                            <p style="font-size: 14px; text-transform: uppercase; font-weight: bold; color: #fff;">Підключення до банку...</p>
+                            <p style="font-size: 11px; opacity: 0.6; margin-top: 10px;">Це займе всього кілька секунд.</p>
+                        </body>
+                    </html>
+                `);
+            }
 
             const currentReport = state.get('fullReport');
             if (currentReport) {
@@ -732,19 +1034,37 @@ export function init(router) {
                 localStorage.setItem(REPORT_BACKUP_KEY, JSON.stringify(currentReport));
             }
 
+            // 🔥 Зберігаємо поточний стейт для нової вкладки
+            localStorage.setItem('dc_cross_tab_state', JSON.stringify(state.data));
+
             try {
-                const isForecastVariant = currentVariant?.productType === 'forecast';
-                const paymentName = isForecastVariant ? 'Астро-Портрет Партнера (Promo)' : 'Астро-Прогноз на рік (Promo)';
+                // 🔥 CHAIN-UPSELL: Визначаємо що саме купується
+                const purchaseUpsellType = getNextUpsellType() || 'forecast';
+                const paymentName = purchaseUpsellType === 'partner'
+                    ? 'Астро-Портрет Ідеального Партнера (Promo)'
+                    : 'Астро-Прогноз на рік (Promo)';
                 await processPayment(
                     { name: paymentName, price: currentPrices.charge.FORECAST_UPSELL },
                     { email: userEmail },
                     userData,
-                    { returnQueryParams: 'upsell_source=stage8' }
+                    {
+                        returnQueryParams: `upsell_source=stage8&restore_upsell=1&upsell_type=${purchaseUpsellType}`,
+                        paymentWindow: paymentWindow
+                    }
                 );
+
+                // Закриваємо модалку в цьому (основному) вікні після ініціалізації
+                if (lateUpsellModal) {
+                    lateUpsellModal.style.display = 'none';
+                }
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
             } catch (e) {
                 console.error("Late Upsell Error:", e);
                 btn.classList.remove('loading');
                 btn.disabled = false;
+                if (paymentWindow) paymentWindow.close(); // Закриваємо вікно якщо помилка ініціалізації
             }
         });
     }

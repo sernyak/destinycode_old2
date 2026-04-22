@@ -41,13 +41,7 @@
             </ul>
         </div>
 
-        <!-- 🔥 NEW: Personalized Hook Section -->
-        <div id="personalized-hook-container" class="mt-6 mb-4" style="display: none;">
-            <div class="offer-quote" style="background: rgba(205, 164, 94, 0.05); border-left: 3px solid var(--accent-color);">
-                <span class="offer-quote-mark">💡</span>
-                <p id="personalized-hook-text" style="color: var(--primary-text-color); font-size: 0.95rem; margin: 0; line-height: 1.6;"></p>
-            </div>
-        </div>
+        <!-- Hook block removed, now injected via JS into the accordion -->
 
         <!-- SECTION 3.5: Divider before form (For natal_chart_offer) -->
         <div id="offer-form-divider" class="relative py-5" style="display: none;">
@@ -154,119 +148,19 @@
             </button>
         </div>
 
-        <!-- 🔥 NEW: Comparison Table Section -->
-        <div id="offer-comparison-block" class="offer-comparison-container" style="display: none; width: 100%; overflow: hidden;">
-            <h3 id="comparison-table-title" class="text-xl font-bold text-center text-white mb-6">Що ти отримаєш у повній Розшифровці</h3>
-            <!-- Wrapper for table to allow internal horizontal scroll if needed without breaking page -->
-            <div style="width: 100%; overflow-x: auto; padding-bottom: 15px;">
-                <div id="comparison-table-content" style="min-width: 100%;"></div>
-            </div>
-        </div>
-
-        <!-- 🔥 NEW: Visual Preview Mockup Section -->
-        <div id="offer-preview-block" class="offer-mockup-section" style="display: none; width: 100%; overflow: hidden;">
-            <div class="offer-mockup-image-wrapper flex w-full justify-center" style="max-width: 100%;">
-                <img src="" id="offer-mockup-img" class="offer-mockup-image" style="max-width: 100%;" alt="Preview">
-            </div>
-            <p class="offer-mockup-caption">Повна версія звіту та Гайд доступні відразу після оплати</p>
-        </div>
-
         <!-- ═══════════════════════════════════════════════════════════════════ -->
         <!-- 🔥 OFFER LANDING PAGE BLOCKS (Only for natal_chart_offer variant) -->
         <!-- ═══════════════════════════════════════════════════════════════════ -->
 
-
-        <!-- BLOCK 2: TRANSFORMATION — What She Gets -->
-        <div id="offer-block-transformation" class="offer-landing-block" style="display: none;">
-            <div class="offer-section-card">
-                <h3 class="offer-section-title">Структура твоєї <span>Натальної карти</span></h3>
-                <div class="offer-section-body">
-                    <p>Повна розшифровка Натальної Карти — це твоя <strong>інструкція до самої себе</strong>, яка покаже тобі:</p>
-                    <div class="offer-feature-grid">
-                        <div class="offer-feature-item">
-                            <span class="offer-feature-icon">✨</span>
-                            <div>
-                                <strong>Твоя Справжня Роль (Ядро)</strong>
-                                <span>Твій справжній архетип — як вийти з тіні та стати головною героїнею свого життя</span>
-                            </div>
-                        </div>
-                        <div class="offer-feature-item">
-                            <span class="offer-feature-icon">🗝️</span>
-                            <div>
-                                <strong>Призначення та Місія</strong>
-                                <span>Кармічні уроки, таланти та твій унікальний шлях у цьому світі</span>
-                            </div>
-                        </div>
-                        <div class="offer-feature-item">
-                            <span class="offer-feature-icon">❤️‍🔥</span>
-                            <div>
-                                <strong>Магніт для чоловіків</strong>
-                                <span>Як перестати приваблювати "не тих" чоловіків і розкрити власну природну привабливість</span>
-                            </div>
-                        </div>
-                        <div class="offer-feature-item">
-                            <span class="offer-feature-icon">💰</span>
-                            <div>
-                                <strong>Визнання та Фінанси</strong>
-                                <span>Де твоя точка росту і як перестати старатися безрезультатно</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Planet coordinates highlight -->
-                    <div class="offer-feature-item" style="margin-top: 14px; background: rgba(205, 164, 94, 0.06); border-color: rgba(205, 164, 94, 0.15);">
-                        <span class="offer-feature-icon">📡</span>
-                        <div>
-                            <strong>Точні Координати Планет</strong>
-                            <span>Карта з градусами, хвилинами та секундами дуги для кожної планети — можеш звіритися з будь-яким астрологом або порівняти з іншим сервісом</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- BLOCK 1: COSMIC IMPRINT PREVIEW -->
+        <div id="offer-block-cosmic" class="offer-landing-block w-full" style="display: none; margin-top: 16px;">
+            <div id="offer-astro-data-container" class="interactive-astro-box"></div>
         </div>
 
-        <!-- BLOCK 3: DELIVERY FORMAT -->
-        <div id="offer-block-delivery" class="offer-landing-block" style="display: none;">
-            <div class="offer-section-card">
-                <h3 class="offer-section-title">Як ти отримаєш <span>свій звіт</span></h3>
-                <div class="offer-section-body">
-                    <div class="offer-delivery-list">
-                        <div class="offer-delivery-item">
-                            <span class="offer-delivery-icon">🌐</span>
-                            <div>
-                                <strong>На сайті</strong>
-                                <span>Твій повний звіт буде доступний на екрані у зручному для читання вигляді</span>
-                            </div>
-                        </div>
-                        <div class="offer-delivery-item">
-                            <span class="offer-delivery-icon">📧</span>
-                            <div>
-                                <strong>На Email</strong>
-                                <span>Повний текст + PDF-документ у зручному форматі</span>
-                            </div>
-                        </div>
-                        <div class="offer-delivery-item">
-                            <span class="offer-delivery-icon">💬</span>
-                            <div>
-                                <strong>У Telegram</strong>
-                                <span>Бот надішле тобі повний розбір у чат</span>
-                            </div>
-                        </div>
-                        <div class="offer-delivery-item">
-                            <span class="offer-delivery-icon">🔗</span>
-                            <div>
-                                <strong>Персональне посилання</strong>
-                                <span>Унікальний URL, за яким звіт доступний назавжди</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BLOCK 4: HOW IT WORKS — 4 Pillars (from Knowledge Base) -->
+        <!-- BLOCK 2: HOW IT WORKS — 4 Pillars (from Knowledge Base) -->
         <div id="offer-block-science" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card" style="background: rgba(205, 164, 94, 0.03); border: 1px solid rgba(205, 164, 94, 0.15);">
-                <h3 class="offer-section-title">Чому <span>Натальній карті можна вірити</span></h3>
+                <h3 class="offer-section-title">Чому Натальній карті <span>можна вірити</span></h3>
                 <div class="offer-section-body">
                     <p>Розшифровка Натальної карти від Destiny Code — це <strong>не гороскоп із журналу</strong>. Ми не ділимо 8 мільярдів людей на 12 груп. Це точний персональний розрахунок, і ось чому йому можна довіряти:</p>
                     <div class="offer-science-grid">
@@ -307,12 +201,147 @@
             </div>
         </div>
 
-        <!-- BLOCK 5: COSMIC IMPRINT PREVIEW -->
-        <div id="offer-block-cosmic" class="offer-landing-block w-full" style="display: none; margin-top: 16px;">
-            <div id="offer-astro-data-container" class="interactive-astro-box"></div>
+        <!-- BLOCK 3: Comparison Table Section -->
+        <div id="offer-comparison-block" class="offer-comparison-container" style="display: none; width: 100%; overflow: hidden;">
+            <h3 id="comparison-table-title" class="text-xl font-bold text-center text-white mb-6">Що ти отримаєш у <span>повній Розшифровці</span></h3>
+            <!-- Wrapper for table to allow internal horizontal scroll if needed without breaking page -->
+            <div style="width: 100%; overflow-x: auto; padding-bottom: 15px;">
+                <div id="comparison-table-content" style="min-width: 100%;"></div>
+            </div>
         </div>
 
-        <!-- BLOCK 5.3: TRANSFORMATION (Before/After) — Imported from Screen 1 -->
+        <!-- BLOCK 4: TRANSFORMATION — What She Gets (Structure) -->
+        <div id="offer-block-transformation" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Структура твоєї <span>Натальної карти</span></h3>
+                <div class="offer-section-body">
+                    <p>Повна розшифровка Натальної Карти — це твоя <strong>інструкція до самої себе</strong>, яка покаже тобі:</p>
+                    <div class="offer-feature-grid">
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">✨</span>
+                            <div>
+                                <strong>Свідоме і Підсвідоме: Твоє Ядро</strong>
+                                <span>Твій справжній архетип та вирішення внутрішнього конфлікту, що саботує твої успіхи</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">❤️‍🔥</span>
+                            <div>
+                                <strong>Стосунки та Кохання</strong>
+                                <span>Твій типаж ідеального партнера та як перестати притягувати «не тих» чоловіків</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">💰</span>
+                            <div>
+                                <strong>Гроші та Реалізація</strong>
+                                <span>Де лежить твій фінансовий потенціал і як нарешті пробити "прозору стелю"</span>
+                            </div>
+                        </div>
+                        <div class="offer-feature-item">
+                            <span class="offer-feature-icon">🗝️</span>
+                            <div>
+                                <strong>Призначення та Кармічні Уроки</strong>
+                                <span>Твоя справжня місія у цьому житті, таланти та унікальний шлях твоєї душі</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Future Forecast highlight -->
+                    <div class="offer-feature-item" style="margin-top: 14px; background: rgba(205, 164, 94, 0.06); border-color: rgba(205, 164, 94, 0.15);">
+                        <span class="offer-feature-icon">⚡️</span>
+                        <div>
+                            <strong>Блок Майбутнього (Огляд на 6 місяців)</strong>
+                            <span>Головні події, вікна можливостей та ключові астрологічні транзити, які чекають на тебе</span>
+                        </div>
+                    </div>
+                    <!-- Planet & Nodes coordinates highlight -->
+                    <div class="offer-feature-item" style="margin-top: 10px; background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08);">
+                        <span class="offer-feature-icon">📡</span>
+                        <div>
+                            <strong>Точні Координати Планет та Вузлів</strong>
+                            <span>Карта з градусами і секундами для кожної планети та кармічних вузлів.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 5: DELIVERY FORMAT -->
+        <div id="offer-block-delivery" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title">Як ти отримаєш <span>свій звіт</span></h3>
+                <div class="offer-section-body">
+                    <div class="offer-delivery-list">
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🌐</span>
+                            <div>
+                                <strong>На сайті</strong>
+                                <span>Твій повний звіт буде доступний на екрані у зручному для читання вигляді</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">📧</span>
+                            <div>
+                                <strong>На Email</strong>
+                                <span>Повний текст + PDF-документ у зручному форматі</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">💬</span>
+                            <div>
+                                <strong>У Telegram</strong>
+                                <span>Бот надішле тобі повний розбір у чат</span>
+                            </div>
+                        </div>
+                        <div class="offer-delivery-item">
+                            <span class="offer-delivery-icon">🔗</span>
+                            <div>
+                                <strong>Персональне посилання</strong>
+                                <span>Унікальний URL, за яким звіт доступний назавжди</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 6: Visual Preview Mockup Section -->
+        <div id="offer-preview-block" class="offer-mockup-section" style="display: none;">
+            <h3 class="offer-section-title" id="mockup-title-heading" style="display: none;">Приклад <span>PDF-варіанту</span> твоєї Карти</h3>
+            
+            <!-- Bordered wrapper for the scrollable images only -->
+            <div class="offer-mockup-image-wrapper" id="mockup-carousel-main-wrapper">
+                <div id="mockup-carousel-scroll">
+                    <!-- JS will inject images here (index.js) -->
+                </div>
+            </div>
+
+            <!-- Dots container outside the bordered wrapper -->
+            <div id="destiny-dots-new" class="destiny-dots-container-new"></div>
+            
+            <p class="offer-mockup-caption" id="mockup-caption-text"></p>
+        </div>
+
+        <!-- BLOCK 7: AUDIENCE (For Whom / Not For Whom) -->
+        <div id="offer-block-audience-s3" class="offer-landing-block" style="display: none;">
+            <div class="offer-section-card">
+                <h3 class="offer-section-title" id="s3-audience-title"></h3>
+                <div class="offer-section-body">
+                    <div class="landing-audience-grid">
+                        <div class="landing-audience-card positive">
+                            <h4 class="landing-audience-subtitle">✅ Для тих, хто:</h4>
+                            <ul class="landing-audience-list" id="s3-audience-for-list"></ul>
+                        </div>
+                        <div class="landing-audience-card negative">
+                            <h4 class="landing-audience-subtitle" id="s3-audience-not-subtitle">❌ Кому НЕ варто:</h4>
+                            <ul class="landing-audience-list" id="s3-audience-not-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCK 8: TRANSFORMATION (Before/After) -->
         <div id="offer-block-transformation-s3" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card">
                 <h3 class="offer-section-title" id="s3-transformation-title"></h3>
@@ -332,36 +361,27 @@
             </div>
         </div>
 
-        <!-- BLOCK 5.4: AUDIENCE (For Whom / Not For Whom) — Imported from Screen 1 -->
-        <div id="offer-block-audience-s3" class="offer-landing-block" style="display: none;">
-            <div class="offer-section-card">
-                <h3 class="offer-section-title" id="s3-audience-title"></h3>
-                <div class="offer-section-body">
-                    <div class="landing-audience-grid">
-                        <div class="landing-audience-card positive">
-                            <h4 class="landing-audience-subtitle">✅ Для тих, хто:</h4>
-                            <ul class="landing-audience-list" id="s3-audience-for-list"></ul>
-                        </div>
-                        <div class="landing-audience-card negative">
-                            <h4 class="landing-audience-subtitle" id="s3-audience-not-subtitle">❌ Кому НЕ варто:</h4>
-                            <ul class="landing-audience-list" id="s3-audience-not-list"></ul>
-                        </div>
-                    </div>
-                </div>
+        <!-- BLOCK 9: REVIEWS COUNTER -->
+        <div id="offer-reviews-counter-block" class="offer-landing-block" style="display: none; margin-bottom: -16px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); max-width: 90%; margin: 0 auto;">
+                <span style="font-size: 1.1rem;">🔥</span>
+                <span style="font-size: 0.95rem; color: var(--secondary-text-color); font-weight: 500;">
+                    Вже <strong id="s3-live-women-counter" style="color: var(--accent-color); font-size: 1.05rem; transition: transform 0.2s ease, color 0.2s ease;">15 420</strong> жінок отримали
+                </span>
             </div>
         </div>
 
-        <!-- BLOCK 5.5: REVIEWS (SOCIAL PROOF) -->
+        <!-- BLOCK 10: REVIEWS (SOCIAL PROOF) -->
         <div id="offer-block-reviews" class="offer-landing-block" style="display: none;">
             <div id="reviews-container" class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
-                <h3 class="offer-section-title" style="margin-bottom: 24px;">Що кажуть <span>інші дівчата</span></h3>
+                <h3 class="offer-section-title" style="margin-bottom: 24px;">Що кажуть ті, хто вже отримав повний <span>Розрахунок</span></h3>
                 <div id="reviews-list" style="display: flex; flex-direction: column; gap: 14px;">
                     <!-- Динамічні відгуки завантажуються тут -->
                 </div>
             </div>
         </div>
 
-        <!-- BLOCK 5: GUARANTEE -->
+        <!-- BLOCK 11: GUARANTEE -->
         <div id="offer-block-guarantee" class="offer-landing-block" style="display: none;">
             <div class="offer-guarantee-container">
                 <div class="offer-guarantee-card">
@@ -376,7 +396,7 @@
             </div>
         </div>
 
-        <!-- BLOCK 6: FAQ -->
+        <!-- BLOCK 12: FAQ -->
         <div id="offer-block-faq" class="offer-landing-block" style="display: none;">
             <div class="offer-section-card" style="border-top: 1px solid rgba(255,255,255,0.1);">
                 <h3 class="offer-section-title">Часті <span>запитання</span></h3>
@@ -787,7 +807,7 @@
         <!-- Urgency Text -->
         <div id="offer-urgency-timer" style="display: none; text-align: center; margin-bottom: 12px; margin-top: -6px;">
             <span style="font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(205,164,94,0.15); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(205,164,94,0.3); display: inline-block;">
-                Твоя знижка зафіксована: <span id="offer-timer-display" style="color: var(--accent-color); font-weight: 700; margin-left: 2px;">15:00</span>
+                Спеціальна ціна діє ще: <span id="offer-timer-display" style="color: var(--accent-color); font-weight: 700; margin-left: 2px;">15:00</span>
             </span>
         </div>
 

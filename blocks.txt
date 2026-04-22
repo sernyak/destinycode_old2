@@ -1,0 +1,1083 @@
+203:                if (variant.isDirectSale) {
+204-                    const mk = variant.marketing || {};
+205-                    
+206-                    landingHTML += `
+207-                    <style>
+208-                        /* --- DIRECT SALE STYLES INJECTED FROM STAGE 3 --- */
+209-                        .offer-landing-block { margin-top: 36px; }
+210-                        .offer-section-card {
+211-                            background: rgba(28, 28, 30, 0.5);
+212-                            backdrop-filter: blur(16px);
+213-                            -webkit-backdrop-filter: blur(16px);
+214-                            border: 1px solid rgba(255, 255, 255, 0.06);
+215-                            border-top: 1px solid rgba(205, 164, 94, 0.2);
+216-                            border-radius: 16px;
+217-                            padding: 24px 20px;
+218-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+219-                            position: relative;
+220-                            overflow: hidden;
+221-                        }
+222-                        .ds-section-title {
+223-                            color: #fff;
+224-                            font-weight: 700;
+225-                            font-size: 1.25em;
+226-                            line-height: 1.4;
+227-                            text-align: center;
+228-                            margin-bottom: 20px;
+229-                            letter-spacing: 0.2px;
+230-                            text-transform: none;
+231-                        }
+232-                        .ds-section-title span { color: var(--accent-color); }
+233-                        .ds-section-body {
+234-                            color: var(--secondary-text-color);
+235-                            font-size: 0.95em;
+236-                            line-height: 1.7;
+237-                        }
+238-                        .ds-section-body p { margin-bottom: 12px; }
+239-                        .ds-section-body strong { color: var(--primary-text-color); font-weight: 600; }
+240-                        .ds-quote {
+241-                            background: rgba(205, 164, 94, 0.08);
+242-                            border-left: 3px solid var(--accent-color);
+243-                            border-radius: 0 8px 8px 0;
+244-                            padding: 14px 16px;
+245-                            margin-top: 16px;
+246-                            font-size: 0.95em;
+247-                            color: var(--primary-text-color);
+248-                            font-style: italic;
+249-                            line-height: 1.6;
+250-                            display: flex;
+251-                            gap: 10px;
+252-                            align-items: flex-start;
+253-                        }
+254-                        .ds-science-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+255-                        .ds-science-item { display: flex; gap: 14px; align-items: flex-start; }
+256-                        .ds-science-num {
+257-                            font-size: 1.5em;
+258-                            font-weight: 800;
+259-                            color: var(--accent-color);
+260-                            opacity: 0.4;
+261-                            flex-shrink: 0;
+262-                            min-width: 32px;
+263-                            text-align: center;
+264-                            line-height: 1;
+265-                            margin-top: 2px;
+266-                        }
+267-                        .ds-science-item div { display: flex; flex-direction: column; gap: 4px; }
+268-                        .ds-science-item strong { color: #fff; font-size: 0.95em; }
+269-                        .ds-science-item span { color: var(--secondary-text-color); font-size: 0.85em; }
+270-                        .ds-feature-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+271-                        .ds-feature-item {
+272-                            display: flex; gap: 14px; align-items: flex-start; padding: 14px;
+273-                            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
+274-                            border-radius: 10px;
+275-                        }
+276-                        .ds-feature-icon { font-size: 1.5em; flex-shrink: 0; margin-top: 2px; }
+277-                        .ds-feature-item div { display: flex; flex-direction: column; gap: 4px; }
+278-                        .ds-feature-item strong { color: #fff; font-size: 0.95em; }
+279-                        .ds-feature-item span { color: var(--secondary-text-color); font-size: 0.85em; line-height: 1.5; }
+280-                        .ds-delivery-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+281-                        .ds-delivery-item {
+282-                            display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;
+283-                            padding: 14px 10px; background: rgba(255, 255, 255, 0.04); border-radius: 12px;
+284-                            border: 1px solid rgba(255, 255, 255, 0.08);
+285-                        }
+286-                        .ds-delivery-icon { font-size: 1.6em; margin-bottom: 2px; }
+287-                        .ds-delivery-item div { display: flex; flex-direction: column; gap: 4px; }
+288-                        .ds-delivery-item strong { color: #fff; font-size: 0.85em; line-height: 1.2; }
+289-                        .ds-delivery-item span { color: var(--secondary-text-color); font-size: 0.75em; line-height: 1.4; }
+290-                        
+291-                        /* Audience & Transformation Styles */
+292-                        .landing-audience-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 16px;}
+293-                        .landing-audience-card { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+294-                        .landing-audience-card.positive { border-left: 3px solid #10b981; }
+295-                        .landing-audience-card.negative { border-left: 3px solid #ef4444; }
+296-                        .landing-audience-subtitle { color: #fff; font-size: 0.95em; font-weight: 600; margin-bottom: 12px; }
+297-                        .landing-audience-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+298-                        .landing-audience-list li { position: relative; padding-left: 20px; font-size: 0.85em; color: var(--secondary-text-color); line-height: 1.5; }
+299-                        .landing-audience-list li::before { content: "•"; position: absolute; left: 0; top: 0; color: var(--accent-color); font-size: 1.2em; line-height: 1.2; }
+300-                        .landing-transformation-box { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+301-                        .landing-transformation-item { padding: 16px; border-radius: 12px; position: relative; }
+302-                        .landing-transformation-item.before { background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); }
+303-                        .landing-transformation-item.after { background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.1); }
+304-                        .landing-transformation-badge { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; }
+305-                        .landing-transformation-item.before .landing-transformation-badge { color: #ef4444; }
+306-                        .landing-transformation-item.after .landing-transformation-badge { color: #10b981; }
+307-                        .landing-transformation-item p { font-size: 0.9em; line-height: 1.6; color: var(--primary-text-color); margin: 0; font-style: italic;}
+308-                        .landing-transformation-arrow { display: flex; justify-content: center; align-items: center; font-size: 24px; filter: grayscale(1); opacity: 0.6; padding: 4px 0; }
+309-                        
+310-                        /* Guarantee & FAQ Styles */
+311-                        .offer-guarantee-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 16px; }
+312-                        .offer-guarantee-badge { width: 56px; height: 56px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+313-                        .guarantee-icon { font-size: 24px; }
+314-                        .offer-guarantee-content h3 { color: #10b981; font-weight: 700; font-size: 1.1em; margin-bottom: 6px; }
+315-                        .offer-guarantee-content p { color: var(--secondary-text-color); font-size: 0.85em; line-height: 1.5; margin: 0; }
+316-                        .offer-faq-item { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 16px 0; }
+317-                        .offer-faq-question { display: flex; justify-content: space-between; align-items: center; color: #fff; font-size: 0.95em; font-weight: 600; cursor: pointer; user-select: none; }
+318-                        .offer-faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+319-                        .offer-faq-answer p { color: var(--secondary-text-color); font-size: 0.85em; line-height: 1.6; margin-top: 12px; margin-bottom: 0; }
+320-                        .offer-faq-arrow { font-size: 0.7em; transition: transform 0.3s ease; color: var(--accent-color); }
+321-                        .faq-open .offer-faq-answer { max-height: 300px; }
+322-                        .faq-open .offer-faq-arrow { transform: rotate(180deg); }
+323-                        
+324-                        /* Carousel Specific Additions */
+325-                        .ds-mockup-section { margin-top: 36px; padding: 0; }
+326-                        .ds-mockup-image-wrapper { width: 100%; border: 1px solid rgba(205, 164, 94, 0.2); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); background: rgba(0,0,0,0.2); }
+327-                        .ds-carousel-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; width: 100%; scroll-behavior: smooth; }
+328-                        .ds-carousel-scroll::-webkit-scrollbar { display: none; }
+329-                        .ds-carousel-item { flex: 0 0 100%; width: 100%; scroll-snap-align: center; }
+330-                        .ds-carousel-item img { width: 100%; height: auto; display: block; }
+331-                        .ds-dots-container { display: flex; justify-content: center; gap: 8px; margin-top: 16px; margin-bottom: 16px; }
+332-                        .ds-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s ease; cursor: pointer; }
+333-                        .ds-dot.active { background: var(--accent-color); transform: scale(1.2); }
+334-                        .ds-mockup-caption { text-align: center; font-size: 0.85em; color: var(--secondary-text-color); padding: 0 16px; line-height: 1.5; font-style: italic;}
+335-                    </style>
+336-                    `;
+337-
+338-                    // 2. Pain
+339-                    if (sections.pain) {
+340-                        landingHTML += `
+341-                            <div class="landing-section">
+342-                                <h3 class="landing-title">${sections.pain.title}</h3>
+343-                                <div class="landing-pain-list">
+344-                                    ${sections.pain.items.map(item => `<div class="landing-pain-item">${item}</div>`).join('')}
+345-                                </div>
+346-                            </div>
+347-                        `;
+348-                    }
+349-
+350-                    // 3. Paradigm
+351-                    if (sections.paradigm) {
+352-                        landingHTML += `
+353-                            <div class="landing-section">
+354-                                <h3 class="landing-title">${sections.paradigm.title}</h3>
+355-                                <p class="landing-text-block">${sections.paradigm.text}</p>
+356-                            </div>
+357-                        `;
+358-                    }
+359-
+360-                    // 4. Solution
+361-                    if (sections.solution) {
+362-                        landingHTML += `
+363-                            <div class="landing-section">
+364-                                <h3 class="landing-title">${sections.solution.title}</h3>
+365-                                <p class="landing-subtitle">${sections.solution.subtitle}</p>
+366-                                <div class="landing-solution-list">
+367-                                    ${sections.solution.items.map(item => `
+368-                                        <div class="landing-solution-item">
+369-                                            <div class="landing-solution-icon">${item.icon}</div>
+370-                                            <div class="landing-solution-text">${item.text}</div>
+371-                                        </div>
+372-                                    `).join('')}
+373-                                </div>
+374-                            </div>
+375-                        `;
+376-                    }
+377-
+378-                    // 5. Audience (For who / Not for who)
+379-                    if (sections.audience) {
+380-                        landingHTML += `
+381-                            <div class="offer-landing-block">
+382-                                <div class="offer-section-card">
+383-                                    <h3 class="ds-section-title">${sections.audience.title}</h3>
+384-                                    <div class="ds-section-body">
+385-                                        <div class="landing-audience-grid">
+386-                                            <div class="landing-audience-card positive">
+387-                                                <h4 class="landing-audience-subtitle">✅ Для тих, хто:</h4>
+388-                                                <ul class="landing-audience-list">
+389-                                                    ${(sections.audience.for_who || []).map(i => `<li>${i}</li>`).join('')}
+390-                                                </ul>
+391-                                            </div>
+392-                                            <div class="landing-audience-card negative">
+393-                                                <h4 class="landing-audience-subtitle">${sections.audience.negativeSubtitle || '❌ Кому НЕ варто:'}</h4>
+394-                                                <ul class="landing-audience-list">
+395-                                                    ${(sections.audience.not_for_who || []).map(i => `<li>${i}</li>`).join('')}
+396-                                                </ul>
+397-                                            </div>
+398-                                        </div>
+399-                                    </div>
+400-                                </div>
+401-                            </div>
+402-                        `;
+403-                    }
+404-
+405-                    // 6. Transformation (Before / After)
+406-                    if (sections.transformation) {
+407-                        landingHTML += `
+408-                            <div class="offer-landing-block">
+409-                                <div class="offer-section-card">
+410-                                    <h3 class="ds-section-title">${sections.transformation.title}</h3>
+411-                                    <div class="ds-section-body">
+412-                                        <div class="landing-transformation-box">
+413-                                            <div class="landing-transformation-item before">
+414-                                                <div class="landing-transformation-badge">Раніше:</div>
+415-                                                <p>${sections.transformation.before}</p>
+416-                                            </div>
+417-                                            <div class="landing-transformation-arrow">⬇️</div>
+418-                                            <div class="landing-transformation-item after">
+419-                                                <div class="landing-transformation-badge">З Натальною картою:</div>
+420-                                                <p>${sections.transformation.after}</p>
+421-                                            </div>
+422-                                        </div>
+423-                                    </div>
+424-                                </div>
+425-                            </div>
+426-                        `;
+427-                    }
+428-
+429-                    // 7. Structure / Feature Grid (Replaces stage-3 comparison block for better mobile UX)
+430-                    landingHTML += `
+431-                        <div class="offer-landing-block">
+432-                            <div class="offer-section-card">
+433-                                <h3 class="ds-section-title">Структура твоєї <span>Натальної карти</span></h3>
+434-                                <div class="ds-section-body">
+435-                                    <p>Повна розшифровка Натальної Карти — це твоя <strong>інструкція до самої себе</strong>, яка покаже тобі:</p>
+436-                                    <div class="ds-feature-grid">
+437-                                        <div class="ds-feature-item">
+438-                                            <span class="ds-feature-icon">✨</span>
+439-                                            <div>
+440-                                                <strong>Свідоме і Підсвідоме: Твоє Ядро</strong>
+441-                                                <span>Твій справжній архетип та вирішення внутрішнього конфлікту, що саботує твої успіхи</span>
+442-                                            </div>
+443-                                        </div>
+444-                                        <div class="ds-feature-item">
+445-                                            <span class="ds-feature-icon">❤️‍🔥</span>
+446-                                            <div>
+447-                                                <strong>Стосунки та Кохання</strong>
+448-                                                <span>Твій типаж ідеального партнера та як перестати притягувати «не тих» чоловіків</span>
+449-                                            </div>
+450-                                        </div>
+451-                                        <div class="ds-feature-item">
+452-                                            <span class="ds-feature-icon">💰</span>
+453-                                            <div>
+454-                                                <strong>Гроші та Реалізація</strong>
+455-                                                <span>Де лежить твій фінансовий потенціал і як нарешті пробити "прозору стелю"</span>
+456-                                            </div>
+457-                                        </div>
+458-                                        <div class="ds-feature-item">
+459-                                            <span class="ds-feature-icon">🗝️</span>
+460-                                            <div>
+461-                                                <strong>Призначення та Кармічні Уроки</strong>
+462-                                                <span>Твоя справжня місія у цьому житті, таланти та унікальний шлях твоєї душі</span>
+463-                                            </div>
+464-                                        </div>
+465-                                        <div class="ds-feature-item" style="background: rgba(205, 164, 94, 0.06); border-color: rgba(205, 164, 94, 0.15);">
+466-                                            <span class="ds-feature-icon">⚡️</span>
+467-                                            <div>
+468-                                                <strong>Блок Майбутнього (Огляд на 6 місяців)</strong>
+469-                                                <span>Головні події, вікна можливостей та ключові астрологічні транзити, які чекають на тебе</span>
+470-                                            </div>
+471-                                        </div>
+472-                                        <div class="ds-feature-item" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08);">
+473-                                            <span class="ds-feature-icon">📡</span>
+474-                                            <div>
+475-                                                <strong>Точні Координати Планет та Вузлів</strong>
+476-                                                <span>Карта з градусами і секундами для кожної планети та кармічних вузлів.</span>
+477-                                            </div>
+478-                                        </div>
+479-                                    </div>
+480-                                </div>
+481-                            </div>
+482-                        </div>
+483-                    `;
+484-
+485-                    // 8. Mockups (PDF Carousel)
+486-                    if (mk.mockup && mk.mockup.images) {
+487-                        landingHTML += `
+488-                            <div class="ds-mockup-section">
+489-                                <h3 class="ds-section-title">${mk.mockup.title}</h3>
+490-                                <div class="ds-mockup-image-wrapper">
+491-                                    <div class="ds-carousel-scroll" id="ds-mockup-scroll">
+492-                                        ${mk.mockup.images.map(src => `<div class="ds-carousel-item"><img src="${src}" loading="lazy" alt="Preview"></div>`).join('')}
+493-                                    </div>
+494-                                </div>
+495-                                <div class="ds-dots-container" id="ds-mockup-dots">
+496-                                    ${mk.mockup.images.map((_, i) => `<div class="ds-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></div>`).join('')}
+497-                                </div>
+498-                                <p class="ds-mockup-caption">${mk.mockup.caption}</p>
+499-                            </div>
+500-                        `;
+501-                    }
+502-
+503-                    // 9. Delivery Format
+504-                    landingHTML += `
+505-                        <div class="offer-landing-block">
+506-                            <div class="offer-section-card">
+507-                                <h3 class="ds-section-title">Як ти отримаєш <span>свій звіт</span></h3>
+508-                                <div class="ds-section-body">
+509-                                    <div class="ds-delivery-list">
+510-                                        <div class="ds-delivery-item">
+511-                                            <span class="ds-delivery-icon">🌐</span>
+512-                                            <div><strong>На сайті</strong><span>Твій повний звіт буде доступний на екрані</span></div>
+513-                                        </div>
+514-                                        <div class="ds-delivery-item">
+515-                                            <span class="ds-delivery-icon">📧</span>
+516-                                            <div><strong>На Email</strong><span>Повний текст + PDF-документ у зручному форматі</span></div>
+517-                                        </div>
+518-                                        <div class="ds-delivery-item">
+519-                                            <span class="ds-delivery-icon">💬</span>
+520-                                            <div><strong>У Telegram</strong><span>Бот надішле тобі повний розбір у чат</span></div>
+521-                                        </div>
+522-                                        <div class="ds-delivery-item">
+523-                                            <span class="ds-delivery-icon">🔗</span>
+524-                                            <div><strong>Персональне посилання</strong><span>Унікальний URL, за яким звіт доступний назавжди</span></div>
+525-                                        </div>
+526-                                    </div>
+527-                                </div>
+528-                            </div>
+529-                        </div>
+530-                    `;
+531-
+532-                    // 10. Science (4 Pillars)
+533-                    landingHTML += `
+534-                        <div class="offer-landing-block">
+535-                            <div class="offer-section-card" style="background: rgba(205, 164, 94, 0.03); border: 1px solid rgba(205, 164, 94, 0.15);">
+536-                                <h3 class="ds-section-title">Чому Натальній карті <span>можна вірити</span></h3>
+537-                                <div class="ds-section-body">
+538-                                    <p>Розшифровка Натальної карти від Destiny Code — це <strong>не гороскоп із журналу</strong>. Ми не ділимо 8 мільярдів людей на 12 груп. Це точний персональний розрахунок, і ось чому йому можна довіряти:</p>
+539-                                    <div class="ds-science-grid">
+540-                                        <div class="ds-science-item"><span class="ds-science-num">01</span><div><strong>Фізика та Біоритми</strong><span>Місяць рухає мільярди тонн води у Світовому океані. Організм людини складається з води на 70-80%. Науково доведено, що у дні повні змінюється гормональний фон і якість сну.</span></div></div>
+541-                                        <div class="ds-science-item"><span class="ds-science-num">02</span><div><strong>Математична Точність</strong><span>Швейцарські Ефемериди (NASA JPL). За 4 хвилини Земля зсувається на 1 градус — навіть близнюки з різницею у 10 хвилин мають різні долі.</span></div></div>
+542-                                        <div class="ds-science-item"><span class="ds-science-num">03</span><div><strong>Тисячолітня Статистика</strong><span>Кеплер, Галілей, Карл Юнг — тисячоліттями найкращі уми спостерігали за рухом планет і фіксували закономірності. Юнг називав астрологію "психологією давнини".</span></div></div>
+543-                                        <div class="ds-science-item"><span class="ds-science-num">04</span><div><strong>Прогноз Погоди, а Не Вирок</strong><span>Натальна карта — це не вирок, а інструкція. Знаючи свої «налаштування», ти бачиш, де варто «підкласти соломки», а де впевнено тиснути на газ.</span></div></div>
+544-                                    </div>
+545-                                    <div class="ds-quote">
+546-                                        <span class="ds-quote-mark">🧭</span>
+547-                                        Натальна карта — це як GPS-навігатор. Ти сама тримаєш кермо і натискаєш на педалі. Але їхати вночі без фар — значить постійно ризикувати.
+548-                                    </div>
+549-                                </div>
+550-                            </div>
+551-                        </div>
+552-                    `;
+553-
+554-                    // 11. Detailed Reviews
+555-                    if (sections.testimonials) {
+556-                        landingHTML += `
+557-                            <div class="offer-landing-block">
+558-                                <div class="offer-section-card" style="padding: 24px 16px; border-top: none; background: transparent; border: none; box-shadow: none;">
+559-                                    <h3 class="ds-section-title" style="margin-bottom: 24px;">Що кажуть ті, хто вже отримав повний <span>Розрахунок</span></h3>
+560-                                    <div style="display: flex; flex-direction: column; gap: 14px;">
+561-                                        ${sections.testimonials.map(rev => `
+562-                                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 16px;">
+563-                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+564-                                                    <img src="${rev.avatar}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(205, 164, 94, 0.3);">
+565-                                                    <div>
+566-                                                        <div style="color: #fff; font-weight: 600; font-size: 0.95em;">${rev.name}</div>
+567-                                                        <div style="color: #FFD700; font-size: 0.85em; letter-spacing: 2px; margin-top: 2px;">★★★★★</div>
+568-                                                    </div>
+569-                                                </div>
+570-                                                <p style="color: var(--secondary-text-color); font-size: 0.88em; margin: 0; line-height: 1.6; font-style: italic;">
+571-                                                    "${rev.text}"
+572-                                                </p>
+573-                                            </div>
+574-                                        `).join('')}
+575-                                    </div>
+576-                                </div>
+577-                            </div>
+578-                        `;
+579-                    }
+580-
+581-                    // 12. Guarantee
+582-                    landingHTML += `
+583-                        <div class="offer-landing-block">
+584-                            <div class="offer-guarantee-card">
+585-                                <div class="offer-guarantee-badge"><span class="guarantee-icon">🛡️</span></div>
+586-                                <div class="offer-guarantee-content">
+587-                                    <h3>100% Впевненість у якості</h3>
+588-                                    <p>Ми на 100% впевнені у глибині та точності нашої Розшифровки. Якщо протягом 24 годин ти вирішиш, що звіт тобі не підійшов — ми повернемо кошти без зайвих питань.</p>
+589-                                </div>
+590-                            </div>
+591-                        </div>
+592-                    `;
+593-
+594-                    // 13. FAQ
+595-                    if (sections.faq) {
+596-                        landingHTML += `
+597-                            <div class="offer-landing-block">
+598-                                <div class="offer-section-card" style="border-top: none;">
+599-                                    <h3 class="ds-section-title">Часті <span>запитання</span></h3>
+600-                                    <div class="ds-faq-list">
+601-                                        ${sections.faq.map(item => `
+602-                                            <div class="offer-faq-item">
+603-                                                <div class="offer-faq-question">
+604-                                                    <span>${item.q}</span>
+605-                                                    <span class="offer-faq-arrow">▼</span>
+606-                                                </div>
+607-                                                <div class="offer-faq-answer">
+608-                                                    <p>${item.a}</p>
+609-                                                </div>
+610-                                            </div>
+611-                                        `).join('')}
+612-                                    </div>
+613-                                </div>
+614-                            </div>
+615-                        `;
+616-                    }
+617-                } else {
+618-                    // --- EXISTING ORIGINAL LANDING HTML LOGIC FOR OTHERS ---
+619-
+620-
+621-                // --- 1. Paradigm Section (What is Natal Chart) ---
+622-                if (sections.paradigm) {
+623-                    landingHTML += `
+624-                        <div class="landing-section">
+625-                            <h3 class="landing-title">${sections.paradigm.title}</h3>
+626-                            <p class="landing-text-block">${sections.paradigm.text}</p>
+627-                        </div>
+628-                    `;
+629-                }
+630-
+631-                // --- 1.5. What It Shows Section ---
+632-                if (sections.whatItShows) {
+633-                    landingHTML += `
+634-                        <div class="landing-section">
+635-                            <h3 class="landing-title">${sections.whatItShows.title}</h3>
+636-                            <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 24px;">
+637-                                ${sections.whatItShows.items.map(item => `
+638-                                    <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 18px 16px; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+639-                                        <div style="font-size: 26px; line-height: 1; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${item.icon}</div>
+640-                                        <div style="font-size: 15px; color: var(--secondary-text-color); line-height: 1.45; text-align: left;">
+641-                                            <span class="text-white font-medium">${item.title}</span> — ${item.desc}
+642-                                        </div>
+643-                                    </div>
+644-                                `).join('')}
+645-                            </div>
+646-                        </div>
+647-                    `;
+648-                }
+649-
+650-                // --- 2. Pain Section ---
+651-                if (sections.pain) {
+652-                    landingHTML += `
+653-                        <div class="landing-section">
+654-                            <h3 class="landing-title">${sections.pain.title}</h3>
+655-                            <div class="landing-pain-list">
+656-                                ${sections.pain.items.map(item => `<div class="landing-pain-item">${item}</div>`).join('')}
+657-                            </div>
+658-                        </div>
+659-                    `;
+660-                }
+661-
+662-                // --- 3. How It Works Section ---
+663-                if (sections.howItWorks) {
+664-                    landingHTML += `
+665-                        <div class="landing-section">
+666-                            <h3 class="landing-title">${sections.howItWorks.title}</h3>
+667-                            <div class="landing-how-it-works-card">
+668-                                <p class="landing-text-block">${sections.howItWorks.text}</p>
+669-                            </div>
+670-                        </div>
+671-                    `;
+672-                }
+673-
+674-                // --- 4. Paradox/Solution Section (GPS Navigator) ---
+675-                if (sections.solution) {
+676-                    landingHTML += `
+677-                        <div class="landing-section">
+678-                            <h3 class="landing-title">${sections.solution.title}</h3>
+679-                            <p class="landing-subtitle">${sections.solution.subtitle}</p>
+680-                            <div class="landing-solution-list">
+681-                                ${sections.solution.items.map(item => `
+682-                                    <div class="landing-solution-item">
+683-                                        <div class="landing-solution-icon">${item.icon}</div>
+684-                                        <div class="landing-solution-text">${item.text}</div>
+685-                                    </div>
+686-                                `).join('')}
+687-                            </div>
+688-                        </div>
+689-                    `;
+690-                }
+691-
+692-                // --- 5. Features Section (What you learn about yourself) ---
+693-                if (sections.features) {
+694-                    landingHTML += `
+695-                        <div class="landing-section">
+696-                            <h3 class="landing-title">${sections.features.title}</h3>
+697-                            <div class="landing-features-grid">
+698-                                ${sections.features.items.map(item => `
+699-                                    <div class="landing-feature-card">
+700-                                        <h4 class="landing-feature-title">${item.title}</h4>
+701-                                        <p class="landing-feature-desc">${item.desc}</p>
+702-                                    </div>
+703-                                `).join('')}
+704-                            </div>
+705-                        </div>
+706-                    `;
+707-                }
+708-
+709-                // --- 6. Preview Block: Що ти отримаєш безкоштовно (NOT for Direct Sale) ---
+710-                if (!variant.isDirectSale) {
+711-                landingHTML += `
+712-                    <div class="landing-section">
+713-                        <h3 class="landing-title">Що ти отримаєш <span>безкоштовно</span></h3>
+714-                        <div class="landing-preview-list">
+715-                            <div class="landing-preview-item">
+716-                                <div class="landing-preview-icon">✨</div>
+717-                                <div class="landing-preview-content">
+718-                                    <div class="landing-preview-title">Твій Зірковий Архетип</div>
+719-                                    <div class="landing-preview-desc">Хто ти за своєю космічною природою</div>
+720-                                </div>
+721-                            </div>
+722-                            <div class="landing-preview-item">
+723-                                <div class="landing-preview-icon">⚡</div>
+724-                                <div class="landing-preview-content">
+725-                                    <div class="landing-preview-title">Прихований Внутрішній Конфлікт</div>
+726-                                    <div class="landing-preview-desc">Що тебе стримує зсередини</div>
+727-                                </div>
+728-                            </div>
+729-                            <div class="landing-preview-item">
+730-                                <div class="landing-preview-icon">🗝️</div>
+731-                                <div class="landing-preview-content">
+732-                                    <div class="landing-preview-title">Твій Ключ до Змін</div>
+733-                                    <div class="landing-preview-desc">Перший крок до трансформації</div>
+734-                                </div>
+735-                            </div>
+736-                        </div>
+737-                        <div class="landing-preview-timer">
+738-                            <span>⏱️</span> Розрахунок займе менше хвилини
+739-                        </div>
+740-                    </div>
+741-                `;
+742-                }
+743-
+--
+772:                if (variant.isDirectSale) {
+773-                    const currentPrices = getPrices();
+774-                    warmUpBackend();
+775-                    
+776-                    const premiumBottomForm = `
+777-                        <div id="bottom-form-wrapper" style="scroll-margin-top: 20px; position: relative;" class="z-10">
+778-                            <div class="relative py-5">
+779-                                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+780-                                    <div class="w-full border-t border-gray-700"></div>
+781-                                </div>
+782-                                <div class="relative flex justify-center">
+783-                                    <span class="px-3 text-sm text-center" style="background-color: var(--bg-color); color: var(--accent-color); font-weight: 600; letter-spacing: 0.5px; line-height: 1.4;">УТОЧНИ ДАНІ</span>
+784-                                </div>
+785-                            </div>
+786-
+787-                            <div class="space-y-2 text-center mb-4">
+788-                                <h2 class="text-2xl font-bold text-white tracking-tight">
+789-                                    Отримай повну розшифровку твоєї <span class="text-[#cda45e]">Натальної карти</span>
+790-                                </h2>
+791-                                <p class="text-sm" style="color: var(--secondary-text-color);">
+792-                                    Введи час і місце народження — і отримай свій персональний звіт одразу після оплати
+793-                                </p>
+794-                            </div>
+795-
+796-                            <div id="ds-premium-form" class="w-full space-y-5 mt-4">
+797-                                <div>
+798-                                    <label for="ds-birth-time" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2" style="color: var(--accent-color);">Час народження</label>
+799-                                    <div class="input-field h-14 flex items-center justify-center relative hover:border-[#cda45e] transition-colors">
+800-                                        <svg class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2" style="color: var(--secondary-text-color);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+801-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+802-                                        </svg>
+803-                                        <span id="ds-time-placeholder" style="color: var(--secondary-text-color); pointer-events: none;">Обери час</span>
+804-                                        <input type="time" id="ds-birth-time" name="ds-birth-time" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+805-                                    </div>
+806-                                    <p id="ds-time-error" class="error-text" style="display: none;">Будь ласка, обери час народження.</p>
+807-                                    <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-align: center; margin-top: 8px; line-height: 1.3; font-weight: 300;">Якщо не знаєш точного часу — не страшно, наші алгоритми адаптують розрахунок за датою та містом</p>
+808-                                </div>
+809-
+810-                                <div>
+811-                                    <label for="ds-birth-city" class="block text-xs uppercase tracking-widest font-semibold text-left ml-1 mb-2" style="color: var(--accent-color);">Місце народження</label>
+812-                                    <input type="text" id="ds-birth-city" name="ds-birth-city" placeholder="Наприклад, Київ" class="input-field text-center hover:border-[#cda45e] transition-colors w-full" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; background-color: var(--card-bg-color) !important; opacity: 1;">
+813-                                    <p id="ds-city-error" class="error-text" style="display: none;">Текст помилки...</p>
+814-                                    <p id="ds-city-info" class="info-text" style="display: none;"></p>
+815-                                </div>
+816-
+817-                                <div id="ds-validation-error" style="display: none;" class="bg-red-500/10 border border-red-500/20 rounded-md p-3 text-red-500 text-sm text-center"></div>
+818-
+819-                                <button type="button" id="ds-pay-button" class="btn btn-primary w-full !text-lg h-14">
+820-                                    <span class="btn-text">
+821-                                        <span class="flex flex-col items-center gap-0 w-full">
+822-                                            <span class="whitespace-nowrap" style="font-size: 14px; font-weight: 700; line-height: 1.3;">Отримати Розшифровку за ${currentPrices.display.FULL_REPORT} грн. <span style="font-size: 13px; font-weight: 400; opacity: 0.5; text-decoration: line-through;">${currentPrices.display.FULL_REPORT_OLD} грн</span></span>
+823-                                            <span class="text-[10px] uppercase tracking-[1px] opacity-80 mt-1">Одноразовий платіж &bull; Довічний доступ</span>
+824-                                        </span>
+825-                                    </span>
+826-                                    <span class="btn-spinner"></span>
+827-                                </button>
+828-
+829-                                <button type="button" id="ds-skip-button" class="btn btn-skip opacity-80 text-xs mt-1 w-full" style="padding: 12px; height: auto;">
+830-                                    Розрахувати без точного часу (точність 95%)
+831-                                </button>
+832-
+833-                                <div class="text-center mt-2">
+834-                                    <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">&#128274; Безпечна оплата через Monobank</span>
+835-                                </div>
+836-                            </div>
+837-                        </div>
+838-                    `;
+839-
+840-                    const stickyCTA = `
+841-                        <div class="landing-sticky-cta-container" id="landing-sticky-cta">
+842-                            <button class="btn btn-primary shadow-2xl" id="ds-sticky-cta-btn">
+843-                                <span class="btn-text">
+844-                                    <span class="flex flex-col items-center gap-0 w-full">
+845-                                        <span class="whitespace-nowrap" style="font-size: 14px; font-weight: 700; line-height: 1.3;">Отримати Розшифровку за ${currentPrices.display.FULL_REPORT} грн.</span>
+846-                                        <span class="text-[10px] uppercase tracking-[1px] opacity-80 mt-0.5">Одноразовий платіж &bull; Довічний доступ</span>
+847-                                    </span>
+848-                                </span>
+849-                            </button>
+850-                        </div>
+851-                    `;
+852-
+853-                    landingContainer.innerHTML = landingHTML + premiumBottomForm + stickyCTA;
+854-                } else {
+855-                    // --- ORIGINAL LANDING LOGIC (non-direct-sale) ---
+856-                    const mainFormHTML = tempWrapper.querySelector('#birth-form').outerHTML
+857-                        .replace('id="birth-form"', 'id="birth-form-bottom"')
+858-                        .replace('id="birth-date"', 'id="birth-date-bottom"')
+859-                        .replace('id="submit-btn"', 'id="submit-btn-bottom"')
+860-                        .replace('id="error-message"', 'id="error-message-bottom"')
+861-                        .replace('id="date-placeholder"', 'id="date-placeholder-bottom"');
+862-                    
+863-                    const stickyCTA = `
+864-                        <div class="landing-sticky-cta-container" id="landing-sticky-cta">
+865-                            <button class="btn btn-primary shadow-2xl" onclick="document.querySelector('.funnel-container').scrollTo({top: 129, behavior: 'smooth'})">
+866-                                <span class="btn-text">${variant?.ui?.buttonText?.toUpperCase() || 'ОТРИМАТИ НАТАЛЬНУ КАРТУ'}</span>
+867-                            </button>
+868-                        </div>
+869-                    `;
+870-                    
+871-                    const bottomForm = `
+872-                        <div class="landing-bottom-form-wrapper" id="bottom-form-wrapper" style="scroll-margin-top: 20px;">
+873-                            <h3 class="landing-title text-center text-xl mb-4 !mt-0">${variant?.ui?.bottomFormTitle || 'Готова змінити життя?'}</h3>
+874-                            ${mainFormHTML}
+875-                        </div>
+876-                    `;
+877-                    
+878-                    landingContainer.innerHTML = landingHTML + bottomForm + stickyCTA;
+879-                }
+880-            }
+881-        }
+882-
+883-    } catch (err) {
+884-        console.error("❌ Error preparing variant UI:", err);
+885-    }
+886-
+887-    // 🚀 INJECT FINALIZED HTML
+888-    app.innerHTML = tempWrapper.innerHTML;
+889-
+890-    // 🔥 Add subtle side chevrons dynamically after DOM insertion (for specific variants if needed)
+891-    if (variant && variant.isLandingPage) {
+892-        const formEl = document.getElementById('birth-form');
+893-        if (formEl) {
+894-            formEl.style.position = 'relative';
+895-            const chevContainer = document.createElement('div');
+896-            chevContainer.innerHTML = `
+897-                <style>
+898-                    @keyframes subtle-arrows {
+899-                        0%, 100% { transform: translateY(0); opacity: 0.2; }
+900-                        50% { transform: translateY(4px); opacity: 0.9; }
+901-                    }
+902-                    .site-chevron {
+903-                        position: absolute;
+904-                        display: flex;
+905-                        flex-direction: column;
+906-                        align-items: center;
+907-                        pointer-events: none;
+908-                        color: var(--accent-color);
+909-                        top: 78px; /* Aligned with the submit button (down from top of form) */
+910-                    }
+911-                    .site-chevron.left { left: -14px; }
+912-                    .site-chevron.right { right: -14px; }
+913-                    @media (min-width: 400px) {
+914-                        .site-chevron.left { left: -20px; }
+915-                        .site-chevron.right { right: -20px; }
+916-                    }
+917-                    .site-chevron svg { width: 12px; height: 12px; opacity: 0.6; }
+918-                    .site-chevron svg:nth-child(1) { animation: subtle-arrows 1.5s infinite 0s; }
+919-                    .site-chevron svg:nth-child(2) { animation: subtle-arrows 1.5s infinite 0.2s; margin-top: -6px; }
+920-                    .site-chevron svg:nth-child(3) { animation: subtle-arrows 1.5s infinite 0.4s; margin-top: -6px; }
+921-                </style>
+922-                <div class="site-chevron left">
+923-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+924-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+925-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+926-                </div>
+927-                <div class="site-chevron right">
+928-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+929-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+930-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+931-                </div>
+932-            `;
+933-            formEl.appendChild(chevContainer);
+934-        }
+935-    }
+936-
+937-    // --- 🔥 POST-RENDER LOGIC (Listeners & Global Styles) ---
+938-
+939-    // 🧑‍🤝‍🧑 /man VARIANT: Auto-scroll to Header
+940-    if (variant && (variant.id === 'man' || variant.id === 'man1uah' || variant.id === 'forecast')) {
+941-        setTimeout(() => {
+942-            const titleEl = document.querySelector('#landing-step h2');
+943-            const container = document.querySelector('.funnel-container');
+944-
+945-            if (titleEl && container) {
+946-                // Calculate offset to scroll title to top (with a bit of padding)
+947-                // We want title to have some visual breathing room, but push it higher to fit the bottom form.
+948-                const titleTop = titleEl.offsetTop;
+949-                const offset = -25; // Negative offset pushes the content higher up the screen
+950-
+951-                container.scrollTo({
+952-                    top: titleTop - offset,
+953-                    behavior: 'auto'
+954-                });
+955-            }
+956-        }, 100); // Small delay to ensure layout stability
+957-    }
+958-
+959-    try {
+960-        // 🔢 POST-RENDER COUNTER LOGIC (Works for both variants and default)
+961-        const counterConfig = {
+962-            'default': { key: 'natal_chart_counter', base: 15420 },
+963-            'man': { key: 'man_women_counter', base: 12367 },
+964-            'man1uah': { key: 'man_women_counter', base: 12367 },
+965-            'natal_chart': { key: 'natal_chart_counter', base: 15420 },
+966-            'natal_chart_original': { key: 'natal_chart_counter', base: 15420 },
+967-            'original': { key: 'natal_chart_counter', base: 15420 },
+968-            'natal_chart2': { key: 'natal_chart_counter', base: 15420 },
+969-            'natal_chart_price': { key: 'natal_chart_counter', base: 15420 },
+970-            'natal_chart_offer': { key: 'natal_chart_counter', base: 15420 },
+971-            'natal_chart_offer1uah': { key: 'natal_chart_counter', base: 15420 },
+972-            'forecast': { key: 'forecast_counter', base: 8934 },
+973-            '1uah': { key: 'natal_chart_counter', base: 15420 },
+974-            'natal_child': { key: 'natal_child_counter', base: 6712 }
+975-        };
+976-
+977-        const activeVariantId = variant ? variant.id : 'default';
+978-
+979-        if (counterConfig[activeVariantId]) {
+980-            const conf = counterConfig[activeVariantId];
+981-            const counterEl = document.getElementById('live-women-counter');
+982-            if (counterEl) {
+983-                let count = parseInt(localStorage.getItem(conf.key)) || conf.base;
+984-
+985-                const renderCount = (c, animate) => {
+986-                    // Format number with space as thousands separator
+987-                    counterEl.innerText = c.toLocaleString('uk-UA').replace(/\u00a0/g, ' ');
+988-                    if (animate) {
+989-                        counterEl.style.transform = 'scale(1.2)';
+990-                        counterEl.style.color = '#fff';
+991-                        setTimeout(() => {
+992-                            counterEl.style.transform = 'scale(1)';
+993-                            counterEl.style.color = 'var(--accent-color)';
+994-                        }, 250);
+995-                    }
+996-                };
+997-
+998-                renderCount(count, false);
+999-
+1000-                const scheduleNextIncrement = () => {
+1001-                    const delay = Math.random() * 4000 + 4000;
+1002-                    setTimeout(() => {
+1003-                        count += Math.floor(Math.random() * 3) + 1;
+1004-                        localStorage.setItem(conf.key, count);
+1005-                        renderCount(count, true);
+1006-                        scheduleNextIncrement();
+1007-                    }, delay);
+1008-                };
+1009-
+1010-                scheduleNextIncrement();
+1011-            }
+1012-        }
+1013-
+1014-        if (variant && variant.ui) {
+1015-
+1016-        }
+1017-    } catch (err) {
+1018-        console.error("❌ Error attaching post-render variant logic:", err);
+1019-    }
+1020-
+1021-    // 🔥 GLOBAL ANIMATION STYLES (Always Injected)
+1022-    if (!document.getElementById('global-anim-styles')) {
+1023-        const style = document.createElement('style');
+1024-        style.id = 'global-anim-styles';
+1025-        style.innerHTML = `
+1026-            @keyframes gentle-shake {
+1027-                0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(205, 164, 94, 0); }
+1028-                25% { transform: translateX(-5px) rotate(-1deg); }
+1029-                75% { transform: translateX(5px) rotate(1deg); box-shadow: 0 0 20px 0 rgba(205, 164, 94, 0.5); }
+1030-            }
+1031-
+1032-            /* 🌬️ "Mystic Breath" for Subtitle (used only if element exists) */
+1033-            @keyframes mystic-breath {
+1034-                0%, 100% { 
+1035-                    transform: scale(1); 
+1036-                    box-shadow: 0 0 0 rgba(255,255,255,0);
+1037-                    border-color: rgba(255,255,255,0.2);
+1038-                }
+1039-                50% { 
+1040-                    transform: scale(0.98); /* Squeeze inward */
+1041-                    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* Very subtle glow */
+1042-                    border-color: rgba(255,255,255,0.5);
+1043-                }
+1044-            }
+1045-            #hero-subtitle-cta {
+1046-                animation: mystic-breath 6s ease-in-out infinite;
+1047-            }
+1048-
+1049-            /* ✨ "Star Shine" for Date Input Field ONLY (Stage 1) */
+1050-            /* Excludes time input on Stage 4 */
+1051-            #landing-step .input-field {
+1052-                position: relative;
+1053-                overflow: hidden;
+1054-            }
+1055-            #landing-step .input-field::after {
+1056-                content: "";
+1057-                position: absolute;
+1058-                top: 0;
+1059-                left: -50px;
+1060-                width: 17px;
+1061-                height: 100%;
+1062-                background: linear-gradient(
+1063-                    90deg,
+1064-                    transparent,
+1065-                    rgba(255, 255, 255, 0.8),
+1066-                    transparent
+1067-                );
+1068-                transform: skewX(-25deg);
+1069-                animation: shine-anim 11s infinite;
+1070-                animation-delay: 3s;
+1071-                pointer-events: none;
+1072-                z-index: 5; 
+1073-            }
+1074-            
+1075-            /* ✨ "Star Shine" Restored (Scoped to .shine-effect) */
+1076-            .shine-effect {
+1077-                position: relative;
+1078-                overflow: hidden;
+1079-            }
+1080-            .shine-effect::after {
+1081-                content: "";
+1082-                position: absolute;
+1083-                top: 0;
+1084-                left: -50px;
+1085-                width: 17px;
+1086-                height: 100%;
+1087-                background: linear-gradient(
+1088-                    90deg,
+1089-                    transparent,
+1090-                    rgba(255, 255, 255, 0.8),
+1091-                    transparent
+1092-                );
+1093-                transform: skewX(-25deg);
+1094-                animation: shine-anim 11s infinite;
+1095-                animation-delay: 3s;
+1096-                pointer-events: none;
+1097-                z-index: 5; 
+1098-            }
+1099-            
+1100-            @keyframes shine-anim {
+1101-                0% { left: -50px; }
+1102-                45% { left: 150%; } 
+1103-                100% { left: 150%; }
+1104-            }
+1105-            
+1106-            @keyframes bounce-subtle {
+1107-                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+1108-                40% { transform: translateY(5px); }
+1109-                60% { transform: translateY(3px); }
+1110-            }
+1111-        `;
+1112-        document.head.appendChild(style);
+1113-    }
+1114-
+1115-    // --- DOM Elements (Modals) ---
+1116-    const infoModal = document.getElementById('info-modal');
+1117-    const legalModal = document.getElementById('legal-modal');
+1118-
+1119-    // Triggers
+1120-    const openInfoBtn = document.getElementById('open-info-modal-btn');
+1121-    const closeInfoIcon = document.getElementById('close-info-modal-icon');
+1122-    const closeInfoBtn = document.getElementById('close-info-modal-btn');
+1123-
+1124-    const closeLegalIcon = document.getElementById('close-legal-modal-icon');
+1125-    const closeLegalBtn = document.getElementById('close-legal-modal-btn');
+1126-    const legalModalBody = document.getElementById('legal-modal-body');
+1127-
+1128-    const legalLinks = document.querySelectorAll('.legal-link[data-legal-type]');
+1129-
+1130-    // ==========================================
+1131-    // MODAL LOGIC (Smart Copy-Paste)
+1132-    // ==========================================
+1133-
+1134-    function openInfoModal() {
+1135-        if (infoModal) infoModal.style.display = 'flex';
+1136-    }
+1137-
+1138-    function closeInfoModal() {
+1139-        if (infoModal) infoModal.style.display = 'none';
+1140-    }
+1141-
+1142-    function openLegalModal(type) {
+1143-        const content = document.getElementById('legal-content-' + type);
+1144-        if (content && legalModal && legalModalBody) {
+1145-            legalModalBody.innerHTML = content.innerHTML;
+1146-            legalModal.style.display = 'flex';
+1147-        }
+1148-    }
+1149-
+1150-    function closeLegalModal() {
+1151-        if (legalModal) legalModal.style.display = 'none';
+1152-    }
+1153-
+1154-    // Attach Listeners
+1155-    if (openInfoBtn) openInfoBtn.addEventListener('click', () => { haptics.trigger('light'); openInfoModal(); });
+1156-    if (closeInfoIcon) closeInfoIcon.addEventListener('click', () => { haptics.trigger('light'); closeInfoModal(); });
+1157-    if (closeInfoBtn) closeInfoBtn.addEventListener('click', () => { haptics.trigger('light'); closeInfoModal(); });
+1158-
+1159-    if (closeLegalIcon) closeLegalIcon.addEventListener('click', () => { haptics.trigger('light'); closeLegalModal(); });
+1160-    if (closeLegalBtn) closeLegalBtn.addEventListener('click', () => { haptics.trigger('light'); closeLegalModal(); });
+1161-
+1162-    // Close on overlay click
+1163-    if (infoModal) {
+1164-        infoModal.addEventListener('click', (e) => {
+1165-            if (e.target === infoModal) closeInfoModal();
+1166-        });
+1167-    }
+1168-    if (legalModal) {
+1169-        legalModal.addEventListener('click', (e) => {
+1170-            if (e.target === legalModal) closeLegalModal();
+1171-        });
+1172-    }
+1173-
+1174-    // Legal Links Transition Logic (Info -> Legal)
+1175-    legalLinks.forEach(link => {
+1176-        link.addEventListener('click', (e) => {
+1177-            const type = e.target.getAttribute('data-legal-type');
+1178-            closeInfoModal();
+1179-            setTimeout(() => {
+1180-                openLegalModal(type);
+1181-            }, 50); // Slight delay for smoother transition
+1182-        });
+1183-    });
+1184-
+1185-    // ==========================================
+1186-    // FORM LOGIC (Modified for smooth UX)
+1187-    // ==========================================
+1188-    
+1189-    function setupForm(formId, inputId, errorId, placeholderId) {
+1190-        const formEl = document.getElementById(formId);
+1191-        const inputEl = document.getElementById(inputId);
+1192-        const errorEl = document.getElementById(errorId);
+1193-        const placeholderEl = document.getElementById(placeholderId);
+1194-        
+1195-        if (!formEl || !inputEl) return;
+1196-        
+1197-        const submitBtn = formEl.querySelector('button[type="submit"]');
+1198-
+1199-        // 🔥 Existing logic for validation styling can go here if needed
+1200-
+1201-        // 🆕 Animate Button on Date Selection (Done / Blur)
+1202-        inputEl.addEventListener('blur', (e) => {
+1203-            if (e.target.value && submitBtn) {
+1204-                submitBtn.style.animation = 'none';
+1205-                requestAnimationFrame(() => {
+1206-                    submitBtn.style.animation = 'gentle-shake 0.5s ease-in-out 2';
+1207-                });
+1208-                setTimeout(() => {
+1209-                    submitBtn.style.animation = '';
+1210-                }, 1000);
+1211-            }
+1212-        });
+1213-
+1214-        // --- 1. Logic: Date Placeholder ---
+1215-        function updateDatePlaceholder() {
+1216-            const val = inputEl.value;
+1217-            if (!val) {
+1218-                if (placeholderEl) {
+1219-                    placeholderEl.innerText = 'Обрати дату народження';
+1220-                    placeholderEl.style.color = 'var(--secondary-text-color)';
+1221-                }
+1222-            } else {
+1223-                const parts = val.split('-');
+1224-                if (parts.length === 3) {
+1225-                    const formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
+1226-                    if (placeholderEl) {
+1227-                        placeholderEl.innerText = formattedDate;
+1228-                        placeholderEl.style.color = 'var(--primary-text-color)';
+1229-                    }
+1230-                    if (errorEl) errorEl.style.display = 'none';
+1231-                    
+1232-                    // Sync the other form if it exists
+1233-                    const otherInputId = inputId === 'birth-date' ? 'birth-date-bottom' : 'birth-date';
+1234-                    const otherInput = document.getElementById(otherInputId);
+1235-                    if (otherInput && otherInput.value !== val) {
+1236-                        otherInput.value = val;
+1237-                        // Trigger 'change' smoothly so the other placeholder updates without loop
+1238-                        otherInput.dispatchEvent(new Event('change', { 'bubbles': true }));
+1239-                    }
+1240-                }
+1241-            }
+1242-        }
+1243-
+1244-        // --- 2. Logic: Default Date Focus (Silent Set) ---
+1245-        function setDefaultDateOnFirstFocus() {
+1246-            if (inputEl.value === '') {
+1247-                inputEl.value = '1995-01-01';
+1248-            }
+1249-        }
+1250-
+1251-        // --- Listeners ---
+1252-        inputEl.addEventListener('input', updateDatePlaceholder);
+1253-        inputEl.addEventListener('change', updateDatePlaceholder);
+1254-        inputEl.addEventListener('blur', updateDatePlaceholder);
+1255-
+1256-        inputEl.addEventListener('focus', setDefaultDateOnFirstFocus);
+1257-        inputEl.addEventListener('click', setDefaultDateOnFirstFocus);
+1258-        inputEl.addEventListener('touchstart', setDefaultDateOnFirstFocus);
+1259-
+1260-        updateDatePlaceholder();
+1261-
+1262-        // --- 3. Logic: Form Submit ---
+1263-        formEl.addEventListener('submit', async function (e) {
+1264-            e.preventDefault();
+1265-            haptics.trigger('heavy');
+1266-            const selectedDate = inputEl.value;
+1267-
+1268-            if (selectedDate === '') {
+1269-                haptics.trigger('error');
+1270-                if (errorEl) {
+1271-                    errorEl.innerText = "Будь ласка, обери дату народження.";
+1272-                    errorEl.style.display = 'block';
+1273-                }
+1274-            } else {
+1275-                if (errorEl) errorEl.style.display = 'none';
+1276-
+1277-                state.set('date', selectedDate);
+1278-
+1279-                // 🚀 DIRECT SALE: Scroll to bottom premium form instead of navigating
+1280-                const currentVar = state.get('currentVariant');
+1281-                if (currentVar && currentVar.isDirectSale) {
+1282-                    const bottomFormWrapper = document.getElementById('bottom-form-wrapper');
+1283-                    if (bottomFormWrapper) {
+1284-                        const funnelContainer = document.querySelector('.funnel-container');
+1285-                        if (funnelContainer) {
+1286-                            funnelContainer.scrollTo({ top: bottomFormWrapper.offsetTop, behavior: 'smooth' });
+1287-                        }
+1288-                    }
+1289-                    return; // Don't navigate to loading
+1290-                }
+1291-
+1292-                function setButtonLoading(button, isLoading) {
+1293-                    if (button) {
+1294-                        if (isLoading) {
+1295-                            button.classList.add('loading');
+1296-                            button.disabled = true;
+1297-                        } else {
+1298-                            button.classList.remove('loading');
+1299-                            button.disabled = false;
+1300-                        }
+1301-                    }
+1302-                }
+1303-
+1304-                setButtonLoading(submitBtn, true);
+1305-                initAstroLib();
+1306-                router.navigateTo('loading');
+1307-            }
+1308-        });
+1309-    }
+1310-
+1311-    // Initialize MAIN Form
+1312-    setupForm('birth-form', 'birth-date', 'error-message', 'date-placeholder');

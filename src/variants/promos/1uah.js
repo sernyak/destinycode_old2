@@ -18,9 +18,10 @@ export const oneUahConfig = {
     pricing: {
         display: {
             FULL_REPORT: 347,
-            FULL_REPORT_OLD: 997,
+            FULL_REPORT_OLD: 1499,
             FORECAST_UPSELL: 199,
-            FORECAST_OLD: 572
+            FORECAST_UPSELL_OLD: 1499,
+            FORECAST_OLD: 1499
         },
         charge: {
             FULL_REPORT: 1,

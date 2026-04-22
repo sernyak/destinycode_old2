@@ -97,11 +97,11 @@ export async function renderAstroBox(userData, variant = null) {
 
         const displayList = [];
         displayList.push(getFormattedPosForScreen('sun', 'Сонце'));
-        displayList.push(getFormattedPosForScreen('moon', 'Місяць'));
-        displayList.push(getFormattedPosForScreen('ascendant', 'ASC'));
+        displayList.push(getFormattedPosForScreen('mercury', 'Меркурій'));
         displayList.push(getFormattedPosForScreen('venus', 'Венера'));
         displayList.push(getFormattedPosForScreen('mars', 'Марс'));
         displayList.push(getFormattedPosForScreen('jupiter', 'Юпітер'));
+        displayList.push(getFormattedPosForScreen('saturn', 'Сатурн'));
 
 
         // --- Chart Render Logic (Exact from Monolith applyGoldThemeToSVG) ---

@@ -16,8 +16,7 @@
         <!-- Кнопки будуть згенеровані через JS -->
     </div>
 
-    <!-- 3. Модальне вікно Late Upsell (для кнопки "Отримати прогноз") -->
-    <!-- Копія #late-upsell-modal з моноліту -->
+    <!-- 3. Модальне вікно Late Upsell (динамічний контент заповнюється через JS) -->
     <div id="late-upsell-modal" class="modal-overlay">
         <div class="modal-content" style="width: 480px; max-width: 95%;">
             <div style="text-align: right; margin-bottom: 10px;">
@@ -28,19 +27,13 @@
                 <h3 class="font-bold text-lg text-white mb-2" style="color: var(--accent-secondary);">
                     Додай до свого замовлення
                 </h3>
-                <p class="text-sm mt-2 mb-6 leading-relaxed" style="color: var(--secondary-text-color);">
-                    Хочеш повний <strong>Астрологічний Прогноз</strong> на найближчий рік? Дізнатися про свої фінансові
-                    піки, періоди удачі та успіхи у стосунках?<br><br>
-                    <!-- 🔥 UPDATE: Оновлено ціни апселу -->
-                    <span style="color: var(--primary-text-color);">Лише зараз: <strong>199 грн.</strong> замість <span
-                            style="text-decoration: line-through; opacity: 0.7;">572 грн</span> (знижка 65%)</span>
+                <p id="upsell-modal-description" class="text-sm mt-2 mb-6 leading-relaxed" style="color: var(--secondary-text-color);">
+                    <!-- Динамічний опис заповнюється через JS -->
                 </p>
 
                 <!-- 🔥 КЛЮЧОВА ЗМІНА: id="ltv-upsell-btn" для коректного трекінгу -->
                 <button id="ltv-upsell-btn" class="btn btn-violet w-full">
-                    <span class="btn-text">Так, додати Прогноз всього за 199 грн. <span
-                            style="text-decoration: line-through; opacity: 0.7; font-weight: normal; margin-left: 4px;">572
-                            грн.</span></span>
+                    <span class="btn-text">Завантаження...</span>
                     <span class="btn-spinner"></span>
                 </button>
             </div>

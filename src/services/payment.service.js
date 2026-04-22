@@ -15,8 +15,27 @@ export async function processPayment(product, user, userData, options = {}) {
     Logger.log(`💳 Starting Payment: ${product.name} (${product.price} UAH)`);
 
     try {
+        // 🔥 SAFEGUARD: Force amount to be a clean number (prevent 'invalid amount' error)
+        const cleanAmount = Number(product.price);
+        if (isNaN(cleanAmount)) {
+            console.error("❌ Invalid price detected:", product.price);
+            throw new Error(`Payment error: Invalid price (${product.price})`);
+        }
+
+        // 🔥 CAPI Tracking Data: Збираємо рекламні куки та контекст браузера
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
+        
+        const trackingData = {
+            fbp: getCookie('_fbp'),
+            fbc: getCookie('_fbc'),
+            userAgent: navigator.userAgent
+        };
+
         const payload = {
-            amount: product.price,
+            amount: cleanAmount,
             productName: product.name,
             userEmail: user.email,
             userName: user.name || "Client",
@@ -25,6 +44,9 @@ export async function processPayment(product, user, userData, options = {}) {
             userData: userData,
             variant: options.variant || null, // 🔥 SAVE VARIANT TO BACKEND
             trafficSource: state.get('traffic_type'), // 🔥 Критерій Ads vs Bio
+            
+            // 🔥 CAPI Payload
+            trackingData: trackingData,
 
             origin: window.location.origin,
             returnQueryParams: options.returnQueryParams || ""
@@ -38,15 +60,21 @@ export async function processPayment(product, user, userData, options = {}) {
             // 🔥 FIX: Deep Link Mode (Hidden Link Click Technique)
             // Використовуємо цей метод, щоб Safari/Chrome коректно відкривали застосунок Монобанку
             // та ініціалізували Apple Pay без блокувань.
-            const link = document.createElement('a');
-            link.href = response.pageUrl;
-            link.target = '_top';
-            link.rel = 'noopener noreferrer';
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => {
-                document.body.removeChild(link);
-            }, 100);
+
+            if (options.paymentWindow) {
+                // Використовуємо вже відкрите вікно (напр., через window.open) щоб оминути блокувальник попапів
+                options.paymentWindow.location.href = response.pageUrl;
+            } else {
+                const link = document.createElement('a');
+                link.href = response.pageUrl;
+                link.target = '_top';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 100);
+            }
 
         } else {
             console.error("❌ Invalid Payment Response:", response);

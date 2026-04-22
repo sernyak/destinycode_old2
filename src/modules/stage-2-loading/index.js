@@ -125,7 +125,8 @@ export async function init(router) {
         { text: "Зчитую твій енергетичний код...", pause: 1200 },
         { text: "Розшифровую кармічні вузли...", pause: 1500 },
         { text: "Будую твою натальну карту...", pause: 1500 },
-        { text: "Приготуйся дізнатись, наскільки ти дивовижна 💖", pause: 2000, final: true }
+        { text: "Приготуйся дізнатись, наскільки ти дивовижна 💖", pause: 2500 },
+        { text: "Розкриття твоєї дивовижності потребує ще трохи часу 😇", pause: 3000, final: true }
     ];
 
     const loadingSteps = (currentVariant && currentVariant.ui && currentVariant.ui.loading && currentVariant.ui.loading.steps)

@@ -58,11 +58,64 @@ export function init(router) {
     const formatStr = (str) => {
         if (!str) return '';
 
-        // Replace ALL bold markers with White Regular span
+        // Replace ALL bold markers with White Regular span (Normal weight per user request)
         return str
             .replace(/\*\*(.*?)\*\*/g, '<span style="color: var(--primary-text-color); font-weight: normal;">$1</span>')
             .replace(/\\n/g, '<br>');
     };
+
+    // 0. Extract Variant and Archetype early for logic use
+    const currentVariant = state.get('currentVariant');
+    let archetype = 'твого архетипу';
+    const marketing = currentVariant?.marketing;
+    
+    if (marketing) {
+        const titleText = reportData?.title || '';
+        const archetypeBlockText = reportData?.content_blocks?.archetype || '';
+        
+        // 1. FIRST PRIORITY: Extract full AI name from the text block (e.g. "**Зіркова Стратегиня Душі**")
+        if (archetypeBlockText) {
+            // Find all bold instances
+            const allBoldsMatch = [...archetypeBlockText.matchAll(/\*\*(.*?)\*\*/g)];
+            const allBolds = allBoldsMatch.map(m => m[1]);
+
+            // Try to find the explicit keyword match (now handles 'ти \u2014', 'ти є', etc.)
+            const explicitMatchRegex = /(?:ти(?:\sє)?\s*[-–—]?\s*|(?:архетип|роль|суті|енергетикою)\s*[-–—:]?\s*)\*\*(.*?)\*\*/i;
+            const explicitMatch = archetypeBlockText.match(explicitMatchRegex);
+
+            if (explicitMatch && explicitMatch[1]) {
+                archetype = explicitMatch[1].trim().replace(/[.,!]$/, '');
+            } else if (allBolds.length > 0) {
+                // Фолбек: шукаємо перше жирне виділення, яке починається з великої літери (іменник/архетип)
+                // Це виключить випадково виділені прикметники на кшталт "агресивним" або "вразливою".
+                const capitalizedBold = allBolds.find(b => {
+                    const clean = b.trim();
+                    return clean.length >= 2 && !clean.match(/^\d/) && clean[0] === clean[0].toUpperCase();
+                });
+                
+                if (capitalizedBold) {
+                    archetype = capitalizedBold.trim().replace(/[.,!]$/, '');
+                } else {
+                    // Якщо з великої літери немає, беремо перше-ліпше (крім дат/попереджень)
+                    const firstSafe = allBolds.find(b => !b.match(/^\d/) && !b.match(/важливо|увага|знак/i));
+                    if (firstSafe) {
+                        archetype = firstSafe.trim().replace(/[.,!]$/, '');
+                    }
+                }
+            }
+        }
+
+        // 2. SECOND PRIORITY: Try to extract from the report title
+        if (archetype === 'твого архетипу' && titleText) {
+            const match = titleText.match(/(?:Архетип|Архетип:\s*|:\s*)([^<\n,]+)$/i);
+            if (match && match[1]) archetype = match[1].trim();
+        }
+
+        // 3. THIRD PRIORITY: explicit field from backend (fallback, as it might just be the Zodiac sign)
+        if (archetype === 'твого архетипу' && reportData?.archetype && typeof reportData.archetype === 'string') {
+            archetype = reportData.archetype;
+        }
+    }
 
     // 1. Partner Match Logic (New JSON Structure) - KEEP AS IS if compatible, otherwise wrap in accordion too?
     // The user asked for "Main Version" (Natal Chart) which usually goes into "else if (reportData.psychological_analysis)" block below.
@@ -250,8 +303,25 @@ export function init(router) {
 
         // 1. Try New Structured Data (Priority)
         if (reportData.content_blocks) {
+            let archContent = formatStr(reportData.content_blocks.archetype || "");
+            
+            // 🔥 SPECIFIC BOLDING: Only bold the archetype name in the first block, make it white and bold
+            if (archetype && archetype !== 'твого архетипу') {
+                const escapedArch = archetype.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                
+                // Спочатку шукаємо, чи воно знаходиться всередині існуючого <span style="... font-weight: normal..."> (який поставив formatStr)
+                const archRegexSpan = new RegExp(`(<span[^>]*font-weight:\\s*normal;?[^>]*>)(${escapedArch})(<\\/span>)`, 'gi');
+                if (archContent.match(archRegexSpan)) {
+                    archContent = archContent.replace(archRegexSpan, '<span style="color: var(--primary-text-color); font-weight: 700;">$2</span>');
+                } else {
+                    // Якщо ні, просто шукаємо слово і загортаємо
+                    const archRegexStrict = new RegExp(`(${escapedArch})`, 'gi');
+                    archContent = archContent.replace(archRegexStrict, '<span style="color: var(--primary-text-color); font-weight: 700;">$1</span>');
+                }
+            }
+
             cards = [
-                { ...cardHeaders[0], content: formatStr(reportData.content_blocks.archetype || "") },
+                { ...cardHeaders[0], content: archContent },
                 { ...cardHeaders[1], content: formatStr(reportData.content_blocks.conflict || "") },
                 { ...cardHeaders[2], content: formatStr(reportData.content_blocks.solution || "") }
             ];
@@ -407,7 +477,7 @@ export function init(router) {
     // Elements stay in their original position in view.html (below the accordion)
 
     // 🔥 VARIANT OVERRIDE: Results UI
-    const currentVariant = state.get('currentVariant');
+    // (currentVariant already defined above)
     if (currentVariant && currentVariant.ui && currentVariant.ui.results) {
         const ui = currentVariant.ui.results;
 
@@ -447,8 +517,8 @@ export function init(router) {
     }
 
     // 🔥 Variant: natal_chart_price / natal_chart_offer Form Logic
-    const isNatalChartPrice = ['natal_chart_price', 'natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer'].includes(currentVariant?.id);
-    const isNatalChartOffer = ['natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer'].includes(currentVariant?.id);
+    const isNatalChartPrice = ['natal_chart_price', 'natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer', 'natal_chart_sale'].includes(currentVariant?.id);
+    const isNatalChartOffer = ['natal_chart_offer', 'natal_chart_offer1uah', 'natal_chart_landoffer', 'natal_chart_sale'].includes(currentVariant?.id);
 
     if (isNatalChartPrice) {
         // Toggle UI
@@ -471,12 +541,9 @@ export function init(router) {
             const btnTextSpan = upgradeButton.querySelector('.btn-text');
             if (btnTextSpan) {
                 btnTextSpan.innerHTML = `
-                    <span class="flex flex-col items-center gap-0">
-                        <span class="text-[15px] xs:text-[17px] sm:text-[20px] font-bold leading-tight tracking-tight">
-                            Отримати Розшифровку за ${currentPrices.display.FULL_REPORT} грн
-                            <span class="line-through opacity-60 text-[12px] font-normal ml-1">${currentPrices.display.FULL_REPORT_OLD} грн</span>
-                        </span>
-                        <span class="text-[10px] uppercase tracking-[1px] opacity-90 mt-1">Одноразовий платіж • Довічний доступ</span>
+                    <span class="flex flex-col items-center gap-0 w-full">
+                        <span class="whitespace-nowrap" style="font-size: 14px; font-weight: 700; line-height: 1.3;">Отримати Розшифровку за ${currentPrices.display.FULL_REPORT} грн. <span style="font-size: 13px; font-weight: 400; opacity: 0.5; text-decoration: line-through;">${currentPrices.display.FULL_REPORT_OLD} грн</span></span>
+                        <span class="text-[10px] uppercase tracking-[1px] opacity-80 mt-1">Одноразовий платіж • Довічний доступ</span>
                     </span>
                 `;
             }
@@ -568,16 +635,24 @@ export function init(router) {
                 });
             }
 
+            // (Archetype logic moved up)
+
             // 🔥 INJECT TRIGGER INTO LAST ACCORDION ITEM
-            // Add a "But this is just the beginning..." block to the last accordion
+            // Add Hook and "But this is just the beginning..." block to the last accordion
             setTimeout(() => {
                 const lastExtras = document.getElementById('last-accordion-item-extras');
                 if (lastExtras) {
+                    let hookHtml = '';
+                    if (marketing && marketing.hook && marketing.hook.template) {
+                        hookHtml = `<p style="color: var(--primary-text-color); font-size: 0.95em; line-height: 1.6; margin-bottom: 12px;">${marketing.hook.template.replace(/{archetype}/g, `<span style="color: var(--primary-text-color); font-weight: 700;">${archetype}</span>`)}</p>`;
+                    }
+
                     lastExtras.innerHTML = `
-                        <div style="margin-top: 20px; padding: 16px; background: rgba(205, 164, 94, 0.08); border: 1px solid rgba(205, 164, 94, 0.15); border-radius: 10px;">
-                            <p style="color: var(--accent-color); font-weight: 700; font-size: 0.95em; margin-bottom: 8px;">Але це лише верхівка айсберга...</p>
+                        <div style="margin-top: 20px; padding: 18px 16px; background: rgba(205, 164, 94, 0.08); border: 1px solid rgba(205, 164, 94, 0.2); border-radius: 12px;">
+                            ${hookHtml}
                             <p style="color: var(--secondary-text-color); font-size: 0.88em; line-height: 1.6; margin: 0;">
-                                Важливо знати свої <strong style="color: #fff;">«налаштування»</strong> повністю, щоб використовувати сильні сторони на повну і знати, де варто <strong style="color: #fff;">«підкласти соломки»</strong>. Відповіді на твої запитання вже закладені в твоїй карті.
+                                Важливо знати власні «природні налаштування», щоб використовувати свої сильні сторони на повну і знати свої слабкі сторони, щоб двічі не наступати на ті самі граблі.<br>
+                                Відповіді на всі твої запитання вже закладені у твоїй Натальній карті.
                             </p>
                         </div>
                     `;
@@ -586,53 +661,18 @@ export function init(router) {
                     if (lastAccordionContent) {
                         const accordionItem = lastAccordionContent.closest('.accordion-item');
                         if (accordionItem && accordionItem.classList.contains('accordion-open')) {
-                            lastAccordionContent.style.maxHeight = (parseInt(lastAccordionContent.style.maxHeight || 0) + 200) + 'px';
+                            // Give extra room for the new text
+                            lastAccordionContent.style.maxHeight = (parseInt(lastAccordionContent.style.maxHeight || 0) + 350) + 'px';
                         }
                     }
                 }
             }, 100);
 
-            // 🔥 PROFESSIONAL: Dynamic Marketing Features (Hook, Table, Mockup)
+            // 🔥 PROFESSIONAL: Dynamic Marketing Features (Table, Mockup)
             // Pulls content from currentVariant.marketing for full scalability
-            const marketing = currentVariant?.marketing;
-            
             if (marketing) {
                 const prices = getPrices();
                 const discountPct = Math.round(((prices.display.FULL_REPORT_OLD - prices.display.FULL_REPORT) / prices.display.FULL_REPORT_OLD) * 100);
-
-                // 1. Personalized Hook (Scalable Template)
-                const hookContainer = document.getElementById('personalized-hook-container');
-                const hookTextEl = document.getElementById('personalized-hook-text');
-                
-                if (marketing.hook && hookContainer && hookTextEl) {
-                    // Extract archetype more robustly (from FREE report content block)
-                    let archetype = 'твого архетипу';
-                    
-                    const archetypeBlockText = reportData?.content_blocks?.archetype || '';
-                    const titleText = reportData?.title || '';
-                    
-                    // ШІ формує це так: "За енергетикою ти — **Мудрець**."
-                    const archetypeBlockMatch = archetypeBlockText.match(/\*\*(.*?)\*\*/);
-                    
-                    if (archetypeBlockMatch && archetypeBlockMatch[1]) {
-                        archetype = archetypeBlockMatch[1].trim();
-                        // Відсікаємо крапку чи кому, якщо ШІ випадково включив їх у болд
-                        archetype = archetype.replace(/[.,!]$/, '').trim();
-                    } else {
-                        // Фолбек (старий метод, що міг захопити знак зодіаку)
-                        const titleMatch = titleText.match(/(?:Архетип|Архетип:\s*|:)\s*([^<\n,]+)/i);
-                        if (titleMatch && titleMatch[1]) {
-                            archetype = titleMatch[1].trim();
-                        } else if (reportData.archetype) {
-                            archetype = reportData.archetype;
-                        }
-                    }
-                    
-                    // Replace {archetype} placeholder in template
-                    const template = marketing.hook.template || "";
-                    hookTextEl.innerHTML = template.replace(/{archetype}/g, `<span style="color:var(--accent-color); font-weight:700;">${archetype}</span>`);
-                    hookContainer.style.display = 'block';
-                }
 
                 // 2. Comparison Table (Data-Driven)
                 const comparisonBlock = document.getElementById('offer-comparison-block');
@@ -642,14 +682,27 @@ export function init(router) {
                     const { title, headers, rows } = marketing.comparison;
                     
                     const titleEl = document.getElementById('comparison-table-title');
-                    if (titleEl && title) titleEl.innerText = title;
+                    if (titleEl && title) titleEl.innerHTML = title;
 
                     const rowsHtml = rows.map(row => {
                         const renderIcon = (val) => {
                             if (val === 'check') return '<span class="offer-comparison-icon check">✅</span>';
                             if (val === 'cross') return '<span class="offer-comparison-icon cross">❌</span>';
-                            if (val === 'discount') return `<span class="offer-comparison-icon bonus">🎁</span><div class="bonus-tag">ЗНИЖКА ${discountPct}%</div>`;
-                            if (val === 'bonus') return `<span class="offer-comparison-icon bonus">🎁</span><div class="bonus-tag">БЕЗКОШТОВНО</div>`;
+                            if (val === 'discount' || (typeof val === 'string' && val.startsWith('discount:'))) {
+                                const customPct = val.includes(':') ? val.split(':')[1] : discountPct;
+                                return `
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                                        <span class="offer-comparison-icon bonus" style="margin: 0; line-height: 1;">🎁</span>
+                                        <div class="bonus-tag" style="margin-top: 0;">ЗНИЖКА ${customPct}%</div>
+                                    </div>
+                                `;
+                            }
+                            if (val === 'bonus') return `
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                                    <span class="offer-comparison-icon bonus" style="margin: 0; line-height: 1;">🎁</span>
+                                    <div class="bonus-tag" style="margin-top: 0;">БЕЗКОШТОВНО</div>
+                                </div>
+                            `;
                             return val;
                         };
 
@@ -679,68 +732,49 @@ export function init(router) {
                     comparisonBlock.style.display = 'block';
                 }
 
-                // 3. Mockup Image / Carousel (Dynamic)
+                // 3.4. Mockup Preview Carousel
                 const previewBlock = document.getElementById('offer-preview-block');
-                
-                if (marketing.mockup && previewBlock) {
-                    // Title Injection
-                    if (marketing.mockup.title) {
-                        let existingTitle = previewBlock.querySelector('.offer-mockup-title');
-                        if (!existingTitle) {
-                            const titleEl = document.createElement('h3');
-                            titleEl.className = 'offer-mockup-title text-xl font-semibold mb-4 text-[#cda45e]';
-                            titleEl.innerText = marketing.mockup.title;
-                            previewBlock.insertBefore(titleEl, previewBlock.firstChild);
-                        } else {
-                            existingTitle.innerText = marketing.mockup.title;
-                        }
+                if (previewBlock && marketing.mockup) {
+                    const titleHeading = document.getElementById('mockup-title-heading');
+                    if (titleHeading) {
+                        titleHeading.innerText = marketing.mockup.title;
+                        titleHeading.style.display = 'block';
                     }
 
-                    // Handle Carousel vs Single Image
-                    const wrapper = previewBlock.querySelector('.offer-mockup-image-wrapper');
-                    if (wrapper) {
-                        if (marketing.mockup.images && marketing.mockup.images.length > 0) {
-                            const imagesHTML = marketing.mockup.images.map(src => `
-                                <div class="snap-center shrink-0 w-full flex justify-center">
-                                    <img src="${src}" class="w-full rounded-md shadow-[0_0_15px_rgba(205,164,94,0.15)] border border-white/10" alt="PDF Preview">
-                                </div>
-                            `).join('');
-                            
-                            const dotsHTML = marketing.mockup.images.map((_, i) => `<div class="mockup-dot ${i === 0 ? 'active' : ''}"></div>`).join('');
-                            
-                            wrapper.innerHTML = `
-                                <div id="mockup-carousel-scroll" class="flex overflow-x-auto snap-x snap-mandatory gap-0 pb-4 pt-1 w-full" style="scrollbar-width: none; -ms-overflow-style: none;">
-                                    <style>
-                                        #mockup-carousel-scroll::-webkit-scrollbar { display: none; }
-                                        .mockup-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s; margin: 0 4px; display: inline-block; }
-                                        .mockup-dot.active { background: var(--accent-color); transform: scale(1.3); }
-                                    </style>
-                                    ${imagesHTML}
-                                </div>
-                                <div class="flex justify-center mt-1 mb-4" id="mockup-dots-container">
-                                    ${dotsHTML}
-                                </div>
-                            `;
-                            
-                            // Scroll event for active dot
-                            setTimeout(() => {
-                                const scrollContainer = document.getElementById('mockup-carousel-scroll');
-                                const dots = document.querySelectorAll('#mockup-dots-container .mockup-dot');
-                                if (scrollContainer && dots.length > 0) {
-                                    scrollContainer.addEventListener('scroll', () => {
-                                        const index = Math.round(scrollContainer.scrollLeft / scrollContainer.clientWidth);
-                                        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
-                                    });
-                                }
-                            }, 50);
-                        } else if (marketing.mockup.imagePath) {
-                            const imgEl = previewBlock.querySelector('#offer-mockup-img');
-                            if (imgEl) imgEl.src = marketing.mockup.imagePath;
+                    const scrollContainer = document.getElementById('mockup-carousel-scroll');
+                    const dotsContainer = document.getElementById('destiny-dots-new');
+                    
+                    if (scrollContainer && marketing.mockup.images?.length > 0) {
+                        // Inject images
+                        scrollContainer.innerHTML = marketing.mockup.images.map(src => `
+                            <div class="carousel-slide">
+                                <img src="${src}" class="offer-mockup-image" alt="PDF Preview">
+                            </div>
+                        `).join('');
+                        
+                        // Inject dots
+                        if (dotsContainer) {
+                            dotsContainer.innerHTML = marketing.mockup.images.map((_, i) => 
+                                `<div class="destiny-dot ${i === 0 ? 'active' : ''}"></div>`
+                            ).join('');
                         }
+                        
+                        // Scroll event for active dot
+                        setTimeout(() => {
+                            const dots = dotsContainer ? dotsContainer.querySelectorAll('.destiny-dot') : [];
+                            if (scrollContainer && dots.length > 0) {
+                                scrollContainer.addEventListener('scroll', () => {
+                                    const index = Math.round(scrollContainer.scrollLeft / scrollContainer.clientWidth);
+                                    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+                                }, { passive: true });
+                            }
+                        }, 100);
                     }
 
-                    const captionEl = previewBlock.querySelector('.offer-mockup-caption');
-                    if (captionEl && marketing.mockup.caption) captionEl.innerText = marketing.mockup.caption;
+                    const captionEl = document.getElementById('mockup-caption-text');
+                    if (captionEl && marketing.mockup.caption) {
+                        captionEl.innerText = marketing.mockup.caption;
+                    }
                     previewBlock.style.display = 'block';
                 }
 
@@ -769,7 +803,7 @@ export function init(router) {
                     const audNotSubtitle = document.getElementById('s3-audience-not-subtitle');
                     
                     if (audBlock && audTitle && audForList && audNotList) {
-                        audTitle.textContent = sections.audience.title;
+                        audTitle.innerHTML = sections.audience.title;
                         audForList.innerHTML = sections.audience.for_who.map(item => `<li>${item}</li>`).join('');
                         audNotList.innerHTML = sections.audience.not_for_who.map(item => `<li>${item}</li>`).join('');
                         if (audNotSubtitle && sections.audience.negativeSubtitle) {
@@ -798,6 +832,60 @@ export function init(router) {
                             </p>
                         </div>
                     `).join('');
+                }
+
+                // 4.5 Dynamic Trust Counter Sync (Matches Stage 1)
+                const s3CounterEl = document.getElementById('s3-live-women-counter');
+                if (s3CounterEl) {
+                    const counterKeys = {
+                        'forecast': 'forecast_counter',
+                        'natal_child': 'natal_child_counter',
+                        'man': 'man_women_counter',
+                        'man1uah': 'man_women_counter',
+                        'natal_chart_landoffer': 'natal_chart_counter',
+                        'natal_chart_sale': 'natal_chart_counter'
+                    };
+                    const lsKey = counterKeys[currentVariant.id] || 'natal_chart_counter';
+                    
+                    const renderS3Count = (c, animate) => {
+                        const formattedCount = c.toLocaleString('uk-UA').replace(/\u00a0/g, ' ');
+                        if (s3CounterEl.innerText !== formattedCount) {
+                            s3CounterEl.innerText = formattedCount;
+                            if (animate) {
+                                s3CounterEl.style.transform = 'scale(1.15)';
+                                s3CounterEl.style.transition = 'transform 0.2s ease';
+                                setTimeout(() => {
+                                    s3CounterEl.style.transform = 'scale(1)';
+                                }, 250);
+                            }
+                        }
+                    };
+
+                    let count = parseInt(localStorage.getItem(lsKey)) || 15420;
+                    renderS3Count(count, false);
+
+                    const scheduleNextS3Increment = () => {
+                        const delay = Math.random() * 4000 + 4000;
+                        setTimeout(() => {
+                            // Increment logic matches Stage 1 for parity
+                            const increment = Math.floor(Math.random() * 3) + 1;
+                            count = (parseInt(localStorage.getItem(lsKey)) || count) + increment;
+                            
+                            localStorage.setItem(lsKey, count);
+                            renderS3Count(count, true);
+                            scheduleNextS3Increment();
+                        }, delay);
+                    };
+
+                    scheduleNextS3Increment();
+
+                    // Still poll occasionally in case of cross-tab sync, but less frequently
+                    window.addEventListener('storage', (e) => {
+                        if (e.key === lsKey) {
+                            count = parseInt(e.newValue) || count;
+                            renderS3Count(count, true);
+                        }
+                    });
                 }
 
                 // 5. Dynamic FAQ

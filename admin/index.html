@@ -103,6 +103,22 @@
     </div>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            projectId: "destinycode-982fa",
+            appId: "1:168629222416:web:3283f6a4051f57a85c9e95",
+            storageBucket: "destinycode-982fa.firebasestorage.app",
+            apiKey: "AIzaSyA20BvSogSuHTni09Y54HwmlpG7UKXuxk8",
+            authDomain: "destinycode-982fa.firebaseapp.com",
+            messagingSenderId: "168629222416",
+            measurementId: "G-ZKS4RCNFGX"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
         const ADMIN_PASSWORD = '1536';
         const SESSION_KEY = 'dc_admin_auth';
 
@@ -113,19 +129,34 @@
         const loginError = document.getElementById('login-error');
 
         // Check if already authenticated
-        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-            showAdmin();
-        }
+        onAuthStateChanged(auth, (user) => {
+            if (user && sessionStorage.getItem(SESSION_KEY) === 'true') {
+                showAdmin();
+            }
+        });
 
         loginBtn.addEventListener('click', attemptLogin);
         passwordInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') attemptLogin();
         });
 
-        function attemptLogin() {
+        async function attemptLogin() {
             if (passwordInput.value === ADMIN_PASSWORD) {
-                sessionStorage.setItem(SESSION_KEY, 'true');
-                showAdmin();
+                try {
+                    loginBtn.disabled = true;
+                    loginBtn.innerText = 'Вхід...';
+
+                    await signInAnonymously(auth);
+
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                    showAdmin();
+                } catch (e) {
+                    alert('Помилка авторизації Firebase: ' + e.message);
+                    console.error(e);
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = 'Увійти';
+                }
             } else {
                 loginError.classList.remove('hidden');
                 passwordInput.classList.add('border-red-500');

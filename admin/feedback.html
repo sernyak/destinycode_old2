@@ -110,7 +110,8 @@
     <!-- FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             projectId: "destinycode-982fa",
@@ -123,28 +124,43 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
         // --- AUTH ---
         const ADMIN_PASSWORD = '1536';
         const SESSION_KEY = 'dc_admin_auth';
 
-        // 🔥 FIX: Check session AFTER functions are defined (see bottom of script)
-
         document.getElementById('login-btn').addEventListener('click', attemptLogin);
         document.getElementById('password-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') attemptLogin();
         });
 
-        function attemptLogin() {
+        async function attemptLogin() {
             const pass = document.getElementById('password-input').value;
+            const btn = document.getElementById('login-btn');
+
             if (pass === ADMIN_PASSWORD) {
-                sessionStorage.setItem(SESSION_KEY, 'true');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden');
-                loadFeedback();
+                try {
+                    btn.disabled = true;
+                    btn.innerText = 'Вхід...';
+
+                    // 🔥 SECURITY UPGRADE: Sign in to Firebase to satisfy Firestore rules
+                    await signInAnonymously(auth);
+
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('admin-content').classList.remove('hidden');
+                    loadFeedback();
+                } catch (e) {
+                    alert('Помилка авторизації Firebase: ' + e.message);
+                    console.error(e);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = 'Увійти';
+                }
             } else {
-                alert('Wrong password');
+                alert('Невірний пароль');
             }
         }
 
@@ -204,6 +220,24 @@
             }
         };
 
+        window.deleteItem = async (id) => {
+            if (!confirm('Ви впевнені, що хочете видалити цей відгук?')) return;
+
+            try {
+                // Пряма взаємодія з Firestore (дозволено новими правилами для авторизованих)
+                await deleteDoc(doc(db, "web_feedback", id));
+                
+                // Видаляємо з локального масиву та перемальовуємо
+                allItems = allItems.filter(item => item.id !== id);
+                renderList();
+                
+                // Оновлюємо лічильники (спрощений варіант — просто перезавантажуємо)
+                loadFeedback();
+            } catch (e) {
+                alert('Помилка видалення: ' + e.message);
+            }
+        };
+
         function renderList() {
             const container = document.getElementById('feedback-container');
             container.innerHTML = '';
@@ -239,7 +273,7 @@
                     : `<div class="text-slate-500 text-sm italic mt-1">Оцінка: ${item.value}</div>`;
 
                 const card = document.createElement('div');
-                card.className = `card rounded-lg p-4 border ${borderClass} ${bgClass} transition hover:bg-slate-800`;
+                card.className = `card rounded-lg p-4 border ${borderClass} ${bgClass} transition hover:bg-slate-800 relative group`;
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex items-center gap-3">
@@ -251,7 +285,16 @@
                                 <div class="text-xs text-slate-500">${date}</div>
                             </div>
                         </div>
-                        <span class="text-xs px-2 py-1 bg-slate-900 rounded text-slate-400 capitalize">${item.type}</span>
+                        <div class="flex items-center gap-2">
+                             <span class="text-xs px-2 py-1 bg-slate-900 rounded text-slate-400 capitalize">${item.type}</span>
+                             <button onclick="deleteItem('${item.id}')" 
+                                class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 text-slate-500 hover:text-red-500 rounded-lg transition"
+                                title="Видалити">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                             </button>
+                        </div>
                     </div>
                     ${contentHtml}
                 `;
@@ -269,12 +312,14 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // 🔥 AUTO-LOGIN CHECK (Moved to bottom after functions are defined)
-        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('admin-content').classList.remove('hidden');
-            loadFeedback();
-        }
+        // 🔥 AUTO-LOGIN CHECK
+        onAuthStateChanged(auth, (user) => {
+            if (user && sessionStorage.getItem(SESSION_KEY) === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadFeedback();
+            }
+        });
     </script>
 </body>
 
